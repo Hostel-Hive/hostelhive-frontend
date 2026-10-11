@@ -4,6 +4,8 @@
 
 ### Added
 
+- Institution-neutral branding and full Figma tonal palette; login cyan accents now use cyan-500.
+- Reusable Button and Input controls under shared/components/ui, used by login and mobile navigation.
 - Shared Figma authentication layout and login page with accessible validation, loading/error states and password recovery assistance route (issue #7).
 - Firebase email/password sign-in and persisted-session restoration, verified against the backend active-account and role response before dashboard redirects.
 - Login interaction and Firebase/backend contract tests; development API proxy.
