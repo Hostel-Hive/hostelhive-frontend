@@ -28,14 +28,14 @@ vi.mock('firebase/auth', () => ({
 import { login, loginErrorMessage, restoreStaffSession } from './auth.api';
 
 const input = {
-  email: ' staff@kln.ac.lk ',
+  email: ' staff@example.com ',
   password: 'password',
   rememberMe: false,
 };
 const account = {
   user_id: 'staff-1',
   firebase_uid: 'firebase-1',
-  email: 'staff@kln.ac.lk',
+  email: 'staff@example.com',
   role: 'admin',
   is_active: true,
 };
@@ -76,7 +76,7 @@ describe('Firebase sign-in and backend account verification', () => {
       );
       expect(sdk.signIn).toHaveBeenCalledWith(
         sdk.auth,
-        'staff@kln.ac.lk',
+        'staff@example.com',
         'password',
       );
       expect(fetchMock).toHaveBeenCalledWith(
