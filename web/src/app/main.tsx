@@ -12,6 +12,7 @@ import '@fontsource/instrument-serif/latin-400-italic.css';
 import '@fontsource/jetbrains-mono/latin-400.css';
 import '../styles/tokens.css';
 import '../styles/globals.css';
+import '../styles/ui.css';
 import '../styles/auth.css';
 
 parseEnvironment(import.meta.env);

@@ -1,0 +1,81 @@
+.ui-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  background: var(--indigo-900);
+  color: var(--color-surface);
+}
+.ui-button--sm {
+  min-height: 32px;
+  padding: 6px 14px;
+  font-size: var(--text-xs);
+  border-radius: 8px;
+}
+.ui-button--md {
+  min-height: 40px;
+}
+.ui-button--lg {
+  min-height: 52px;
+  padding: 14px 24px;
+  font-size: var(--text-base);
+}
+.ui-button--accent {
+  background: var(--cyan-500);
+  color: var(--indigo-900);
+}
+.ui-button--secondary {
+  background: var(--color-surface);
+  color: var(--indigo-900);
+  border-color: var(--indigo-900);
+}
+.ui-button--ghost {
+  background: transparent;
+  color: var(--indigo-900);
+}
+.ui-button--warm {
+  background: var(--amber-500);
+  color: var(--indigo-900);
+}
+.ui-button--danger {
+  background: var(--color-danger);
+}
+.ui-button:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+.ui-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.ui-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+.ui-input::placeholder {
+  color: var(--ink-400);
+  opacity: 1;
+}
+.ui-input:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.ui-input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+.ui-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

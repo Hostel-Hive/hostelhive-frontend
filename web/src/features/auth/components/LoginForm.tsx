@@ -5,6 +5,8 @@ import { routePaths } from '../../../app/router/routePaths';
 import { login, loginErrorMessage, restoreStaffSession } from '../api/auth.api';
 import { validateLogin } from '../auth.schema';
 import type { StaffAccount } from '../auth.types';
+import Button from '../../../shared/components/ui/Button';
+import Input from '../../../shared/components/ui/Input';
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -109,13 +111,13 @@ export default function LoginForm() {
             <rect x="3" y="5" width="18" height="14" rx="2" />
             <path d="m3 6 9 7 9-7" />
           </svg>
-          <input
+          <Input
             ref={emailRef}
             id="login-email"
             name="email"
             type="email"
             autoComplete="username"
-            placeholder="you@kln.ac.lk"
+            placeholder="you@example.com"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -135,7 +137,7 @@ export default function LoginForm() {
           <label htmlFor="login-password">Password</label>
           <Link to={routePaths.forgotPassword}>Forgot password?</Link>
         </div>
-        <input
+        <Input
           ref={passwordRef}
           id="login-password"
           name="password"
@@ -164,8 +166,9 @@ export default function LoginForm() {
         />
         Keep me signed in
       </label>
-      <button
+      <Button
         className="auth-submit"
+        size="lg"
         type="submit"
         disabled={checking || submitting}
       >
@@ -174,7 +177,7 @@ export default function LoginForm() {
           : submitting
             ? 'Signing in…'
             : 'Sign in'}
-      </button>
+      </Button>
       <span className="sr-only" role="status">
         {checking
           ? 'Checking your session.'
