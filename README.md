@@ -6,7 +6,7 @@ React staff web dashboard and planned Flutter mobile application for [HostelHive
 
 ## Current scope
 
-Issue #1 provides the React + TypeScript + Vite scaffold and public environment configuration inside `web/`. Feature folders are added when their tickets are implemented.
+Issue #1 provides the React + TypeScript + Vite scaffold and public environment configuration inside `web/`. Issue #3 adds application routing, admin/warden landing pages and a responsive dashboard layout. Feature folders are added when their tickets are implemented.
 
 - `web/`: application, package manifest, lockfile, TypeScript/Vite/Vitest configuration.
 - Root ESLint/Prettier configuration: shared entry points for coding checks.
