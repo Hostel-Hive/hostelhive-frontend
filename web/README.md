@@ -52,10 +52,34 @@ Before opening a PR, run lint, format:check, test:coverage and build. Review `co
 
 ```text
 src/
-  app/       App, browser entry point and rendering test
-  config/    API URL validation and configuration tests
-  styles/    Minimal global styling
+  app/       Browser entry point, route definitions and Not Found page
+  config/    API URL validation and dashboard navigation
+  features/  Admin and warden dashboard landing pages
+  layouts/   Shared header, desktop sidebar and mobile navigation
+  styles/    Responsive dashboard styling
   test/      DOM test setup
 ```
 
-The proposed larger feature structure will grow through individual tickets. Routing, Firebase, API clients, layouts, realtime connections, domain features and E2E suites are not part of this configuration ticket.
+The proposed larger feature structure grows through individual tickets. Issue #3 adds routing and the dashboard layout. Firebase, API clients, realtime connections and business features belong to subsequent tickets.
+
+## Routes and navigation
+
+- `/` and `/dashboard` redirect to `/dashboard/admin`.
+- `/dashboard/admin` renders the admin landing page.
+- `/dashboard/warden` renders the warden landing page.
+- Unknown URLs show a Not Found page with a return link.
+
+Both landing pages are currently public layout previews. Their names do not enforce access control. Authentication and role protection will be implemented in dedicated tickets before these pages expose account or business data.
+
+Below 768px, the desktop sidebar is replaced with a navigation disclosure. Open/close it with the toggle button, use Escape to close it and return focus to the toggle, or select a link to navigate and close it. A skip link takes keyboard users directly to the main content.
+
+For deployment, configure the web host to serve `index.html` for application routes such as `/dashboard/warden`; static assets must continue to use their actual paths. This browser-history fallback is necessary for direct URLs and refreshes. Vite provides it locally.
+
+### Manual smoke checks
+
+1. Open `/` and confirm the admin landing page appears.
+2. Select Warden dashboard and confirm its page and active navigation change.
+3. Refresh `/dashboard/warden` and confirm it still loads.
+4. Open an unknown URL and use Return to dashboard.
+5. At 375px width, open the menu, navigate and verify there is no horizontal overflow.
+6. Use Tab/Enter to operate the menu and Escape to close it.
