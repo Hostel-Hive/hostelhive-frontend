@@ -8,6 +8,10 @@ React staff web dashboard and planned Flutter mobile application for [HostelHive
 
 Issue #1 provides the React + TypeScript + Vite scaffold and public environment configuration inside `web/`. Issue #3 adds application routing, admin/warden landing pages and a responsive dashboard layout. Feature folders are added when their tickets are implemented.
 
+Issue #5 applies the [HostelHive Figma component library](https://www.figma.com/design/TO7IwjDIvqi0dMv1D0VcZz/HostelHive?node-id=7-2) to the existing dashboard shell: indigo sidebar, cyan active navigation, tinted neutral surfaces and Plus Jakarta Sans typography. This ticket styles the existing landing pages; the complete Figma page content belongs to individual feature tickets.
+
+Design tokens live in `web/src/styles/tokens.css` and shared shell styles in `web/src/styles/globals.css`. The colour values and font families come from Figma; spacing, radii and shadows adapt the current shell. Plus Jakarta Sans, Instrument Serif (italic editorial accents) and JetBrains Mono are bundled locally through Fontsource, with no runtime font CDN request. Serif and mono tokens are available for future feature content. Only the Latin subsets and required weights are imported in the application entry point.
+
 - `web/`: application, package manifest, lockfile, TypeScript/Vite/Vitest configuration.
 - Root ESLint/Prettier configuration: shared entry points for coding checks.
 - `.github/workflows/frontend-ci.yml`: install, lint, format, tests, coverage and build; dependency scanning on pushes to develop/main.
