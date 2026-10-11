@@ -1,0 +1,55 @@
+/* Colours and typefaces from the HostelHive Figma component library.
+ * Layout, spacing and elevation tokens adapt the existing dashboard shell.
+ */
+:root {
+  --indigo-50: #f8f7fe;
+  --indigo-100: #f1effc;
+  --indigo-200: #e5e2fa;
+  --indigo-600: #4f41a3;
+  --indigo-800: #241a55;
+  --indigo-900: #181037;
+  --cyan-100: #dcf3fd;
+  --cyan-500: #00aeef;
+  --cyan-700: #0074a8;
+  --amber-100: #fef0d3;
+  --amber-500: #f59e0b;
+  --ink-50: #f7f7fb;
+  --ink-200: #e4e4ec;
+  --ink-600: #605a82;
+  --ink-700: #453d66;
+  --ink-900: #181037;
+
+  --font-ui: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-editorial: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-heading: 1.5rem;
+
+  --color-text: var(--ink-900);
+  --color-text-muted: var(--ink-600);
+  --color-background: var(--ink-50);
+  --color-surface: #fff;
+  --color-border: var(--ink-200);
+  --color-sidebar: var(--indigo-900);
+  --color-sidebar-text: var(--indigo-200);
+  --color-accent: var(--cyan-500);
+  --color-focus: var(--cyan-700);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --radius-control: 0.5rem;
+  --radius-card: 1rem;
+  --shadow-card: 0 4px 24px #18103706;
+  --shadow-menu: 0 12px 32px #18103724;
+  --header-height: 5rem;
+  --sidebar-width: 15.5rem;
+}
