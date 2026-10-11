@@ -1,0 +1,35 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #173c36;
+  background: #f4f7f5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+.welcome {
+  width: min(640px, calc(100% - 40px));
+  margin: 15vh auto;
+  padding: clamp(24px, 5vw, 48px);
+  border: 1px solid #dbe7df;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.welcome__label {
+  color: #51685f;
+  font-size: 0.875rem;
+}
+
+h1 {
+  margin: 12px 0;
+  font-size: clamp(2rem, 6vw, 3rem);
+}
