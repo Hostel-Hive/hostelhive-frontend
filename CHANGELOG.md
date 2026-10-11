@@ -4,6 +4,8 @@
 
 ### Added
 
+- Figma colour/type tokens and locally bundled Plus Jakarta Sans, Instrument Serif and JetBrains Mono fonts (issue #5).
+- Indigo dashboard sidebar, cyan active navigation and updated responsive shell, cards and recovery page styling.
 - Application routing, admin/warden landing pages and shared responsive dashboard layout (issue #3).
 - Active navigation, keyboard-accessible mobile menu and Not Found recovery.
 - Route and mobile navigation interaction tests.
