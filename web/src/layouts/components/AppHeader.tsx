@@ -10,7 +10,7 @@ export default function AppHeader() {
         to={routePaths.adminDashboard}
         aria-label="HostelHive dashboard"
       >
-        HostelHive
+        Hostel<span className="brand__accent">Hive</span>
       </Link>
       <span className="app-header__description">Staff workspace</span>
       <MobileSidebar />
