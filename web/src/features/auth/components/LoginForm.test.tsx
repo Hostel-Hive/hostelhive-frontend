@@ -15,7 +15,7 @@ vi.mock('../api/auth.api', async (original) => ({
 const account: StaffAccount = {
   user_id: 'staff-1',
   firebase_uid: 'firebase-1',
-  email: 'staff@kln.ac.lk',
+  email: 'staff@example.com',
   role: 'admin',
   is_active: true,
 };
@@ -30,7 +30,7 @@ async function openLogin() {
   return userEvent.setup();
 }
 async function fillForm(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('Email'), 'staff@kln.ac.lk');
+  await user.type(screen.getByLabelText('Email'), 'staff@example.com');
   await user.type(
     screen.getByLabelText('Password', { exact: true }),
     'existing-password',
@@ -64,7 +64,7 @@ describe('staff login', () => {
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(screen.getByText('Enter a valid email address.')).toBeVisible();
     await user.clear(screen.getByLabelText('Email'));
-    await user.type(screen.getByLabelText('Email'), 'staff@kln.ac.lk');
+    await user.type(screen.getByLabelText('Email'), 'staff@example.com');
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(screen.getByLabelText('Password', { exact: true })).toHaveFocus();
   });
@@ -84,7 +84,7 @@ describe('staff login', () => {
         }),
       ).toBeVisible();
       expect(login).toHaveBeenCalledWith({
-        email: 'staff@kln.ac.lk',
+        email: 'staff@example.com',
         password: 'existing-password',
         rememberMe: true,
       });

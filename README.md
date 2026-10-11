@@ -28,6 +28,10 @@ Use Conventional Commits, for example `chore(frontend): configure web scaffold`,
 
 ## Coding standards
 
+HostelHive is an open source application for use across hostels. Product copy and examples must remain institution-neutral; do not hard-code a hostel name, university email domain or local office extension.
+
+Frontend modules follow the proposed feature-based structure: `features/<module>` owns business pages, forms and API logic; `layouts/` owns page shells; `shared/components/ui/` owns reusable `Button.tsx` and `Input.tsx` primitives. Shared UI imports no feature-specific code. Create additional folders/components only when needed by a ticket. Colours come from `styles/tokens.css`, reusable controls from `styles/ui.css`, and authentication layout styles from `styles/auth.css`.
+
 Use strict TypeScript, ESLint recommended JavaScript/TypeScript and React Hooks rules, and Prettier with single quotes. Tests cover observable behaviour and follow Arrange-Act-Assert. CI requires at least 80% lines, statements, functions and branches across application source; bootstrap, declarations and test utilities are excluded. This is the initial team style configuration, rather than a claim of full Airbnb style-guide compliance.
 
 ## CI and coverage

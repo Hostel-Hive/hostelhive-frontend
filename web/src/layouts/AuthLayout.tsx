@@ -20,8 +20,8 @@ export default function AuthLayout() {
           </svg>
         </Link>
         <p className="auth-support">
-          <span aria-hidden="true">ⓘ</span> Having trouble? Contact the Head
-          Warden’s office · ext. 2040
+          <span aria-hidden="true">ⓘ</span> Having trouble? Contact your hostel
+          administrator.
         </p>
       </header>
       <main id="auth-content" className="auth-main" tabIndex={-1}>
