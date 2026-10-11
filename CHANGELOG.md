@@ -4,6 +4,9 @@
 
 ### Added
 
+- Shared Figma authentication layout and login page with accessible validation, loading/error states and password recovery assistance route (issue #7).
+- Firebase email/password sign-in and persisted-session restoration, verified against the backend active-account and role response before dashboard redirects.
+- Login interaction and Firebase/backend contract tests; development API proxy.
 - Figma colour/type tokens and locally bundled Plus Jakarta Sans, Instrument Serif and JetBrains Mono fonts (issue #5).
 - Indigo dashboard sidebar, cyan active navigation and updated responsive shell, cards and recovery page styling.
 - Application routing, admin/warden landing pages and shared responsive dashboard layout (issue #3).

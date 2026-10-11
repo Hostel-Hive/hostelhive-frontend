@@ -60,16 +60,19 @@ src/
   test/      DOM test setup
 ```
 
-The proposed larger feature structure grows through individual tickets. Issue #3 adds routing and the dashboard layout. Firebase, API clients, realtime connections and business features belong to subsequent tickets.
+The proposed larger feature structure grows through individual tickets. Issue #3 adds routing and the dashboard layout; issue #7 adds `features/auth/`, the shared authentication layout and login stylesheet. Realtime connections and business features belong to subsequent tickets.
 
 ## Routes and navigation
 
-- `/` and `/dashboard` redirect to `/dashboard/admin`.
+- `/` redirects to `/login`.
+- `/login` renders the staff login page, or redirects a restored, backend-verified session to its role's dashboard.
+- `/forgot-password` provides an assistance page and a return link. Reset emails and reset-password forms belong to the password-recovery ticket.
+- `/dashboard` redirects to `/dashboard/admin`.
 - `/dashboard/admin` renders the admin landing page.
 - `/dashboard/warden` renders the warden landing page.
 - Unknown URLs show a Not Found page with a return link.
 
-Both landing pages are currently public layout previews. Their names do not enforce access control. Authentication and role protection will be implemented in dedicated tickets before these pages expose account or business data.
+Both landing pages are currently public layout previews. Their names do not enforce access control. Issue #7 implements login; protected routes and role guards remain a subsequent ticket before these pages expose account or business data.
 
 Below 768px, the desktop sidebar is replaced with a navigation disclosure. Open/close it with the toggle button, use Escape to close it and return focus to the toggle, or select a link to navigate and close it. A skip link takes keyboard users directly to the main content.
 
@@ -77,9 +80,45 @@ For deployment, configure the web host to serve `index.html` for application rou
 
 ### Manual smoke checks
 
-1. Open `/` and confirm the admin landing page appears.
+1. Open `/` and confirm the login page appears. Open `/dashboard/admin` to preview the dashboard layout.
 2. Select Warden dashboard and confirm its page and active navigation change.
 3. Refresh `/dashboard/warden` and confirm it still loads.
 4. Open an unknown URL and use Return to dashboard.
 5. At 375px width, open the menu, navigate and verify there is no horizontal overflow.
 6. Use Tab/Enter to operate the menu and Escape to close it.
+
+## Staff login — issue #7
+
+The login page follows the Figma Auth · Login screen, with a shared header/logo, narrow form and footer. Privacy/Terms destinations and a verified live system-status source are not available yet, so the footer does not show dead links or claim operational status. Support text is the Figma reference copy; confirm the office extension before deployment.
+
+Set these **public web-app** values in your existing `.env.local`, using Firebase Console → Project settings → Your apps → Web SDK configuration:
+
+```dotenv
+VITE_FIREBASE_API_KEY=your-public-web-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+```
+
+Use the same Firebase project as the backend (its current documentation identifies `hostel-hive-152ef`); copy the actual web configuration rather than inventing an API key. No service-account or Firebase Admin credentials belong in frontend configuration. Enable/review the Email/Password provider, authorised domains and web-key restrictions in that project. Restart Vite after editing environment values. The UI remains previewable with blank Firebase values; submitting then displays a configuration message instead of attempting authentication. Do not commit `.env.local`.
+
+Sign-in uses Firebase email/password authentication, then sends its ID token in the `Authorization: Bearer` header to **GET `/api/v1/me`**. The response must match the Firebase UID, be active and have role `admin` or `warden`. Other roles (including `sub_warden`) have no implemented dashboard and are denied. Failed verification clears Firebase sign-in state. No passwords or tokens are logged or manually copied into browser storage; Firebase manages its session credentials.
+
+Unchecked “Keep me signed in” selects Firebase session persistence (the tab/window session); checked selects local persistence across browser restarts. This is not a 30-day backend expiry guarantee. See [Firebase persistence documentation](https://firebase.google.com/docs/auth/web/auth-state-persistence). Returning to `/login` rechecks a saved user against the backend before redirecting. API requests time out after 15 seconds.
+
+For local development, set `VITE_API_BASE_URL` to your running backend (commonly `http://127.0.0.1:18080` in the backend documentation). Vite forwards `/backend-api/api/v1/me` to that backend, avoiding a browser cross-origin request. The backend base must not already end in `/api/v1`. Production and `vite preview` call the configured backend URL directly and require an allowed-origin CORS policy or a deployment reverse proxy. Vite's development proxy is not deployed with the static build.
+
+Firebase is pinned to 12.4.0 for the repository's Node 22 runtime. The transitive `@grpc/grpc-js` override selects a patched version for the umbrella SDK's Firestore dependency; this application imports only Firebase app/auth modules. Review the SDK pin and override together when upgrading Node/Firebase.
+
+### Login verification
+
+Automated tests use mocked Firebase and fetch; they do not contact a live Firebase project. Before closing this ticket, verify with dedicated active test accounts:
+
+1. Submit empty fields and an invalid email; confirm messages and focus on the first invalid field.
+2. Sign in as Admin and Warden; confirm the matching dashboard URL.
+3. Try incorrect credentials, inactive accounts, and an unsupported role; confirm no dashboard redirect and a safe error.
+4. Verify the button disables during submission and allows retry after failure.
+5. Verify checked/unchecked persistence across reload and tab/browser closure, returning through `/login`.
+6. Open Forgot password and return to login; recovery operations are not implemented by this ticket.
+7. Check desktop, 375px and 320px widths, keyboard focus, and direct `/login` refresh.
+
+Firebase public configuration, a running backend/database and live test credentials are required for these integration checks. Dashboard URLs still show public placeholders; server-side authorization remains enforced and protected frontend routes are a subsequent ticket.
