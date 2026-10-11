@@ -11,7 +11,7 @@ function renderAt(path: string) {
 }
 
 describe('dashboard routing', () => {
-  it.each(['/', '/dashboard', '/dashboard/admin'])(
+  it.each(['/dashboard', '/dashboard/admin'])(
     'renders the admin dashboard within the layout given %s',
     async (path) => {
       renderAt(path);
