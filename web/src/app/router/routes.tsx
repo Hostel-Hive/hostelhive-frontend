@@ -4,14 +4,24 @@ import AdminDashboardPage from '../../features/dashboard/pages/AdminDashboardPag
 import WardenDashboardPage from '../../features/dashboard/pages/WardenDashboardPage';
 import NotFoundPage from './NotFoundPage';
 import { routePaths } from './routePaths';
+import AuthLayout from '../../layouts/AuthLayout';
+import LoginPage from '../../features/auth/pages/LoginPage';
+import PasswordRecoveryPage from '../../features/auth/pages/PasswordRecoveryPage';
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route
         path={routePaths.home}
-        element={<Navigate to={routePaths.adminDashboard} replace />}
+        element={<Navigate to={routePaths.login} replace />}
       />
+      <Route element={<AuthLayout />}>
+        <Route path={routePaths.login} element={<LoginPage />} />
+        <Route
+          path={routePaths.forgotPassword}
+          element={<PasswordRecoveryPage />}
+        />
+      </Route>
       <Route path={routePaths.dashboard} element={<DashboardLayout />}>
         <Route
           index
