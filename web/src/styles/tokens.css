@@ -5,18 +5,38 @@
   --indigo-50: #f8f7fe;
   --indigo-100: #f1effc;
   --indigo-200: #e5e2fa;
+  --indigo-300: #cdc7f5;
+  --indigo-400: #a89feb;
+  --indigo-500: #7a6dd4;
   --indigo-600: #4f41a3;
+  --indigo-700: #362a78;
   --indigo-800: #241a55;
   --indigo-900: #181037;
+  --indigo-950: #0c0822;
+  --cyan-50: #eefafe;
   --cyan-100: #dcf3fd;
+  --cyan-200: #b7e7fc;
+  --cyan-300: #7ad5f8;
+  --cyan-400: #38c2f5;
   --cyan-500: #00aeef;
+  --cyan-600: #008cc9;
   --cyan-700: #0074a8;
+  --amber-50: #fff8e8;
   --amber-100: #fef0d3;
+  --amber-300: #fdd07a;
+  --amber-400: #fbb63f;
   --amber-500: #f59e0b;
+  --amber-600: #cb7400;
+  --amber-700: #a15b00;
   --ink-50: #f7f7fb;
+  --ink-100: #f1f1f6;
   --ink-200: #e4e4ec;
+  --ink-300: #cac9d6;
+  --ink-400: #a7a5ba;
+  --ink-500: #83809e;
   --ink-600: #605a82;
   --ink-700: #453d66;
+  --ink-800: #2a2350;
   --ink-900: #181037;
 
   --font-ui: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -37,6 +57,7 @@
   --color-sidebar-text: var(--indigo-200);
   --color-accent: var(--cyan-500);
   --color-focus: var(--cyan-700);
+  --color-danger: #dc2626;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
