@@ -251,3 +251,33 @@ pre {
     box-shadow: var(--shadow-menu);
   }
 }
+.session-gate {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  padding: 24px;
+}
+.session-gate section {
+  max-width: 640px;
+}
+.session-gate h1 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+.session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+}
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+@media (max-width: 767px) {
+  .app-header__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
