@@ -4,6 +4,9 @@
 
 ### Added
 
+- Protected dashboard routes, role-specific access, shared authentication state and Firebase session observation (issue #11).
+- Sign-out, role-filtered navigation, verification loading/retry states and stale-response protection.
+- Direct-route, restored-session, service-failure, role-change and sign-out regression tests.
 - Institution-neutral branding and full Figma tonal palette; login cyan accents now use cyan-500.
 - Reusable Button and Input controls under shared/components/ui, used by login and mobile navigation.
 - Shared Figma authentication layout and login page with accessible validation, loading/error states and password recovery assistance route (issue #7).

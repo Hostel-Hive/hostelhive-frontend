@@ -72,7 +72,7 @@ The proposed larger feature structure grows through individual tickets. Issue #3
 - `/dashboard/warden` renders the warden landing page.
 - Unknown URLs show a Not Found page with a return link.
 
-Both landing pages are currently public layout previews. Their names do not enforce access control. Issue #7 implements login; protected routes and role guards remain a subsequent ticket before these pages expose account or business data.
+Issue #11 protects both dashboard routes. Only an active backend-verified Admin may open `/dashboard/admin`, and only an active Warden may open `/dashboard/warden`. The pages still contain placeholder content; route guards are implemented independently of future business modules.
 
 Below 768px, the desktop sidebar is replaced with a navigation disclosure. Open/close it with the toggle button, use Escape to close it and return focus to the toggle, or select a link to navigate and close it. A skip link takes keyboard users directly to the main content.
 
@@ -80,9 +80,9 @@ For deployment, configure the web host to serve `index.html` for application rou
 
 ### Manual smoke checks
 
-1. Open `/` and confirm the login page appears. Open `/dashboard/admin` to preview the dashboard layout.
-2. Select Warden dashboard and confirm its page and active navigation change.
-3. Refresh `/dashboard/warden` and confirm it still loads.
+1. While signed out, open `/dashboard/admin` and `/dashboard/warden`; confirm both return to login without displaying dashboard content.
+2. Sign in with dedicated active Admin and Warden accounts separately. Confirm each sees only their own dashboard navigation.
+3. Refresh the permitted dashboard and confirm it loads after session verification. Open the other role's URL and confirm redirection to the permitted dashboard.
 4. Open an unknown URL and use Return to dashboard.
 5. At 375px width, open the menu, navigate and verify there is no horizontal overflow.
 6. Use Tab/Enter to operate the menu and Escape to close it.
@@ -121,4 +121,16 @@ Automated tests use mocked Firebase and fetch; they do not contact a live Fireba
 6. Open Forgot password and return to login; recovery operations are not implemented by this ticket.
 7. Check desktop, 375px and 320px widths, keyboard focus, and direct `/login` refresh.
 
-Firebase public configuration, a running backend/database and live test credentials are required for these integration checks. Dashboard URLs still show public placeholders; server-side authorization remains enforced and protected frontend routes are a subsequent ticket.
+Firebase public configuration, a running backend/database and live test credentials are required for these integration checks. Dashboard content remains placeholder content, while frontend access guards and backend authorization enforce their separate responsibilities.
+
+## Protected routes — issue #11
+
+`features/auth/components/AuthProvider.tsx` owns shared authentication state; `features/auth/hooks/useAuth.ts` exposes it to feature and layout components. The provider observes Firebase ID-token/session changes and verifies the current user through `/api/v1/me`. Account roles come from the current backend response, not Firebase claims or a browser-stored role. `ProtectedRoute`, `PublicOnlyRoute` and `RoleGuard` live in `app/router/`, with role-to-dashboard mapping in `config/roles.ts`.
+
+Protected content is hidden until the account is verified for the current pathname. Verification runs on direct load, route changes, token/session notifications, window focus and returning to a visible tab. Stale responses cannot restore access after sign-out or a newer verification. Wrong-role URLs redirect to the user's permitted dashboard; authenticated `/login` visits do the same. `/dashboard` resolves to the permitted dashboard. Navigation and the header brand also use that role.
+
+Expired/rejected sessions, inactive accounts and unsupported roles are denied. Temporary network/backend failures hide protected content and show Retry verification and Sign out actions. Restored Firebase credentials are preserved for transient failures so retries can recover; permanent rejection clears the Firebase session. Sign-out hides dashboard content immediately, clears the Firebase session and returns to login. Failed sign-out keeps protected content hidden and offers another attempt. Firebase notifications also handle sign-out from another tab when local persistence is used.
+
+The client rechecks at the events listed above; it does not promise instantaneous detection of a database role/status change in an idle tab. Every business API must continue enforcing backend authorization on every request. No new backend permission policy is introduced by this ticket.
+
+Automated route tests mock Firebase/backend boundaries and cover anonymous access, restored sessions, pending verification, wrong-role URLs, retry, sign-out, back navigation and stale responses. Live acceptance still requires working Firebase sign-in and dedicated active Admin/Warden accounts. Before closing the GitHub issue, record live checks, peer review and passing CI; mocked tests do not prove real Firebase configuration or production CORS.

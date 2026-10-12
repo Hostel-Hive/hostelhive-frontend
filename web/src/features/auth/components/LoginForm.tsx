@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { routePaths } from '../../../app/router/routePaths';
-import { login, loginErrorMessage, restoreStaffSession } from '../api/auth.api';
+import { loginErrorMessage } from '../api/auth.api';
+import useAuth from '../hooks/useAuth';
 import { validateLogin } from '../auth.schema';
 import type { StaffAccount } from '../auth.types';
 import Button from '../../../shared/components/ui/Button';
@@ -17,41 +18,25 @@ export default function LoginForm() {
     {},
   );
   const [error, setError] = useState('');
-  const [checking, setChecking] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const { signIn, status, message, busy: authBusy } = useAuth();
+  const checking = status === 'checking';
+  const [isSubmitting, setSubmitting] = useState(false);
+  const submitting = isSubmitting || authBusy;
   const busy = useRef(false);
   const mounted = useRef(true);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    let active = true;
     mounted.current = true;
-    restoreStaffSession()
-      .then((account) => {
-        if (active && account)
-          navigate(
-            account.role === 'admin'
-              ? routePaths.adminDashboard
-              : routePaths.wardenDashboard,
-            { replace: true },
-          );
-      })
-      .catch((reason: unknown) => {
-        if (active) setError(loginErrorMessage(reason));
-      })
-      .finally(() => {
-        if (active) setChecking(false);
-      });
     return () => {
-      active = false;
       mounted.current = false;
     };
-  }, [navigate]);
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy.current || checking) return;
+    if (busy.current || checking || authBusy) return;
     const input = { email, password, rememberMe };
     const nextErrors = validateLogin(input);
     setErrors(nextErrors);
@@ -63,7 +48,7 @@ export default function LoginForm() {
     busy.current = true;
     setSubmitting(true);
     try {
-      const account: StaffAccount = await login(input);
+      const account: StaffAccount = await signIn(input);
       if (!mounted.current) return;
       setPassword('');
       navigate(
@@ -90,9 +75,9 @@ export default function LoginForm() {
       noValidate
       aria-busy={checking || submitting}
     >
-      {error && (
+      {(error || message) && (
         <p className="auth-error" role="alert">
-          {error}
+          {error || message}
         </p>
       )}
       <div className="auth-field">

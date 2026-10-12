@@ -20,7 +20,7 @@ See [web setup instructions](web/README.md) for installation, configuration and 
 
 ## Contribution workflow
 
-Issue #7 adds the shared authentication layout and login flow at `/login`; `/` now opens login. Firebase credentials are exchanged directly with Firebase, and the backend `/api/v1/me` response determines whether an active Admin or Warden can enter their dashboard. See the web README for public Firebase configuration and live verification. Existing dashboard URLs remain public layout previews until the route-protection ticket.
+Issue #7 adds the shared authentication layout and login flow at `/login`; `/` now opens login. Firebase credentials are exchanged directly with Firebase, and the backend `/api/v1/me` response determines whether an active Admin or Warden can enter their dashboard. Issue #11 protects dashboard routes, verifies restored sessions and adds role-filtered navigation and sign-out. See the web README for public Firebase configuration and live verification.
 
 Create a repository issue and add it to the existing HostelHive project with Phase = Development. Branch from `develop` using `feature/<issue-number>-<slug>` or `fix/<issue-number>-<slug>`. Reference the issue in commits and open a PR against `develop`. Require one peer approval and passing checks. Release into `main` through an approved PR.
 
