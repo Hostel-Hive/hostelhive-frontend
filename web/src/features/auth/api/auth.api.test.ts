@@ -11,6 +11,7 @@ const sdk = vi.hoisted(() => {
     setPersistence: vi.fn(),
     signIn: vi.fn(),
     signOut: vi.fn(),
+    onIdTokenChanged: vi.fn(),
   };
 });
 vi.mock('firebase/app', () => ({
@@ -24,8 +25,16 @@ vi.mock('firebase/auth', () => ({
   setPersistence: sdk.setPersistence,
   signInWithEmailAndPassword: sdk.signIn,
   signOut: sdk.signOut,
+  onIdTokenChanged: sdk.onIdTokenChanged,
 }));
-import { login, loginErrorMessage, restoreStaffSession } from './auth.api';
+import {
+  login,
+  loginErrorMessage,
+  restoreStaffSession,
+  subscribeStaffSession,
+  logout,
+  isSessionRejected,
+} from './auth.api';
 
 const input = {
   email: ' staff@example.com ',
@@ -195,5 +204,62 @@ describe('safe error messages', () => {
     const error = new Error('Safe message');
     error.name = 'LoginError';
     expect(loginErrorMessage(error)).toBe('Safe message');
+  });
+});
+
+describe('shared session lifecycle', () => {
+  it('preserves Firebase credentials on temporary backend failures so retry can recover', async () => {
+    sdk.auth.currentUser = sdk.user;
+    fetchMock.mockRejectedValueOnce(new Error('offline'));
+    await expect(restoreStaffSession()).rejects.toThrow('Unable to reach');
+    expect(sdk.signOut).not.toHaveBeenCalled();
+    expect(await restoreStaffSession()).toEqual(account);
+  });
+  it('clears expired restored sessions', async () => {
+    sdk.auth.currentUser = sdk.user;
+    sdk.user.getIdToken.mockRejectedValue({ code: 'auth/user-token-expired' });
+    await expect(restoreStaffSession()).rejects.toEqual({
+      code: 'auth/user-token-expired',
+    });
+    expect(sdk.signOut).toHaveBeenCalled();
+    expect(isSessionRejected(null)).toBe(false);
+    expect(isSessionRejected({ code: 'auth/user-disabled' })).toBe(true);
+  });
+  it('observes token changes and forwards errors with SDK cleanup', () => {
+    const unsubscribe = vi.fn();
+    sdk.onIdTokenChanged.mockReturnValue(unsubscribe);
+    const change = vi.fn();
+    const error = vi.fn();
+    const dispose = subscribeStaffSession(change, error);
+    const [auth, callback, onError] = sdk.onIdTokenChanged.mock.calls[0];
+    expect(auth).toBe(sdk.auth);
+    callback(sdk.user);
+    expect(change).toHaveBeenLastCalledWith(true);
+    callback(null);
+    expect(change).toHaveBeenLastCalledWith(false);
+    onError('safe-test-error');
+    expect(error).toHaveBeenCalledWith('safe-test-error');
+    dispose();
+    expect(unsubscribe).toHaveBeenCalled();
+  });
+  it('reports signed-out configuration and cancels queued notifications on cleanup', async () => {
+    vi.stubEnv('VITE_FIREBASE_API_KEY', '');
+    const change = vi.fn();
+    subscribeStaffSession(change, vi.fn());
+    await Promise.resolve();
+    expect(change).toHaveBeenCalledWith(false);
+    change.mockClear();
+    const dispose = subscribeStaffSession(change, vi.fn());
+    dispose();
+    await Promise.resolve();
+    expect(change).not.toHaveBeenCalled();
+    await logout();
+    expect(sdk.signOut).not.toHaveBeenCalled();
+  });
+  it('signs out the configured Firebase session and exposes failure to the provider', async () => {
+    await logout();
+    expect(sdk.signOut).toHaveBeenCalledWith(sdk.auth);
+    sdk.signOut.mockRejectedValueOnce(new Error('logout-failed'));
+    await expect(logout()).rejects.toThrow('logout-failed');
   });
 });
