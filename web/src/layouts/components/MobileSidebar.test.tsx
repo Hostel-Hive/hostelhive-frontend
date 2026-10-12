@@ -1,7 +1,10 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+vi.mock('../../features/auth/hooks/useAuth', () => ({
+  default: () => ({ account: { role: 'admin' } }),
+}));
 import MobileSidebar from './MobileSidebar';
 
 function renderMenu() {
@@ -67,7 +70,7 @@ describe('mobile navigation', () => {
     await user.click(
       within(
         screen.getByRole('navigation', { name: 'Mobile navigation' }),
-      ).getByRole('link', { name: 'Warden dashboard' }),
+      ).getByRole('link', { name: 'Admin dashboard' }),
     );
     expect(
       screen.queryByRole('navigation', { name: 'Mobile navigation' }),
