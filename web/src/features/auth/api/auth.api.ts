@@ -14,7 +14,7 @@ import type { LoginInput, StaffAccount } from '../auth.types';
 const configurationMessage =
   'Sign-in is not configured yet. Contact the project administrator.';
 
-function configuredAuth() {
+export function configuredAuth() {
   const {
     VITE_FIREBASE_API_KEY: apiKey,
     VITE_FIREBASE_AUTH_DOMAIN: authDomain,

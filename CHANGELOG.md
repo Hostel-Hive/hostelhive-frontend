@@ -4,6 +4,9 @@
 
 ### Added
 
+- Firebase password recovery, generic request confirmation, resend cooldown, reset-link validation and policy-driven reset form (issue #14).
+- Reset success, invalid/expired-link recovery and service retry states using the shared authentication layout.
+- Password-flow SDK, form interaction and reset-request parsing tests.
 - Protected dashboard routes, role-specific access, shared authentication state and Firebase session observation (issue #11).
 - Sign-out, role-filtered navigation, verification loading/retry states and stale-response protection.
 - Direct-route, restored-session, service-failure, role-change and sign-out regression tests.

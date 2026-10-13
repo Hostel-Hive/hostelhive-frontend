@@ -7,6 +7,7 @@ import { routePaths } from './routePaths';
 import AuthLayout from '../../layouts/AuthLayout';
 import LoginPage from '../../features/auth/pages/LoginPage';
 import PasswordRecoveryPage from '../../features/auth/pages/PasswordRecoveryPage';
+import ResetPasswordPage from '../../features/auth/pages/ResetPasswordPage';
 import ProtectedRoute from './ProtectedRoute';
 import PublicOnlyRoute from './PublicOnlyRoute';
 import RoleGuard from './RoleGuard';
@@ -37,6 +38,10 @@ export default function AppRoutes() {
         <Route
           path={routePaths.forgotPassword}
           element={<PasswordRecoveryPage />}
+        />
+        <Route
+          path={routePaths.resetPassword}
+          element={<ResetPasswordPage />}
         />
       </Route>
       <Route element={<ProtectedRoute />}>

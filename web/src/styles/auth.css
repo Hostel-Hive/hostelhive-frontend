@@ -217,3 +217,77 @@
     gap: 12px;
   }
 }
+.auth-panel--centered {
+  text-align: center;
+}
+.auth-success-mark {
+  display: inline-grid;
+  place-content: center;
+  min-width: 64px;
+  height: 40px;
+  margin-bottom: 28px;
+  border: 1px solid #10b98166;
+  border-radius: 999px;
+  color: #059669;
+  background: #10b9811a;
+  font-size: 24px;
+}
+.auth-recovery-actions {
+  display: grid;
+  gap: 12px;
+}
+.auth-recovery-actions,
+.auth-panel > .auth-error {
+  margin-bottom: 20px;
+}
+.auth-account-email {
+  padding: 12px 14px;
+  margin: 0 0 24px;
+  border-radius: 8px;
+  background: var(--ink-100);
+  color: var(--ink-600);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+.auth-account-email strong {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  color: var(--ink-900);
+}
+.password-requirements {
+  margin-top: 12px;
+  font-size: var(--text-xs);
+  color: var(--ink-600);
+}
+.password-requirements progress {
+  width: 100%;
+  height: 6px;
+  border: 0;
+  accent-color: var(--cyan-500);
+  background: var(--ink-200);
+}
+.password-requirements progress::-webkit-progress-bar {
+  background: var(--ink-200);
+  border-radius: 4px;
+}
+.password-requirements progress::-webkit-progress-value {
+  background: var(--cyan-500);
+  border-radius: 4px;
+}
+.password-requirements progress::-moz-progress-bar {
+  background: var(--cyan-500);
+  border-radius: 4px;
+}
+.password-requirements ul {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.password-requirements [data-met='true'] {
+  color: var(--ink-900);
+}
+.password-requirements [data-met='true'] > span:first-child {
+  color: #059669;
+}

@@ -227,9 +227,7 @@ describe('staff login', () => {
     expect(
       screen.getByRole('heading', { name: 'Forgot your password?' }),
     ).toBeVisible();
-    expect(
-      screen.getByText(/Online password recovery is not available yet/),
-    ).toBeVisible();
+    expect(screen.getByText(/Enter your account email address/)).toBeVisible();
     await user.click(screen.getByRole('link', { name: /Back to sign in/ }));
     expect(
       await screen.findByRole('button', { name: 'Sign in' }),
