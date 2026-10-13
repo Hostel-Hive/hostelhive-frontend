@@ -1,0 +1,389 @@
+import { useEffect, useRef, useState } from 'react';
+import { useBlocker, useNavigate } from 'react-router-dom';
+import Button from '../../../shared/components/ui/Button';
+import Input from '../../../shared/components/ui/Input';
+import { routePaths } from '../../../app/router/routePaths';
+import useAuth from '../../auth/hooks/useAuth';
+import {
+  createStudent,
+  updateStudent,
+  studentError,
+  StudentRequestError,
+} from '../api/students.api';
+import StudentDiscardDialog from './StudentDiscardDialog';
+import type { CreateStudentInput, Student } from '../student.types';
+import { normalizeStudent, validateStudent } from '../student.schema';
+
+export default function StudentProfileForm({
+  student,
+  search,
+}: {
+  student?: Student;
+  search: string;
+}) {
+  const { account, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [initial] = useState<CreateStudentInput>(() => ({
+    user_id: student?.user_id ?? '',
+    index_no: student?.index_no ?? '',
+    full_name: student?.full_name ?? '',
+    faculty: student?.faculty ?? '',
+    year: student?.year ?? 0,
+    contact_phone: student?.contact_phone ?? '',
+    guardians: student?.guardians?.length
+      ? student.guardians.map((g) => ({
+          name: g.name,
+          relationship: g.relationship,
+          contact_phone: g.contact_phone,
+        }))
+      : [{ name: '', relationship: '', contact_phone: '' }],
+  }));
+  const [value, setValue] = useState(initial);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [error, setError] = useState<StudentRequestError>();
+  const [pending, setPending] = useState(false);
+  const [discard, setDiscard] = useState(false);
+  const form = useRef<HTMLFormElement>(null);
+  const active = useRef(false);
+  const controller = useRef<AbortController | null>(null);
+  const operation = useRef(false);
+  const allowLeave = useRef(false);
+  const dirty = JSON.stringify(value) !== JSON.stringify(initial);
+  const blocker = useBlocker(
+    () => !allowLeave.current && (dirty || operation.current),
+  );
+  const suffix = search ? `?${search}` : '';
+  const cancelTo = student
+    ? `${routePaths.students}/${student.student_id}${suffix}`
+    : `${routePaths.students}${suffix}`;
+  useEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+      controller.current?.abort();
+    };
+  }, []);
+  useEffect(() => {
+    if (!dirty && !pending) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty, pending]);
+  const locked =
+    pending ||
+    error?.kind === 'session' ||
+    error?.kind === 'forbidden' ||
+    error?.kind === 'not-found';
+  function change(key: string, text: string) {
+    setValue((current) => ({
+      ...current,
+      [key]: key === 'year' ? Number(text) : text,
+    }));
+    setErrors({});
+    setError(undefined);
+  }
+  function field(
+    id: string,
+    label: string,
+    text: string,
+    update: (text: string) => void,
+    maxLength: number,
+  ) {
+    return (
+      <div className="student-form-field" key={id}>
+        <label htmlFor={id}>{label}</label>
+        <Input
+          id={id}
+          name={id}
+          value={text}
+          maxLength={maxLength}
+          onChange={(event) => update(event.target.value)}
+          aria-invalid={Boolean(errors[id])}
+          aria-describedby={errors[id] ? `${id}-error` : undefined}
+        />
+        {errors[id] && (
+          <p id={`${id}-error`} className="field-error">
+            {errors[id]}
+          </p>
+        )}
+      </div>
+    );
+  }
+  async function submit() {
+    if (operation.current || locked) return;
+    const nextErrors = validateStudent(value, !student);
+    setErrors(nextErrors);
+    setError(undefined);
+    if (Object.keys(nextErrors).length) {
+      form.current
+        ?.querySelector<HTMLInputElement | HTMLSelectElement>(
+          `[name="${Object.keys(nextErrors)[0]}"]`,
+        )
+        ?.focus();
+      return;
+    }
+    operation.current = true;
+    setPending(true);
+    controller.current = new AbortController();
+    try {
+      const input = normalizeStudent(value);
+      const details = {
+        index_no: input.index_no,
+        full_name: input.full_name,
+        faculty: input.faculty,
+        year: input.year,
+        contact_phone: input.contact_phone,
+        guardians: input.guardians,
+      };
+      const saved = student
+        ? await updateStudent(
+            student.student_id,
+            details,
+            account!.firebase_uid,
+            controller.current.signal,
+          )
+        : await createStudent(
+            input,
+            account!.firebase_uid,
+            controller.current.signal,
+          );
+      if (active.current) {
+        allowLeave.current = true;
+        navigate(`${routePaths.students}/${saved.student_id}${suffix}`, {
+          replace: true,
+          state: {
+            studentNotice: student
+              ? 'Student profile updated.'
+              : 'Student profile created.',
+          },
+        });
+      }
+    } catch (reason) {
+      if (active.current) {
+        const failure = studentError(reason);
+        setError(
+          failure.kind === 'unavailable'
+            ? new StudentRequestError(
+                'unavailable',
+                'Unable to confirm the profile save. Your form values have been kept.',
+              )
+            : failure,
+        );
+      }
+    } finally {
+      operation.current = false;
+      if (active.current) setPending(false);
+    }
+  }
+  return (
+    <>
+      <form
+        className="student-card student-profile-form"
+        ref={form}
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submit();
+        }}
+      >
+        {error && (
+          <div role="alert" className="auth-error">
+            {error.message}
+            {error.kind === 'unavailable' && (
+              <p>
+                The service could not confirm the save. Check the existing
+                profile before submitting again if the connection was
+                interrupted.
+              </p>
+            )}
+          </div>
+        )}
+        {error?.kind === 'session' && (
+          <Button onClick={() => void signOut()}>Sign in again</Button>
+        )}
+        <fieldset disabled={locked}>
+          <legend>Student details</legend>
+          {!student && (
+            <>
+              <p className="student-form-help">
+                Enter the student account UUID supplied by an administrator.
+                This creates a profile, not a login account. The backend
+                verifies account eligibility.
+              </p>
+              {field(
+                'user_id',
+                'Student account ID',
+                value.user_id,
+                (text) => change('user_id', text),
+                36,
+              )}
+            </>
+          )}
+          {student && (
+            <p className="student-form-help">
+              Login email: {student.email}. Account identity and login
+              credentials are managed separately.
+            </p>
+          )}
+          <div className="student-form-grid">
+            {field(
+              'index_no',
+              'Student ID',
+              value.index_no,
+              (text) => change('index_no', text),
+              64,
+            )}
+            {field(
+              'full_name',
+              'Full name',
+              value.full_name,
+              (text) => change('full_name', text),
+              200,
+            )}
+            {field(
+              'faculty',
+              'Faculty',
+              value.faculty,
+              (text) => change('faculty', text),
+              120,
+            )}
+            <div className="student-form-field">
+              <label htmlFor="year">Year</label>
+              <select
+                id="year"
+                name="year"
+                className="ui-input"
+                value={value.year}
+                onChange={(event) => change('year', event.target.value)}
+                aria-invalid={Boolean(errors.year)}
+                aria-describedby={errors.year ? 'year-error' : undefined}
+              >
+                <option value={0}>Select year</option>
+                {Array.from({ length: 10 }, (_, i) => (
+                  <option value={i + 1} key={i}>
+                    Year {i + 1}
+                  </option>
+                ))}
+              </select>
+              {errors.year && (
+                <p className="field-error" id="year-error">
+                  {errors.year}
+                </p>
+              )}
+            </div>
+            {field(
+              'contact_phone',
+              'Contact phone',
+              value.contact_phone,
+              (text) => change('contact_phone', text),
+              32,
+            )}
+          </div>
+        </fieldset>
+        <fieldset disabled={locked}>
+          <legend>Guardian details</legend>
+          <p className="student-form-help">
+            Provide at least one guardian; up to ten are supported.
+          </p>
+          {value.guardians.map((guardian, i) => (
+            <div className="student-form-guardian" key={i}>
+              <h3>Guardian {i + 1}</h3>
+              <div className="student-form-grid">
+                {(['name', 'relationship', 'contact_phone'] as const).map(
+                  (key) =>
+                    field(
+                      `guardian-${i}-${key}`,
+                      key === 'name'
+                        ? `Guardian ${i + 1} name`
+                        : key === 'relationship'
+                          ? `Guardian ${i + 1} relationship`
+                          : `Guardian ${i + 1} phone`,
+                      guardian[key],
+                      (text) => {
+                        setValue((current) => ({
+                          ...current,
+                          guardians: current.guardians.map((g, index) =>
+                            index === i ? { ...g, [key]: text } : g,
+                          ),
+                        }));
+                        setErrors({});
+                        setError(undefined);
+                      },
+                      key === 'name' ? 200 : key === 'relationship' ? 80 : 32,
+                    ),
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                disabled={value.guardians.length === 1}
+                onClick={() => {
+                  setValue((current) => ({
+                    ...current,
+                    guardians: current.guardians.filter(
+                      (_, index) => index !== i,
+                    ),
+                  }));
+                  setErrors({});
+                }}
+                aria-label={`Remove guardian ${i + 1}`}
+              >
+                Remove guardian
+              </Button>
+            </div>
+          ))}
+          <Button
+            variant="secondary"
+            disabled={value.guardians.length >= 10}
+            onClick={() =>
+              setValue((current) => ({
+                ...current,
+                guardians: [
+                  ...current.guardians,
+                  { name: '', relationship: '', contact_phone: '' },
+                ],
+              }))
+            }
+          >
+            Add guardian
+          </Button>
+        </fieldset>
+        <div className="student-form-actions">
+          <Button
+            type="submit"
+            disabled={locked || (Boolean(student) && !dirty)}
+          >
+            {pending ? 'Saving…' : student ? 'Save changes' : 'Create profile'}
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={pending}
+            onClick={() => {
+              if (dirty) setDiscard(true);
+              else navigate(cancelTo);
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+        {pending && <p role="status">Saving student profile…</p>}
+      </form>
+      {(discard || blocker.state === 'blocked') && (
+        <StudentDiscardDialog
+          pending={pending}
+          keep={() => {
+            setDiscard(false);
+            if (blocker.state === 'blocked') blocker.reset();
+          }}
+          discard={() => {
+            allowLeave.current = true;
+            if (blocker.state === 'blocked') blocker.proceed();
+            else navigate(cancelTo);
+          }}
+        />
+      )}
+    </>
+  );
+}

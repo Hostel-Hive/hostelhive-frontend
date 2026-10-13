@@ -5,7 +5,10 @@ import {
   getStudent,
   listStudents,
   studentError,
+  createStudent,
+  updateStudent,
 } from './students.api';
+import { normalizeStudent } from '../student.schema';
 import {
   studentFixture,
   studentPageFixture,
@@ -42,6 +45,84 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 describe('student API contract', () => {
+  it('creates and edits using the existing authorized JSON contracts', async () => {
+    const input = normalizeStudent({
+      ...studentFixture,
+      guardians: studentFixture.guardians!,
+    });
+    fetchMock.mockImplementation(
+      async () => new Response(JSON.stringify(studentFixture)),
+    );
+    expect(await createStudent(input, user.uid, signal())).toEqual(
+      studentFixture,
+    );
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/backend-api/api/v1/students',
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer test-token',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      }),
+    );
+    const { user_id: accountID, ...details } = input;
+    expect(accountID).toBe(studentFixture.user_id);
+    await updateStudent(studentFixture.student_id, details, user.uid, signal());
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      `/backend-api/api/v1/students/${studentFixture.student_id}`,
+      expect.objectContaining({ method: 'PUT', body: JSON.stringify(details) }),
+    );
+  });
+  it.each([
+    ['duplicate_student', 'duplicate'],
+    ['active_student_account_required', 'account'],
+  ])('maps save conflict %s', async (code, kind) => {
+    fetchMock.mockImplementation(
+      async () =>
+        new Response(JSON.stringify({ error: code }), { status: 409 }),
+    );
+    const input = normalizeStudent({
+      ...studentFixture,
+      guardians: studentFixture.guardians!,
+    });
+    await expect(
+      createStudent(input, user.uid, signal()),
+    ).rejects.toMatchObject({ kind });
+  });
+  it('rejects invalid save IDs and mismatched mutation responses', async () => {
+    const input = normalizeStudent({
+      ...studentFixture,
+      guardians: studentFixture.guardians!,
+    });
+    await expect(
+      createStudent({ ...input, user_id: 'bad' }, user.uid, signal()),
+    ).rejects.toMatchObject({ kind: 'invalid' });
+    await expect(
+      updateStudent('bad', input, user.uid, signal()),
+    ).rejects.toMatchObject({ kind: 'not-found' });
+    expect(fetchMock).not.toHaveBeenCalled();
+    fetchMock.mockImplementation(
+      async () =>
+        new Response(JSON.stringify({ ...studentFixture, user_id: 'other' })),
+    );
+    await expect(
+      createStudent(input, user.uid, signal()),
+    ).rejects.toMatchObject({ kind: 'unavailable' });
+    fetchMock.mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            ...studentFixture,
+            student_id: '44444444-4444-4444-8444-444444444444',
+          }),
+        ),
+    );
+    await expect(
+      updateStudent(studentFixture.student_id, input, user.uid, signal()),
+    ).rejects.toMatchObject({ kind: 'unavailable' });
+  });
   it('sends a fresh Firebase token and only supported encoded query parameters', async () => {
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({ ...studentPageFixture, offset: 20 })),

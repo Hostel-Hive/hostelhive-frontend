@@ -4,6 +4,7 @@ import AdminDashboardPage from '../../features/dashboard/pages/AdminDashboardPag
 import WardenDashboardPage from '../../features/dashboard/pages/WardenDashboardPage';
 import StudentDirectoryPage from '../../features/students/pages/StudentDirectoryPage';
 import StudentProfilePage from '../../features/students/pages/StudentProfilePage';
+import StudentFormPage from '../../features/students/pages/StudentFormPage';
 import NotFoundPage from './NotFoundPage';
 import { routePaths } from './routePaths';
 import AuthLayout from '../../layouts/AuthLayout';
@@ -50,6 +51,11 @@ export default function AppRoutes() {
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
           <Route path="students" element={<StudentDirectoryPage />} />
+          <Route path="students/new" element={<StudentFormPage creating />} />
+          <Route
+            path="students/:studentID/edit"
+            element={<StudentFormPage />}
+          />
           <Route path="students/:studentID" element={<StudentProfilePage />} />
           <Route element={<RoleGuard role="admin" />}>
             <Route path="admin" element={<AdminDashboardPage />} />

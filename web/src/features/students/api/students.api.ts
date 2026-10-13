@@ -1,11 +1,22 @@
 import { configuredAuth } from '../../auth/api/auth.api';
 import { parseEnvironment } from '../../../config/env';
-import type { Student, StudentPage } from '../student.types';
+import type {
+  Student,
+  StudentPage,
+  StudentDetails,
+  CreateStudentInput,
+} from '../student.types';
 
 export class StudentRequestError extends Error {
   constructor(
     public readonly kind:
-      'session' | 'forbidden' | 'not-found' | 'invalid' | 'unavailable',
+      | 'session'
+      | 'forbidden'
+      | 'not-found'
+      | 'invalid'
+      | 'unavailable'
+      | 'duplicate'
+      | 'account',
     message: string,
   ) {
     super(message);
@@ -87,6 +98,7 @@ async function request(
   path: string,
   uid: string,
   signal: AbortSignal,
+  input?: { method: 'POST' | 'PUT'; body: StudentDetails | CreateStudentInput },
 ): Promise<unknown> {
   const auth = configuredAuth();
   if (!auth) throw session();
@@ -113,7 +125,13 @@ async function request(
     ? '/backend-api'
     : parseEnvironment(import.meta.env).apiBaseUrl;
   const response = await fetch(`${base}/api/v1/students${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(input ? { 'Content-Type': 'application/json' } : {}),
+    },
+    ...(input
+      ? { method: input.method, body: JSON.stringify(input.body) }
+      : {}),
     cache: 'no-store',
     credentials: 'omit',
     signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]),
@@ -132,8 +150,57 @@ async function request(
       'invalid',
       'The student request is invalid. Check the address or clear the filters.',
     );
+  if (response.status === 409) {
+    const value: unknown = await response.json();
+    if (object(value) && value.error === 'active_student_account_required')
+      throw new StudentRequestError(
+        'account',
+        'This account must be an active student account. Ask an administrator to check the account ID and status.',
+      );
+    throw new StudentRequestError(
+      'duplicate',
+      'This student ID or account already has a profile. Check the existing student records before submitting again.',
+    );
+  }
   if (!response.ok) throw unavailable();
   return response.json();
+}
+export async function createStudent(
+  input: CreateStudentInput,
+  uid: string,
+  signal: AbortSignal,
+): Promise<Student> {
+  if (!uuid.test(input.user_id))
+    throw new StudentRequestError(
+      'invalid',
+      'Enter a valid student account ID.',
+    );
+  const value = await request('', uid, signal, { method: 'POST', body: input });
+  if (
+    !validStudent(value) ||
+    value.user_id.toLowerCase() !== input.user_id.toLowerCase()
+  )
+    throw unavailable();
+  return value;
+}
+export async function updateStudent(
+  id: string,
+  input: StudentDetails,
+  uid: string,
+  signal: AbortSignal,
+): Promise<Student> {
+  if (!uuid.test(id))
+    throw new StudentRequestError('not-found', 'Student profile not found.');
+  const value = await request(`/${id}`, uid, signal, {
+    method: 'PUT',
+    body: input,
+  });
+  if (
+    !validStudent(value) ||
+    value.student_id.toLowerCase() !== id.toLowerCase()
+  )
+    throw unavailable();
+  return value;
 }
 export async function listStudents(
   params: URLSearchParams,

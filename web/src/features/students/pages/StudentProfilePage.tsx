@@ -1,5 +1,10 @@
 import { useCallback } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import {
+  Link,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import { routePaths } from '../../../app/router/routePaths';
 import useAuth from '../../auth/hooks/useAuth';
 import { getStudent } from '../api/students.api';
@@ -17,6 +22,8 @@ export default function StudentProfilePage() {
   );
   const { data, error, retry } = useStudentRequest(`${uid}:${studentID}`, load);
   const search = params.toString();
+  const location = useLocation();
+  const notice: unknown = location.state?.studentNotice;
   return (
     <section className="students-page" aria-labelledby="student-profile-title">
       <Link
@@ -27,10 +34,21 @@ export default function StudentProfilePage() {
       </Link>
       <p className="eyebrow">Directory / Student profile</p>
       <h1 id="student-profile-title">{data?.full_name ?? 'Student profile'}</h1>
+      {data &&
+        (notice === 'Student profile updated.' ||
+          notice === 'Student profile created.') && (
+          <p role="status">{notice}</p>
+        )}
       {!data || error ? (
         <StudentRequestState error={error} retry={retry} />
       ) : (
         <>
+          <Link
+            className="button-link"
+            to={`${routePaths.students}/${data.student_id}/edit${search ? `?${search}` : ''}`}
+          >
+            Edit profile
+          </Link>
           <div className="student-card">
             <h2>Student details</h2>
             <dl className="student-details">
