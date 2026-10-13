@@ -32,6 +32,12 @@ export default function StudentDirectoryPage() {
     <section className="students-page" aria-labelledby="students-title">
       <p className="eyebrow">Directory / Students</p>
       <h1 id="students-title">Students</h1>
+      <Link
+        className="button-link"
+        to={`${routePaths.students}/new${search ? `?${search}` : ''}`}
+      >
+        Add student
+      </Link>
       <p className="page-description">
         Browse resident profiles and account status.
       </p>
