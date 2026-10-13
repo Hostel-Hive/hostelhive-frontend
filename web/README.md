@@ -156,6 +156,16 @@ Record real Firebase delivery/policy/session results, peer review and passing CI
 
 Firebase public configuration, a running backend/database and live test credentials are required for these integration checks. Dashboard content remains placeholder content, while frontend access guards and backend authorization enforce their separate responsibilities.
 
+## First-login setup UI preview — issue #17
+
+Open `/first-login` to review the first-login layout. The page reuses `AuthLayout`, shared Button/Input controls, Figma tokens and the feature-level `PasswordRequirements` component also used by password reset. It uses institution-neutral copy and does not invent a student ID, account identity or QR status. The amber notice labels the entire page as a preview and asks reviewers to use sample passwords only.
+
+The preview reads the configured Firebase password policy through `validatePassword(auth, '')`. Local field validation checks required values, policy requirements and matching confirmation; a read-only SDK validation runs before the preview-complete state. Loading/error/retry states are implemented for policy retrieval and validation. Sample inputs live only in component memory and are cleared on completion or service failure. No credential changes, reset emails, account activation, onboarding-completion requests, sign-in or QR operations are performed by this feature. The page does not change authentication context or bypass the existing dashboard guards.
+
+The preview requires the existing public Firebase configuration for policy retrieval. When unavailable, it shows an error/retry state rather than invented password-policy rules. Reload requirements refreshes the form; the Firebase SDK may cache policy data for the current app instance. Tests use a fictional policy fixture, assert that validation does not call credential mutation APIs, and verify that completing the preview still leaves signed-out dashboard access blocked.
+
+Before merging #17, review `/first-login` at desktop and mobile widths, use Tab/Enter to operate the fields, submit invalid and mismatched sample values, and confirm that successful validation says **Preview complete**, with no account-activation claim. First-login eligibility, verified identity data, a live password-update entry flow, mandatory setup enforcement and backend completion belong to #16 and its backend dependency. First-login/QR activation must not be inferred from this preview.
+
 ## Protected routes — issue #11
 
 `features/auth/components/AuthProvider.tsx` owns shared authentication state; `features/auth/hooks/useAuth.ts` exposes it to feature and layout components. The provider observes Firebase ID-token/session changes and verifies the current user through `/api/v1/me`. Account roles come from the current backend response, not Firebase claims or a browser-stored role. `ProtectedRoute`, `PublicOnlyRoute` and `RoleGuard` live in `app/router/`, with role-to-dashboard mapping in `config/roles.ts`.

@@ -4,6 +4,9 @@
 
 ### Added
 
+- First-login password setup preview with configured policy display, validation and loading/error/preview-complete states (issue #17).
+- Shared password-requirements display used by setup preview and password reset.
+- Tests for read-only policy validation, duplicate submissions, retries and unchanged dashboard access.
 - Firebase password recovery, generic request confirmation, resend cooldown, reset-link validation and policy-driven reset form (issue #14).
 - Reset success, invalid/expired-link recovery and service retry states using the shared authentication layout.
 - Password-flow SDK, form interaction and reset-request parsing tests.
