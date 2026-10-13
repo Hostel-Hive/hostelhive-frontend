@@ -79,3 +79,19 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+/* Compact controls belong to the dashboard; authentication retains its sizing. */
+.dashboard-shell .ui-button {
+  border-radius: var(--radius-control);
+  font-weight: 600;
+}
+.dashboard-shell .ui-button--md {
+  min-height: 44px;
+  padding: 10px 16px;
+}
+.dashboard-shell .ui-input {
+  min-height: 44px;
+  padding: 10px 12px;
+}
+.dashboard-shell .ui-input::placeholder {
+  color: var(--ink-600);
+}
