@@ -24,3 +24,14 @@ export interface StudentPage {
   offset: number;
   has_more: boolean;
 }
+export interface StudentDetails {
+  index_no: string;
+  full_name: string;
+  faculty: string;
+  year: number;
+  contact_phone: string;
+  guardians: Omit<Guardian, 'guardian_id'>[];
+}
+export interface CreateStudentInput extends StudentDetails {
+  user_id: string;
+}
