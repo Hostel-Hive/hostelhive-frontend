@@ -84,8 +84,16 @@ describe('protected dashboard access', () => {
       const nav = within(
         screen.getByRole('navigation', { name: 'Primary navigation' }),
       );
-      expect(nav.getAllByRole('link')).toHaveLength(1);
-      expect(nav.getByRole('link')).toHaveAttribute('aria-current', 'page');
+      expect(nav.getAllByRole('link')).toHaveLength(2);
+      expect(
+        nav.getByRole('link', {
+          name: role === 'admin' ? 'Admin dashboard' : 'Warden dashboard',
+        }),
+      ).toHaveAttribute('aria-current', 'page');
+      expect(nav.getByRole('link', { name: 'Students' })).toHaveAttribute(
+        'href',
+        '/dashboard/students',
+      );
       view.unmount();
       renderAt(`/dashboard/${role}`);
       await expectDashboard(role);
