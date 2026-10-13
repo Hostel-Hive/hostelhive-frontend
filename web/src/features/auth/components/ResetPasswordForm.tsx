@@ -9,6 +9,7 @@ import {
   passwordErrorMessage,
 } from '../api/password.api';
 import { passwordRequirements } from '../password.schema';
+import PasswordRequirements from './PasswordRequirements';
 
 interface Props {
   code: string;
@@ -118,25 +119,11 @@ export default function ResetPasswordForm({
             {fieldError}
           </p>
         )}
-        <div id="password-requirements" className="password-requirements">
-          <progress
-            aria-label="Password requirements met"
-            max={requirements.length || 1}
-            value={requirements.filter((row) => row.met).length}
-          />
-          <p>Password requirements</p>
-          <ul>
-            {requirements.map((row) => (
-              <li key={row.label} data-met={row.met}>
-                <span aria-hidden="true">{row.met ? '✓' : '○'}</span>{' '}
-                {row.label}
-                <span className="sr-only">
-                  {row.met ? ', met' : ', not met'}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <PasswordRequirements
+          id="password-requirements"
+          password={password}
+          policy={policy}
+        />
       </div>
       <div className="auth-field">
         <label htmlFor="confirm-password">Confirm new password</label>

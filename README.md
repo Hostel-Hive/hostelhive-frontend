@@ -20,6 +20,8 @@ See [web setup instructions](web/README.md) for installation, configuration and 
 
 ## Contribution workflow
 
+Issue #17 adds `/first-login` as a clearly labelled password-setup UI preview. It reuses the authentication layout and password-requirements display, reads the Firebase policy and validates sample input without saving credentials or granting account access. Enforced onboarding and activation remain in #16 after the backend contract is available.
+
 Issue #14 implements password recovery at `/forgot-password` and the Firebase password-reset action handler at `/reset-password`. It uses the project's Firebase password policy, institution-neutral copy, shared controls and the existing authentication layout. See the web README for email-template action URL setup and live verification.
 
 Issue #7 adds the shared authentication layout and login flow at `/login`; `/` now opens login. Firebase credentials are exchanged directly with Firebase, and the backend `/api/v1/me` response determines whether an active Admin or Warden can enter their dashboard. Issue #11 protects dashboard routes, verifies restored sessions and adds role-filtered navigation and sign-out. See the web README for public Firebase configuration and live verification.
