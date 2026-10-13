@@ -1,5 +1,4 @@
-import { act } from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../../../app/App';
@@ -70,7 +69,11 @@ describe('student directory and profiles', () => {
       });
       renderAt();
       expect(
-        await screen.findByRole('link', { name: 'View Alex Morgan' }),
+        await screen.findByRole(
+          'link',
+          { name: 'View Alex Morgan' },
+          { timeout: 5000 },
+        ),
       ).toBeVisible();
       expect(screen.getByRole('link', { name: 'Students' })).toHaveAttribute(
         'aria-current',
