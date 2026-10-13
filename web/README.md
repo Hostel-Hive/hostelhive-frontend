@@ -188,3 +188,15 @@ Live smoke checks with dedicated test records:
 6. Check keyboard navigation and desktop, tablet, and 320px layouts. Scroll the table within its region on narrow screens.
 
 Automated checks mock service boundaries and do not prove live Firebase/backend/CORS configuration. Record live smoke results, peer review, and passing CI before closing #19.
+
+## Student profile creation and editing
+
+Use Add student from the directory or Edit profile from an existing profile. Creation calls `POST /api/v1/students`; editing calls `PUT /api/v1/students/{studentID}`. Both retain the existing Admin/Warden permissions and send the current Firebase ID token.
+
+Creation requires an existing active student account UUID supplied by an administrator. Account browsing is Admin-only in the current backend, so this form does not call the user listing API or pretend Wardens can browse accounts. The backend checks active student status and profile uniqueness. No login account is provisioned, password collected, email modified, or QR activated by these forms.
+
+Editable fields follow the backend limits: student ID 64 characters, name 200, faculty 120, year 1–10, phone 7–32 supported characters with at least seven digits. One to ten guardians are required, each with name, relationship, and phone. PUT replaces the guardian collection according to the existing backend contract; guardian IDs and response-only fields are excluded from the payload.
+
+The router now supports navigation blocking. Dirty forms show a discard dialog for Cancel, internal navigation, and browser history navigation, plus the browser warning on refresh/close. Save success opens the profile and preserves directory filters. Pending submission disables controls and duplicate requests. Failed requests preserve values; rejected sessions and forbidden/missing records prevent another save. A timeout/network failure can leave the save outcome unknown, so check existing records before submitting again. Mutations are never automatically retried.
+
+Live acceptance checks require dedicated test records: create a profile for an eligible account, edit fields/guardians, verify duplicates and inactive-account rejection, test unsaved navigation, and inspect desktop/mobile keyboard behavior. Automated tests mock the services and do not create real accounts or database records. No backend or database files were changed for this frontend ticket.

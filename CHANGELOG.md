@@ -4,6 +4,8 @@
 
 ### Added
 
+- Student profile creation and editing through the existing authorized APIs, including guardian management, backend-aligned validation, save recovery, and unsaved-navigation protection.
+
 - Student directory and read-only profiles for Admin/Warden accounts, backed by Firebase-authorized student APIs (issue #19).
 - URL-preserved name/ID search, exact faculty and year filters, offset pagination, contact and guardian details, and request recovery states.
 
