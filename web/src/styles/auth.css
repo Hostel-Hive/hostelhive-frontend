@@ -291,3 +291,13 @@
 .password-requirements [data-met='true'] > span:first-child {
   color: #059669;
 }
+.auth-preview-notice {
+  margin: 0 0 28px;
+  padding: 12px 14px;
+  border: 1px solid var(--amber-300);
+  border-radius: var(--radius-control);
+  background: var(--amber-50);
+  color: var(--indigo-900);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
