@@ -6,6 +6,7 @@ import {
   setPersistence,
   signInWithEmailAndPassword,
   signOut,
+  onIdTokenChanged,
 } from 'firebase/auth';
 import { parseEnvironment } from '../../../config/env';
 import type { LoginInput, StaffAccount } from '../auth.types';
@@ -13,7 +14,7 @@ import type { LoginInput, StaffAccount } from '../auth.types';
 const configurationMessage =
   'Sign-in is not configured yet. Contact the project administrator.';
 
-function configuredAuth() {
+export function configuredAuth() {
   const {
     VITE_FIREBASE_API_KEY: apiKey,
     VITE_FIREBASE_AUTH_DOMAIN: authDomain,
@@ -57,6 +58,49 @@ function loginError(message: string) {
   return error;
 }
 
+export class SessionRejectedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'LoginError';
+  }
+}
+
+export function isSessionRejected(error: unknown) {
+  return (
+    error instanceof SessionRejectedError ||
+    (typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      [
+        'auth/user-token-expired',
+        'auth/invalid-user-token',
+        'auth/user-disabled',
+      ].includes(String(error.code)))
+  );
+}
+
+export function subscribeStaffSession(
+  onChange: (signedIn: boolean) => void,
+  onError: (error: unknown) => void,
+) {
+  const auth = configuredAuth();
+  if (!auth) {
+    let active = true;
+    queueMicrotask(() => {
+      if (active) onChange(false);
+    });
+    return () => {
+      active = false;
+    };
+  }
+  return onIdTokenChanged(auth, (user) => onChange(Boolean(user)), onError);
+}
+
+export async function logout() {
+  const auth = configuredAuth();
+  if (auth) await signOut(auth);
+}
+
 async function verifyStaffAccount(
   uid: string,
   token: string,
@@ -75,9 +119,11 @@ async function verifyStaffAccount(
     throw loginError('Unable to reach the hostel service. Please try again.');
   }
   if (response.status === 401)
-    throw loginError('Your session has expired. Please sign in again.');
+    throw new SessionRejectedError(
+      'Your session has expired. Please sign in again.',
+    );
   if (response.status === 403)
-    throw loginError(
+    throw new SessionRejectedError(
       'This account cannot access the staff portal. Contact the Head Warden.',
     );
   if (!response.ok)
@@ -100,7 +146,7 @@ async function verifyStaffAccount(
     !('role' in account) ||
     (account.role !== 'admin' && account.role !== 'warden')
   ) {
-    throw loginError(
+    throw new SessionRejectedError(
       'This account cannot access the staff portal. Contact the Head Warden.',
     );
   }
@@ -137,7 +183,7 @@ export async function restoreStaffSession(): Promise<StaffAccount | null> {
     const user = auth.currentUser;
     return await verifyStaffAccount(user.uid, await user.getIdToken());
   } catch (error) {
-    await signOut(auth).catch(() => undefined);
+    if (isSessionRejected(error)) await signOut(auth).catch(() => undefined);
     throw error;
   }
 }

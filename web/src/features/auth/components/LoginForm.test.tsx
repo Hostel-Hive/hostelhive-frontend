@@ -10,12 +10,21 @@ vi.mock('../api/auth.api', async (original) => ({
   ...(await original<typeof import('../api/auth.api')>()),
   login: vi.fn(),
   restoreStaffSession: vi.fn(),
+  subscribeStaffSession: vi.fn((change: (signedIn: boolean) => void) => {
+    let active = true;
+    queueMicrotask(() => {
+      if (active) change(true);
+    });
+    return () => {
+      active = false;
+    };
+  }),
 }));
 
 const account: StaffAccount = {
   user_id: 'staff-1',
   firebase_uid: 'firebase-1',
-  email: 'staff@kln.ac.lk',
+  email: 'staff@example.com',
   role: 'admin',
   is_active: true,
 };
@@ -30,7 +39,7 @@ async function openLogin() {
   return userEvent.setup();
 }
 async function fillForm(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('Email'), 'staff@kln.ac.lk');
+  await user.type(screen.getByLabelText('Email'), 'staff@example.com');
   await user.type(
     screen.getByLabelText('Password', { exact: true }),
     'existing-password',
@@ -64,7 +73,7 @@ describe('staff login', () => {
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(screen.getByText('Enter a valid email address.')).toBeVisible();
     await user.clear(screen.getByLabelText('Email'));
-    await user.type(screen.getByLabelText('Email'), 'staff@kln.ac.lk');
+    await user.type(screen.getByLabelText('Email'), 'staff@example.com');
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(screen.getByLabelText('Password', { exact: true })).toHaveFocus();
   });
@@ -72,7 +81,10 @@ describe('staff login', () => {
   it.each(['admin', 'warden'] as const)(
     'redirects verified %s accounts',
     async (role) => {
-      vi.mocked(login).mockResolvedValue({ ...account, role });
+      vi.mocked(login).mockImplementation(async () => {
+        vi.mocked(restoreStaffSession).mockResolvedValue({ ...account, role });
+        return { ...account, role };
+      });
       const user = await openLogin();
       await fillForm(user);
       await user.click(screen.getByLabelText('Keep me signed in'));
@@ -84,7 +96,7 @@ describe('staff login', () => {
         }),
       ).toBeVisible();
       expect(login).toHaveBeenCalledWith({
-        email: 'staff@kln.ac.lk',
+        email: 'staff@example.com',
         password: 'existing-password',
         rememberMe: true,
       });
@@ -109,7 +121,10 @@ describe('staff login', () => {
       screen.getByLabelText('Password', { exact: true }),
       'retry-password',
     );
-    vi.mocked(login).mockResolvedValue(account);
+    vi.mocked(login).mockImplementation(async () => {
+      vi.mocked(restoreStaffSession).mockResolvedValue(account);
+      return account;
+    });
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(
       await screen.findByRole('heading', { name: 'Admin dashboard', level: 1 }),
@@ -182,15 +197,37 @@ describe('staff login', () => {
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeEnabled();
   });
 
+  it('finishes verification after leaving and returning during pending login', async () => {
+    let finish!: (account: StaffAccount) => void;
+    vi.mocked(login).mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const user = await openLogin();
+    await fillForm(user);
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+    await user.click(screen.getByRole('link', { name: 'Forgot password?' }));
+    await user.click(screen.getByRole('link', { name: /Back to sign in/ }));
+    expect(screen.getByRole('button', { name: 'Signing in…' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Signing in…' }));
+    expect(login).toHaveBeenCalledTimes(1);
+    vi.mocked(restoreStaffSession).mockResolvedValue(account);
+    await act(async () => {
+      finish(account);
+    });
+    expect(
+      await screen.findByRole('heading', { name: 'Admin dashboard', level: 1 }),
+    ).toBeVisible();
+  });
+
   it('provides a working recovery destination and return link', async () => {
     const user = await openLogin();
     await user.click(screen.getByRole('link', { name: 'Forgot password?' }));
     expect(
       screen.getByRole('heading', { name: 'Forgot your password?' }),
     ).toBeVisible();
-    expect(
-      screen.getByText(/Online password recovery is not available yet/),
-    ).toBeVisible();
+    expect(screen.getByText(/Enter your account email address/)).toBeVisible();
     await user.click(screen.getByRole('link', { name: /Back to sign in/ }));
     expect(
       await screen.findByRole('button', { name: 'Sign in' }),

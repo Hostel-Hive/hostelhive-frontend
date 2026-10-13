@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import AppSidebar from './AppSidebar';
+import Button from '../../shared/components/ui/Button';
 
 export default function MobileSidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +26,8 @@ export default function MobileSidebar() {
 
   return (
     <div className="mobile-navigation">
-      <button
+      <Button
+        variant="secondary"
         ref={toggleRef}
         type="button"
         className="menu-toggle"
@@ -34,12 +36,17 @@ export default function MobileSidebar() {
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? 'Close navigation' : 'Open navigation'}
-      </button>
+      </Button>
       <div id="mobile-sidebar" className="mobile-sidebar" hidden={!isOpen}>
         <AppSidebar label="Mobile navigation" onNavigate={closeMenu} />
-        <button type="button" className="menu-close" onClick={closeMenu}>
+        <Button
+          variant="secondary"
+          type="button"
+          className="menu-close"
+          onClick={closeMenu}
+        >
           Close menu
-        </button>
+        </Button>
       </div>
     </div>
   );

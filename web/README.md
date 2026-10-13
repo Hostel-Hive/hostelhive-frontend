@@ -66,13 +66,14 @@ The proposed larger feature structure grows through individual tickets. Issue #3
 
 - `/` redirects to `/login`.
 - `/login` renders the staff login page, or redirects a restored, backend-verified session to its role's dashboard.
-- `/forgot-password` provides an assistance page and a return link. Reset emails and reset-password forms belong to the password-recovery ticket.
+- `/forgot-password` requests a Firebase reset email and displays a generic confirmation with resend controls.
+- `/reset-password?mode=resetPassword&oobCode=...` verifies a Firebase reset link before displaying the new-password form.
 - `/dashboard` redirects to `/dashboard/admin`.
 - `/dashboard/admin` renders the admin landing page.
 - `/dashboard/warden` renders the warden landing page.
 - Unknown URLs show a Not Found page with a return link.
 
-Both landing pages are currently public layout previews. Their names do not enforce access control. Issue #7 implements login; protected routes and role guards remain a subsequent ticket before these pages expose account or business data.
+Issue #11 protects both dashboard routes. Only an active backend-verified Admin may open `/dashboard/admin`, and only an active Warden may open `/dashboard/warden`. The pages still contain placeholder content; route guards are implemented independently of future business modules.
 
 Below 768px, the desktop sidebar is replaced with a navigation disclosure. Open/close it with the toggle button, use Escape to close it and return focus to the toggle, or select a link to navigate and close it. A skip link takes keyboard users directly to the main content.
 
@@ -80,9 +81,9 @@ For deployment, configure the web host to serve `index.html` for application rou
 
 ### Manual smoke checks
 
-1. Open `/` and confirm the login page appears. Open `/dashboard/admin` to preview the dashboard layout.
-2. Select Warden dashboard and confirm its page and active navigation change.
-3. Refresh `/dashboard/warden` and confirm it still loads.
+1. While signed out, open `/dashboard/admin` and `/dashboard/warden`; confirm both return to login without displaying dashboard content.
+2. Sign in with dedicated active Admin and Warden accounts separately. Confirm each sees only their own dashboard navigation.
+3. Refresh the permitted dashboard and confirm it loads after session verification. Open the other role's URL and confirm redirection to the permitted dashboard.
 4. Open an unknown URL and use Return to dashboard.
 5. At 375px width, open the menu, navigate and verify there is no horizontal overflow.
 6. Use Tab/Enter to operate the menu and Escape to close it.
@@ -118,7 +119,51 @@ Automated tests use mocked Firebase and fetch; they do not contact a live Fireba
 3. Try incorrect credentials, inactive accounts, and an unsupported role; confirm no dashboard redirect and a safe error.
 4. Verify the button disables during submission and allows retry after failure.
 5. Verify checked/unchecked persistence across reload and tab/browser closure, returning through `/login`.
-6. Open Forgot password and return to login; recovery operations are not implemented by this ticket.
-7. Check desktop, 375px and 320px widths, keyboard focus, and direct `/login` refresh.
+6. Open Forgot password and return to login; issue #14 implements recovery and reset operations separately from login.
 
-Firebase public configuration, a running backend/database and live test credentials are required for these integration checks. Dashboard URLs still show public placeholders; server-side authorization remains enforced and protected frontend routes are a subsequent ticket.
+## Password recovery and reset — issue #14
+
+The flow reuses `AuthLayout`, shared Button/Input controls and Figma typography/colour tokens. Business logic remains in `features/auth/`: `api/password.api.ts` wraps Firebase; `password.schema.ts` handles local validation; `ResetPasswordForm.tsx` owns form interactions; recovery/reset pages own their screen states. No new backend password API or local credential/reset-token store is added.
+
+The recovery form calls `sendPasswordResetEmail` through the configured Firebase web app. Confirmation says **if an account exists**, a reset email will arrive; unknown/disabled-account responses receive the same confirmation. Provider/network failures are reported without exposing raw details. Acceptance does not prove email delivery. Resend has a 60-second UI cooldown and duplicate requests are disabled; this is a user-experience safeguard, not a replacement for Firebase quotas and abuse controls. Email addresses remain in component memory.
+
+The reset handler accepts exactly one `mode=resetPassword` and one nonempty `oobCode`. It uses the project's configured Firebase app rather than any URL-supplied API key and ignores `continueUrl` instead of following untrusted redirects. The code is captured only in component memory and then removed from the address bar. Refreshing the cleaned URL requires reopening the email link; the code is deliberately not retained in storage. Codes and passwords are never logged. Production hosting should also avoid recording sensitive action-link query strings and set an appropriate Referrer-Policy.
+
+`verifyPasswordResetCode` validates the link before password fields appear. `validatePassword` loads the configured policy, whose length/case/number/symbol requirements drive the checklist and requirements meter. The meter reports requirements met, not a password-strength rating. Submission requires matching passwords and validates through Firebase again before `confirmPasswordReset`. Invalid, expired and already-used links provide a recovery action; temporary failures offer retry. Success clears the local Firebase session and provides a sign-in link. Remote session revocation remains enforced by Firebase and the backend's revoked-token verification; verify that behaviour live rather than inferring it from unit tests.
+
+### Firebase email-action configuration
+
+1. Use the same Firebase project and public web configuration as login. Review the Email/Password provider, password policy and email-enumeration/abuse settings.
+2. Deploy the frontend with browser-history fallback for `/reset-password`.
+3. In Firebase Console → Authentication → Templates → Password reset, configure the custom action URL to your actual frontend **`https://<your-domain>/reset-password`**. For local testing, use your permitted localhost/127.0.0.1 action URL and verify the project's domain/key restrictions. Do not assume a continue URL alone replaces the email action handler.
+4. Firebase appends `mode`, `oobCode` and related parameters to the email link. This page handles password reset only. Firebase custom-handler settings can affect other email action types; a dispatcher for verification/recover-email actions is required if those templates use the same custom URL. Unsupported modes are rejected here.
+5. Leave the Firebase project's real link expiry and password policy as the source of truth; this UI does not promise a 20-minute expiry or hard-code the Figma sample's eight-character minimum.
+
+See [Firebase custom email handlers](https://firebase.google.com/docs/auth/custom-email-handler) and [Firebase password policy](https://firebase.google.com/docs/auth/web/password-auth).
+
+### Live acceptance checks
+
+Use a dedicated test mailbox/account you control. Automated tests mock Firebase and never send emails or change live passwords.
+
+1. Request a reset, check the generic confirmation, spam folder and resend cooldown, then verify actual email delivery.
+2. Open the email link and confirm the address bar is cleaned, the verified account is shown, and requirements match the configured Firebase policy.
+3. Check weak/mismatched passwords, pending submission and retry after a service failure.
+4. Complete a reset; verify the new password signs in, the old password fails and prior sessions are rejected by the backend.
+5. Reopen the used link and test an invalid/expired link; confirm a new-link recovery option.
+6. Check desktop/mobile layouts, keyboard focus and direct reset-link navigation. Refreshing a cleaned link should show an invalid-link recovery screen.
+
+Record real Firebase delivery/policy/session results, peer review and passing CI before closing issue #14. First-login activation and authenticated password changes remain separate tickets. 7. Check desktop, 375px and 320px widths, keyboard focus, and direct `/login` refresh.
+
+Firebase public configuration, a running backend/database and live test credentials are required for these integration checks. Dashboard content remains placeholder content, while frontend access guards and backend authorization enforce their separate responsibilities.
+
+## Protected routes — issue #11
+
+`features/auth/components/AuthProvider.tsx` owns shared authentication state; `features/auth/hooks/useAuth.ts` exposes it to feature and layout components. The provider observes Firebase ID-token/session changes and verifies the current user through `/api/v1/me`. Account roles come from the current backend response, not Firebase claims or a browser-stored role. `ProtectedRoute`, `PublicOnlyRoute` and `RoleGuard` live in `app/router/`, with role-to-dashboard mapping in `config/roles.ts`.
+
+Protected content is hidden until the account is verified for the current pathname. Verification runs on direct load, route changes, token/session notifications, window focus and returning to a visible tab. Stale responses cannot restore access after sign-out or a newer verification. Wrong-role URLs redirect to the user's permitted dashboard; authenticated `/login` visits do the same. `/dashboard` resolves to the permitted dashboard. Navigation and the header brand also use that role.
+
+Expired/rejected sessions, inactive accounts and unsupported roles are denied. Temporary network/backend failures hide protected content and show Retry verification and Sign out actions. Restored Firebase credentials are preserved for transient failures so retries can recover; permanent rejection clears the Firebase session. Sign-out hides dashboard content immediately, clears the Firebase session and returns to login. Failed sign-out keeps protected content hidden and offers another attempt. Firebase notifications also handle sign-out from another tab when local persistence is used.
+
+The client rechecks at the events listed above; it does not promise instantaneous detection of a database role/status change in an idle tab. Every business API must continue enforcing backend authorization on every request. No new backend permission policy is introduced by this ticket.
+
+Automated route tests mock Firebase/backend boundaries and cover anonymous access, restored sessions, pending verification, wrong-role URLs, retry, sign-out, back navigation and stale responses. Live acceptance still requires working Firebase sign-in and dedicated active Admin/Warden accounts. Before closing the GitHub issue, record live checks, peer review and passing CI; mocked tests do not prove real Firebase configuration or production CORS.

@@ -7,6 +7,22 @@ import { routePaths } from './routePaths';
 import AuthLayout from '../../layouts/AuthLayout';
 import LoginPage from '../../features/auth/pages/LoginPage';
 import PasswordRecoveryPage from '../../features/auth/pages/PasswordRecoveryPage';
+import ResetPasswordPage from '../../features/auth/pages/ResetPasswordPage';
+import ProtectedRoute from './ProtectedRoute';
+import PublicOnlyRoute from './PublicOnlyRoute';
+import RoleGuard from './RoleGuard';
+import useAuth from '../../features/auth/hooks/useAuth';
+import { dashboardForRole } from '../../config/roles';
+
+function DashboardRedirect() {
+  const { account } = useAuth();
+  return (
+    <Navigate
+      to={account ? dashboardForRole(account.role) : routePaths.login}
+      replace
+    />
+  );
+}
 
 export default function AppRoutes() {
   return (
@@ -16,19 +32,28 @@ export default function AppRoutes() {
         element={<Navigate to={routePaths.login} replace />}
       />
       <Route element={<AuthLayout />}>
-        <Route path={routePaths.login} element={<LoginPage />} />
+        <Route element={<PublicOnlyRoute />}>
+          <Route path={routePaths.login} element={<LoginPage />} />
+        </Route>
         <Route
           path={routePaths.forgotPassword}
           element={<PasswordRecoveryPage />}
         />
-      </Route>
-      <Route path={routePaths.dashboard} element={<DashboardLayout />}>
         <Route
-          index
-          element={<Navigate to={routePaths.adminDashboard} replace />}
+          path={routePaths.resetPassword}
+          element={<ResetPasswordPage />}
         />
-        <Route path="admin" element={<AdminDashboardPage />} />
-        <Route path="warden" element={<WardenDashboardPage />} />
+      </Route>
+      <Route element={<ProtectedRoute />}>
+        <Route path={routePaths.dashboard} element={<DashboardLayout />}>
+          <Route index element={<DashboardRedirect />} />
+          <Route element={<RoleGuard role="admin" />}>
+            <Route path="admin" element={<AdminDashboardPage />} />
+          </Route>
+          <Route element={<RoleGuard role="warden" />}>
+            <Route path="warden" element={<WardenDashboardPage />} />
+          </Route>
+        </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

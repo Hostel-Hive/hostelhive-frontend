@@ -8,7 +8,7 @@ export default function LoginPage() {
         Sign in to <em>HostelHive.</em>
       </h1>
       <p className="auth-description">
-        Warden &amp; administrator portal for Bulugaha Girls’ Hostel.
+        Warden &amp; administrator portal for hostel management.
       </p>
       <LoginForm />
       <p className="auth-divider">Hostel staff only</p>

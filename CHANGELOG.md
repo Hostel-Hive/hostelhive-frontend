@@ -4,6 +4,14 @@
 
 ### Added
 
+- Firebase password recovery, generic request confirmation, resend cooldown, reset-link validation and policy-driven reset form (issue #14).
+- Reset success, invalid/expired-link recovery and service retry states using the shared authentication layout.
+- Password-flow SDK, form interaction and reset-request parsing tests.
+- Protected dashboard routes, role-specific access, shared authentication state and Firebase session observation (issue #11).
+- Sign-out, role-filtered navigation, verification loading/retry states and stale-response protection.
+- Direct-route, restored-session, service-failure, role-change and sign-out regression tests.
+- Institution-neutral branding and full Figma tonal palette; login cyan accents now use cyan-500.
+- Reusable Button and Input controls under shared/components/ui, used by login and mobile navigation.
 - Shared Figma authentication layout and login page with accessible validation, loading/error states and password recovery assistance route (issue #7).
 - Firebase email/password sign-in and persisted-session restoration, verified against the backend active-account and role response before dashboard redirects.
 - Login interaction and Firebase/backend contract tests; development API proxy.

@@ -20,13 +20,19 @@ See [web setup instructions](web/README.md) for installation, configuration and 
 
 ## Contribution workflow
 
-Issue #7 adds the shared authentication layout and login flow at `/login`; `/` now opens login. Firebase credentials are exchanged directly with Firebase, and the backend `/api/v1/me` response determines whether an active Admin or Warden can enter their dashboard. See the web README for public Firebase configuration and live verification. Existing dashboard URLs remain public layout previews until the route-protection ticket.
+Issue #14 implements password recovery at `/forgot-password` and the Firebase password-reset action handler at `/reset-password`. It uses the project's Firebase password policy, institution-neutral copy, shared controls and the existing authentication layout. See the web README for email-template action URL setup and live verification.
+
+Issue #7 adds the shared authentication layout and login flow at `/login`; `/` now opens login. Firebase credentials are exchanged directly with Firebase, and the backend `/api/v1/me` response determines whether an active Admin or Warden can enter their dashboard. Issue #11 protects dashboard routes, verifies restored sessions and adds role-filtered navigation and sign-out. See the web README for public Firebase configuration and live verification.
 
 Create a repository issue and add it to the existing HostelHive project with Phase = Development. Branch from `develop` using `feature/<issue-number>-<slug>` or `fix/<issue-number>-<slug>`. Reference the issue in commits and open a PR against `develop`. Require one peer approval and passing checks. Release into `main` through an approved PR.
 
 Use Conventional Commits, for example `chore(frontend): configure web scaffold`, with `Refs #1` in the body. Put `Closes #1` in the PR description. This closes on merge only when the target is the repository default branch.
 
 ## Coding standards
+
+HostelHive is an open source application for use across hostels. Product copy and examples must remain institution-neutral; do not hard-code a hostel name, university email domain or local office extension.
+
+Frontend modules follow the proposed feature-based structure: `features/<module>` owns business pages, forms and API logic; `layouts/` owns page shells; `shared/components/ui/` owns reusable `Button.tsx` and `Input.tsx` primitives. Shared UI imports no feature-specific code. Create additional folders/components only when needed by a ticket. Colours come from `styles/tokens.css`, reusable controls from `styles/ui.css`, and authentication layout styles from `styles/auth.css`.
 
 Use strict TypeScript, ESLint recommended JavaScript/TypeScript and React Hooks rules, and Prettier with single quotes. Tests cover observable behaviour and follow Arrange-Act-Assert. CI requires at least 80% lines, statements, functions and branches across application source; bootstrap, declarations and test utilities are excluded. This is the initial team style configuration, rather than a claim of full Airbnb style-guide compliance.
 
