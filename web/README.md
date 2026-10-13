@@ -167,3 +167,24 @@ Expired/rejected sessions, inactive accounts and unsupported roles are denied. T
 The client rechecks at the events listed above; it does not promise instantaneous detection of a database role/status change in an idle tab. Every business API must continue enforcing backend authorization on every request. No new backend permission policy is introduced by this ticket.
 
 Automated route tests mock Firebase/backend boundaries and cover anonymous access, restored sessions, pending verification, wrong-role URLs, retry, sign-out, back navigation and stale responses. Live acceptance still requires working Firebase sign-in and dedicated active Admin/Warden accounts. Before closing the GitHub issue, record live checks, peer review and passing CI; mocked tests do not prove real Firebase configuration or production CORS.
+
+## Student directory and profiles — issue #19
+
+Admin and Warden accounts can open `/dashboard/students` and `/dashboard/students/:studentID`. Requests use the current Firebase ID token, the development API proxy, and the configured production API URL. No student data or tokens are persisted in browser storage.
+
+The directory calls `GET /api/v1/students` with `q`, `faculty`, `year`, `limit=20`, and `offset`. Search matches name or student index/ID; faculty matches the complete name case-insensitively. Year supports 1–10. Filters and pagination live in the URL and survive profile visits, refresh, and browser back/forward. The API returns `has_more`, not a total count, so pagination shows Previous/Next without invented totals.
+
+Profiles call `GET /api/v1/students/{studentID}` and show contact and guardian details. Account Active/Inactive describes the account only. Room/bed allocation, attendance, QR eligibility, photos, mutations, and CSV imports remain separate integrations. Students navigation is available to both currently supported staff roles.
+
+Loading, empty directory, unmatched filters, missing profile, malformed response, access denied, and retry states are covered. Rejected sessions offer Sign in again using the existing sign-out flow. Requests are cancelled on navigation and superseded responses are ignored.
+
+Live smoke checks with dedicated test records:
+
+1. Sign in as Admin and Warden, select Students, and open a profile.
+2. Search by name/ID; apply an exact faculty and year; test Previous/Next with more than 20 matching records.
+3. Open a profile and return; verify filters and page are preserved, including refresh and browser history.
+4. Check guardian/contact details, inactive accounts, missing optional details, and an unknown student ID.
+5. Check backend outage/retry, rejected/expired sessions, and forbidden access; verify records are hidden.
+6. Check keyboard navigation and desktop, tablet, and 320px layouts. Scroll the table within its region on narrow screens.
+
+Automated checks mock service boundaries and do not prove live Firebase/backend/CORS configuration. Record live smoke results, peer review, and passing CI before closing #19.

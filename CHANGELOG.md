@@ -4,6 +4,9 @@
 
 ### Added
 
+- Student directory and read-only profiles for Admin/Warden accounts, backed by Firebase-authorized student APIs (issue #19).
+- URL-preserved name/ID search, exact faculty and year filters, offset pagination, contact and guardian details, and request recovery states.
+
 - Firebase password recovery, generic request confirmation, resend cooldown, reset-link validation and policy-driven reset form (issue #14).
 - Reset success, invalid/expired-link recovery and service retry states using the shared authentication layout.
 - Password-flow SDK, form interaction and reset-request parsing tests.

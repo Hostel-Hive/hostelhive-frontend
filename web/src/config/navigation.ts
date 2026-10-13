@@ -7,4 +7,5 @@ export const dashboardNavigation = [
     path: routePaths.wardenDashboard,
     role: 'warden',
   },
+  { label: 'Students', path: routePaths.students, role: 'all' },
 ] as const;

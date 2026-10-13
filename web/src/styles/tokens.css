@@ -1,5 +1,5 @@
 /* Colours and typefaces from the HostelHive Figma component library.
- * Layout, spacing and elevation tokens adapt the existing dashboard shell.
+ * Dashboard-specific sizing is scoped to the staff workspace.
  */
 :root {
   --indigo-50: #f8f7fe;
@@ -71,6 +71,6 @@
   --radius-card: 1rem;
   --shadow-card: 0 4px 24px #18103706;
   --shadow-menu: 0 12px 32px #18103724;
-  --header-height: 5rem;
-  --sidebar-width: 15.5rem;
+  --header-height: 4rem;
+  --sidebar-width: 13.75rem;
 }

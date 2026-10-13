@@ -16,12 +16,16 @@ export default function AppSidebar({
     <nav aria-label={label} className="sidebar-nav">
       <ul>
         {dashboardNavigation
-          .filter((item) => item.role === account?.role)
+          .filter(
+            (item) =>
+              item.role === account?.role ||
+              (item.role === 'all' && Boolean(account)),
+          )
           .map((item) => (
             <li key={item.path}>
               <NavLink
                 to={item.path}
-                end
+                end={item.role !== 'all'}
                 onClick={onNavigate}
                 className={({ isActive }) =>
                   isActive ? 'nav-link nav-link--active' : 'nav-link'
