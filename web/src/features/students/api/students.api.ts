@@ -1,5 +1,7 @@
-import { configuredAuth } from '../../auth/api/auth.api';
-import { parseEnvironment } from '../../../config/env';
+import {
+  authorizedRequest,
+  AuthorizedRequestError,
+} from '../../auth/api/authorized-request';
 import type {
   Student,
   StudentPage,
@@ -106,46 +108,19 @@ export async function studentResponse(
     contentType?: string;
   },
 ): Promise<Response> {
-  const auth = configuredAuth();
-  if (!auth) throw session();
-  await auth.authStateReady();
-  const user = auth.currentUser;
-  if (!user || user.uid !== uid) throw session();
-  let token: string;
+  let response: Response;
   try {
-    token = await user.getIdToken();
+    response = await authorizedRequest(
+      `/api/v1/students${path}`,
+      uid,
+      signal,
+      input,
+    );
   } catch (error) {
-    if (
-      object(error) &&
-      [
-        'auth/user-token-expired',
-        'auth/invalid-user-token',
-        'auth/user-disabled',
-      ].includes(String(error.code))
-    )
-      throw session();
-    throw unavailable();
+    if (error instanceof AuthorizedRequestError)
+      throw error.kind === 'session' ? session() : unavailable();
+    throw error;
   }
-  if (auth.currentUser !== user || signal.aborted) throw session();
-  const base = import.meta.env.DEV
-    ? '/backend-api'
-    : parseEnvironment(import.meta.env).apiBaseUrl;
-  const response = await fetch(`${base}/api/v1/students${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(input?.contentType ? { 'Content-Type': input.contentType } : {}),
-    },
-    ...(input
-      ? {
-          method: input.method,
-          ...(input.body !== undefined ? { body: input.body } : {}),
-        }
-      : {}),
-    cache: 'no-store',
-    credentials: 'omit',
-    signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]),
-  });
-  if (auth.currentUser !== user) throw session();
   if (response.status === 401) throw session();
   if (response.status === 403)
     throw new StudentRequestError(

@@ -291,3 +291,36 @@
 .student-qr-result a[hidden] {
   display: none;
 }
+.allocation-dialog {
+  width: min(720px, calc(100% - 32px));
+  max-width: 720px;
+}
+.allocation-picker {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: var(--space-4) 0;
+}
+.allocation-picker legend {
+  font-weight: 600;
+}
+.allocation-options {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.allocation-options li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  overflow-wrap: anywhere;
+}
+.allocation-dialog .student-id {
+  overflow-wrap: anywhere;
+}
+.student-accommodation [role='alert'],
+.allocation-dialog [role='alert'] {
+  color: var(--color-danger);
+}
