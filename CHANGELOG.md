@@ -4,6 +4,8 @@
 
 ### Added
 
+- Authorized student QR display for Admin/Warden profiles, explicit retrieval, PNG download, eligibility/error recovery and private image cleanup on hide, tab hiding and navigation (issue #27).
+
 - Admin-only student CSV import with authenticated template download, UTF-8/size/record/structure checks, a review step, partial row reports, safe CSV report download, and explicit recovery after uncertain outcomes (issue #26).
 
 - Private student profile photo display, validated JPEG/PNG upload and replacement, confirmed removal, and explicit status checks after uncertain writes. Photo controls use the existing authorized backend endpoints.
