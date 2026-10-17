@@ -98,7 +98,9 @@ async function request(
   path: string,
   uid: string,
   signal: AbortSignal,
-  input?: { method: 'POST' | 'PUT'; body: StudentDetails | CreateStudentInput },
+  input?:
+    | { method: 'POST' | 'PUT'; body: StudentDetails | CreateStudentInput }
+    | { method: 'DELETE' },
 ): Promise<unknown> {
   const auth = configuredAuth();
   if (!auth) throw session();
@@ -127,10 +129,15 @@ async function request(
   const response = await fetch(`${base}/api/v1/students${path}`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      ...(input ? { 'Content-Type': 'application/json' } : {}),
+      ...(input && 'body' in input
+        ? { 'Content-Type': 'application/json' }
+        : {}),
     },
     ...(input
-      ? { method: input.method, body: JSON.stringify(input.body) }
+      ? {
+          method: input.method,
+          ...('body' in input ? { body: JSON.stringify(input.body) } : {}),
+        }
       : {}),
     cache: 'no-store',
     credentials: 'omit',
@@ -163,7 +170,22 @@ async function request(
     );
   }
   if (!response.ok) throw unavailable();
+  if (input?.method === 'DELETE') {
+    if (response.status !== 204) throw unavailable();
+    return;
+  }
   return response.json();
+}
+export async function archiveStudent(
+  id: string,
+  uid: string,
+  signal: AbortSignal,
+): Promise<void> {
+  if (!uuid.test(id))
+    throw new StudentRequestError('not-found', 'Student profile not found.');
+  await request(`/${encodeURIComponent(id)}`, uid, signal, {
+    method: 'DELETE',
+  });
 }
 export async function createStudent(
   input: CreateStudentInput,
