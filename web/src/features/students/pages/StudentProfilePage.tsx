@@ -12,6 +12,7 @@ import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
 import StudentArchiveAction from '../components/StudentArchiveAction';
 import StudentPhoto from '../components/StudentPhoto';
+import StudentQR from '../components/StudentQR';
 
 export default function StudentProfilePage() {
   const { studentID = '' } = useParams();
@@ -61,6 +62,7 @@ export default function StudentProfilePage() {
             student={data}
             uid={uid}
           />
+          <StudentQR student={data} uid={uid} />
           <div className="student-card">
             <h2>Student details</h2>
             <dl className="student-details">
