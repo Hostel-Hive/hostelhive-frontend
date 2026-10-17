@@ -7,6 +7,7 @@ import {
   studentError,
   createStudent,
   updateStudent,
+  archiveStudent,
 } from './students.api';
 import { normalizeStudent } from '../student.schema';
 import {
@@ -45,6 +46,58 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 describe('student API contract', () => {
+  it('archives with a bearer-authorized empty DELETE and accepts 204 without parsing JSON', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+    await expect(
+      archiveStudent(studentFixture.student_id, user.uid, signal()),
+    ).resolves.toBeUndefined();
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe(
+      `/backend-api/api/v1/students/${studentFixture.student_id}`,
+    );
+    expect(options).toMatchObject({
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer test-token' },
+      cache: 'no-store',
+      credentials: 'omit',
+    });
+    expect(options).not.toHaveProperty('body');
+  });
+  it('rejects an invalid archive ID before requesting credentials or fetching', async () => {
+    await expect(
+      archiveStudent('not-an-id', user.uid, signal()),
+    ).rejects.toMatchObject({ kind: 'not-found' });
+    expect(user.getIdToken).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it.each([
+    [401, 'session'],
+    [403, 'forbidden'],
+    [404, 'not-found'],
+    [503, 'unavailable'],
+  ] as const)(
+    'handles archive HTTP %s without retrying',
+    async (status, kind) => {
+      fetchMock.mockResolvedValue(
+        new Response('private service error', { status }),
+      );
+      await expect(
+        archiveStudent(studentFixture.student_id, user.uid, signal()),
+      ).rejects.toMatchObject({ kind });
+      expect(fetchMock).toHaveBeenCalledOnce();
+    },
+  );
+  it('does not claim archive success for an unexpected success status or network failure', async () => {
+    fetchMock.mockResolvedValue(new Response('{}', { status: 200 }));
+    await expect(
+      archiveStudent(studentFixture.student_id, user.uid, signal()),
+    ).rejects.toMatchObject({ kind: 'unavailable' });
+    fetchMock.mockRejectedValue(new TypeError('network failed'));
+    await expect(
+      archiveStudent(studentFixture.student_id, user.uid, signal()),
+    ).rejects.toThrow('network failed');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
   it('creates and edits using the existing authorized JSON contracts', async () => {
     const input = normalizeStudent({
       ...studentFixture,
