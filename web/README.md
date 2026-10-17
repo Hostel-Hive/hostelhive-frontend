@@ -222,3 +222,36 @@ Writes are never automatically retried. Pending controls prevent duplicate submi
 The existing backend must already have private R2 photo storage configured and running. With R2 disabled, photo endpoints return 503 and the UI shows a photo-service error. This frontend ticket does not enable storage, change backend configuration, or modify the database.
 
 Automated tests mock network requests and image decoding. Before closing the photo ticket, verify using dedicated test data and authorized staff accounts: upload PNG/JPEG, reload and display, replace, cancel/confirm removal, empty/oversized/unsupported/corrupt images, denied access, disabled storage, interrupted-write status recovery, keyboard focus/Escape, and narrow-screen layouts. Record live private-storage results, passing CI, and peer review. No live photo mutations are performed by the automated tests.
+
+## Admin student CSV import — issue #26
+
+Verified Admin users open **Import CSV** from the student directory, or `/dashboard/students/import`. The link preserves directory filters and pagination. A role guard denies Warden direct access, and the backend independently enforces Admin authority. The import screen loads on demand. Existing Admin/Warden student CRUD and photo permissions are unchanged.
+
+1. Select **Get CSV template**, then **Save CSV template**. The frontend downloads the authenticated `GET /api/v1/students/import/template` response and revokes its temporary download URL on replacement/unmount.
+2. Fill the seven case-sensitive columns `user_id,index_no,full_name,faculty,year,contact_phone,guardians`, each exactly once, in any order. Use existing active student account UUIDs from the separate provisioning workflow. CSV import never creates Firebase accounts, updates roles, overwrites profiles, or restores archived profiles.
+3. Select a non-empty UTF-8 `.csv` file up to 2 MiB and 500 data records. UTF-8 BOM, CRLF, blank lines, reordered headers, escaped quotes and multiline quoted values are supported. Broken quoting, incorrect field counts, missing/duplicate/extra headers and header-only files are rejected before submission. Local checks cover document structure, not account eligibility or per-row business validation. Review the first five records and total count, then explicitly acknowledge partial commits.
+4. Import sends the selected file's raw bytes to `POST /api/v1/students/import` with `Content-Type: text/csv; charset=utf-8` and the current Firebase bearer token. It sends no multipart form, JSON wrapper, credentials, query parameters, or browser-stored role. Duplicate submissions are disabled. The backend validates student details and guardians and links eligible accounts; each valid record commits independently.
+5. Review the report totals and every record/physical starting line. **Download report CSV** saves only ordinal, line, status, created profile UUID, and allowlisted error code. Raw CSV fields and arbitrary server error text are not exported. Confirmed created rows link to their profiles. Return to the directory to fetch current data. Download reports before leaving; there is no persisted import-job history.
+
+Guardian cells must contain a JSON array with 1–10 objects, each with `name`, `relationship`, and `contact_phone`. Use a CSV writer to quote the JSON correctly. For example, this creates a local file only; replace the account placeholder with an existing eligible test account UUID before importing:
+
+```powershell
+$guardianJSON = ConvertTo-Json -Compress -InputObject @(
+  @{ name = 'Robin Morgan'; relationship = 'Parent'; contact_phone = '+94771111111' }
+)
+@(
+  [PSCustomObject]@{
+    user_id = '<existing-student-account-UUID>'
+    index_no = 'STU-1042'
+    full_name = 'Alex Morgan'
+    faculty = 'Science'
+    year = 2
+    contact_phone = '+94770000000'
+    guardians = $guardianJSON
+  }
+) | Export-Csv -LiteralPath '.\students.csv' -NoTypeInformation -Encoding UTF8
+```
+
+HTTP 200 is a row report, not universal success. Invalid rows and duplicates are skipped. Earlier confirmed commits survive interruption. If service processing stopped, inspect the directory before retrying affected rows; even a reported service failure can have an uncertain database-commit outcome. Requests are never automatically retried. A lost response, timeout, malformed/mismatched report, or network failure locks resubmission and requires acknowledging a directory check, then selecting and reviewing a fresh CSV. A structural 400 or 413/415 rejects the document before writes and allows a corrected file. Session/permission rejection clears the selected CSV and disables import controls. A report stopping for `forbidden` remains downloadable but no further import is offered until access is reverified. In-page navigation and reload guards protect selected/pending/uncertain work; leaving cannot undo server commits.
+
+All import requests are mocked in automated checks; no live records are created. Before closing #26, use dedicated eligible test accounts to verify template download, valid and mixed-validity batches, duplicate rows/existing profiles, inactive accounts, guardian JSON, structural limits, service interruption and directory recovery, expired/revoked Admin access, Warden denial, report download, navigation focus/Escape, and narrow layouts. Record live acceptance, peer review and passing CI. No backend files, configuration, migrations or database data are changed by this frontend implementation.

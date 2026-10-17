@@ -246,3 +246,27 @@
 .student-photo [role='alert'] {
   color: var(--color-danger);
 }
+.student-import-columns {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+}
+.student-import-file,
+.student-import-confirm,
+.student-import-table {
+  margin-top: var(--space-5);
+}
+.student-import-file input {
+  max-width: 100%;
+  font: inherit;
+}
+.student-import-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.student-import [role='alert'] {
+  color: var(--color-danger);
+}
