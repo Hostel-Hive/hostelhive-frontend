@@ -167,3 +167,123 @@ Expired/rejected sessions, inactive accounts and unsupported roles are denied. T
 The client rechecks at the events listed above; it does not promise instantaneous detection of a database role/status change in an idle tab. Every business API must continue enforcing backend authorization on every request. No new backend permission policy is introduced by this ticket.
 
 Automated route tests mock Firebase/backend boundaries and cover anonymous access, restored sessions, pending verification, wrong-role URLs, retry, sign-out, back navigation and stale responses. Live acceptance still requires working Firebase sign-in and dedicated active Admin/Warden accounts. Before closing the GitHub issue, record live checks, peer review and passing CI; mocked tests do not prove real Firebase configuration or production CORS.
+
+## Student directory and profiles — issue #19
+
+Admin and Warden accounts can open `/dashboard/students` and `/dashboard/students/:studentID`. Requests use the current Firebase ID token, the development API proxy, and the configured production API URL. No student data or tokens are persisted in browser storage.
+
+The directory calls `GET /api/v1/students` with `q`, `faculty`, `year`, `limit=20`, and `offset`. Search matches name or student index/ID; faculty matches the complete name case-insensitively. Year supports 1–10. Filters and pagination live in the URL and survive profile visits, refresh, and browser back/forward. The API returns `has_more`, not a total count, so pagination shows Previous/Next without invented totals.
+
+Profiles call `GET /api/v1/students/{studentID}` and show contact and guardian details. Account Active/Inactive describes the account only. Room/bed allocation, attendance, QR eligibility, photos, mutations, and CSV imports remain separate integrations. Students navigation is available to both currently supported staff roles.
+
+Loading, empty directory, unmatched filters, missing profile, malformed response, access denied, and retry states are covered. Rejected sessions offer Sign in again using the existing sign-out flow. Requests are cancelled on navigation and superseded responses are ignored.
+
+Live smoke checks with dedicated test records:
+
+1. Sign in as Admin and Warden, select Students, and open a profile.
+2. Search by name/ID; apply an exact faculty and year; test Previous/Next with more than 20 matching records.
+3. Open a profile and return; verify filters and page are preserved, including refresh and browser history.
+4. Check guardian/contact details, inactive accounts, missing optional details, and an unknown student ID.
+5. Check backend outage/retry, rejected/expired sessions, and forbidden access; verify records are hidden.
+6. Check keyboard navigation and desktop, tablet, and 320px layouts. Scroll the table within its region on narrow screens.
+
+Automated checks mock service boundaries and do not prove live Firebase/backend/CORS configuration. Record live smoke results, peer review, and passing CI before closing #19.
+
+## Student profile creation and editing
+
+Use Add student from the directory or Edit profile from an existing profile. Creation calls `POST /api/v1/students`; editing calls `PUT /api/v1/students/{studentID}`. Both retain the existing Admin/Warden permissions and send the current Firebase ID token.
+
+Creation requires an existing active student account UUID supplied by an administrator. Account browsing is Admin-only in the current backend, so this form does not call the user listing API or pretend Wardens can browse accounts. The backend checks active student status and profile uniqueness. No login account is provisioned, password collected, email modified, or QR activated by these forms.
+
+Editable fields follow the backend limits: student ID 64 characters, name 200, faculty 120, year 1–10, phone 7–32 supported characters with at least seven digits. One to ten guardians are required, each with name, relationship, and phone. PUT replaces the guardian collection according to the existing backend contract; guardian IDs and response-only fields are excluded from the payload.
+
+The router now supports navigation blocking. Dirty forms show a discard dialog for Cancel, internal navigation, and browser history navigation, plus the browser warning on refresh/close. Save success opens the profile and preserves directory filters. Pending submission disables controls and duplicate requests. Failed requests preserve values; rejected sessions and forbidden/missing records prevent another save. A timeout/network failure can leave the save outcome unknown, so check existing records before submitting again. Mutations are never automatically retried.
+
+Live acceptance checks require dedicated test records: create a profile for an eligible account, edit fields/guardians, verify duplicates and inactive-account rejection, test unsaved navigation, and inspect desktop/mobile keyboard behavior. Automated tests mock the services and do not create real accounts or database records. No backend or database files were changed for this frontend ticket.
+
+## Student profile archival — issue #24
+
+Admin and Warden users can select Archive student profile from a loaded profile. The native modal identifies the student, focuses Cancel, traps focus through the browser modal behavior, supports Escape when idle, and restores focus on dismissal. It explains preservation of history, separate account deactivation, and separate bed-allocation revocation. No restore action is exposed.
+
+Confirmation sends `DELETE /api/v1/students/{studentID}` with a current Firebase bearer token and no body. Only HTTP 204 confirms success. The frontend returns to the directory with its filters/page intact, fetches fresh results, and displays a success notice. Empty last pages retain Previous navigation. Requests are never automatically retried.
+
+Pending requests disable confirmation/dismissal. Session, forbidden, invalid and missing-profile errors do not claim success. A timeout, network error, or service failure has an uncertain outcome: Check profile performs only GET. If the profile is still available, staff can review and explicitly confirm another archive. If absent, return to the directory without claiming a newly confirmed archival. Closing/reopening the dialog does not bypass the check requirement.
+
+Automated tests mock all requests. Before closing #24, verify with dedicated test data: cancel/Escape/focus, successful archival and refreshed filters, duplicate-click prevention, denied/expired sessions, missing profiles, and service failure/check recovery. Check native modal keyboard behavior and narrow layouts in the browser. No backend files, migrations, or database records were changed during implementation.
+
+## Student profile photos
+
+Admin and Warden users manage photos on the existing student profile page. `features/students/api/student-images.api.ts` uses the same current Firebase session checks and API configuration as student CRUD. GET/PUT/DELETE target `/api/v1/students/{studentID}/image`; PUT sends raw image bytes with matching Content-Type, and DELETE sends no body. The server-returned `profile_image_url` only indicates that a photo exists: the request destination is derived locally to avoid forwarding a token to arbitrary URLs. Private photos are fetched with a bearer token and displayed through temporary Blob URLs, which are revoked on replacement and unmount. No photo bytes or credentials are saved to browser storage.
+
+Choose a JPEG or PNG, preview it, then explicitly upload/replace. Client checks reject empty files, files over 5 MiB, undecodable images, dimensions over 4096 per side, and more than 12 million pixels. The backend remains authoritative for decoded format, sanitization, and storage. Removal requires a named-student confirmation; Cancel receives focus, Escape dismisses when idle, and focus returns to the trigger. Student and guardian records are unaffected by photo removal.
+
+Writes are never automatically retried. Pending controls prevent duplicate submission. If a write response is lost or the service fails, further writes require **Check photo status**, which reads the profile and its saved photo and discards the local selection. Upload acknowledgement and subsequent preview failure are reported separately. A missing photo has an empty state; unavailable storage does not hide the rest of the profile. Expired sessions and forbidden access clear displayed photos and block controls. Navigating away aborts requests; an aborted write may still complete on the server, so returning to the profile reads current state.
+
+The existing backend must already have private R2 photo storage configured and running. With R2 disabled, photo endpoints return 503 and the UI shows a photo-service error. This frontend ticket does not enable storage, change backend configuration, or modify the database.
+
+Automated tests mock network requests and image decoding. Before closing the photo ticket, verify using dedicated test data and authorized staff accounts: upload PNG/JPEG, reload and display, replace, cancel/confirm removal, empty/oversized/unsupported/corrupt images, denied access, disabled storage, interrupted-write status recovery, keyboard focus/Escape, and narrow-screen layouts. Record live private-storage results, passing CI, and peer review. No live photo mutations are performed by the automated tests.
+
+## Admin student CSV import — issue #26
+
+Verified Admin users open **Import CSV** from the student directory, or `/dashboard/students/import`. The link preserves directory filters and pagination. A role guard denies Warden direct access, and the backend independently enforces Admin authority. The import screen loads on demand. Existing Admin/Warden student CRUD and photo permissions are unchanged.
+
+1. Select **Get CSV template**, then **Save CSV template**. The frontend downloads the authenticated `GET /api/v1/students/import/template` response and revokes its temporary download URL on replacement/unmount.
+2. Fill the seven case-sensitive columns `user_id,index_no,full_name,faculty,year,contact_phone,guardians`, each exactly once, in any order. Use existing active student account UUIDs from the separate provisioning workflow. CSV import never creates Firebase accounts, updates roles, overwrites profiles, or restores archived profiles.
+3. Select a non-empty UTF-8 `.csv` file up to 2 MiB and 500 data records. UTF-8 BOM, CRLF, blank lines, reordered headers, escaped quotes and multiline quoted values are supported. Broken quoting, incorrect field counts, missing/duplicate/extra headers and header-only files are rejected before submission. Local checks cover document structure, not account eligibility or per-row business validation. Review the first five records and total count, then explicitly acknowledge partial commits.
+4. Import sends the selected file's raw bytes to `POST /api/v1/students/import` with `Content-Type: text/csv; charset=utf-8` and the current Firebase bearer token. It sends no multipart form, JSON wrapper, credentials, query parameters, or browser-stored role. Duplicate submissions are disabled. The backend validates student details and guardians and links eligible accounts; each valid record commits independently.
+5. Review the report totals and every record/physical starting line. **Download report CSV** saves only ordinal, line, status, created profile UUID, and allowlisted error code. Raw CSV fields and arbitrary server error text are not exported. Confirmed created rows link to their profiles. Return to the directory to fetch current data. Download reports before leaving; there is no persisted import-job history.
+
+Guardian cells must contain a JSON array with 1–10 objects, each with `name`, `relationship`, and `contact_phone`. Use a CSV writer to quote the JSON correctly. For example, this creates a local file only; replace the account placeholder with an existing eligible test account UUID before importing:
+
+```powershell
+$guardianJSON = ConvertTo-Json -Compress -InputObject @(
+  @{ name = 'Robin Morgan'; relationship = 'Parent'; contact_phone = '+94771111111' }
+)
+@(
+  [PSCustomObject]@{
+    user_id = '<existing-student-account-UUID>'
+    index_no = 'STU-1042'
+    full_name = 'Alex Morgan'
+    faculty = 'Science'
+    year = 2
+    contact_phone = '+94770000000'
+    guardians = $guardianJSON
+  }
+) | Export-Csv -LiteralPath '.\students.csv' -NoTypeInformation -Encoding UTF8
+```
+
+HTTP 200 is a row report, not universal success. Invalid rows and duplicates are skipped. Earlier confirmed commits survive interruption. If service processing stopped, inspect the directory before retrying affected rows; even a reported service failure can have an uncertain database-commit outcome. Requests are never automatically retried. A lost response, timeout, malformed/mismatched report, or network failure locks resubmission and requires acknowledging a directory check, then selecting and reviewing a fresh CSV. A structural 400 or 413/415 rejects the document before writes and allows a corrected file. Session/permission rejection clears the selected CSV and disables import controls. A report stopping for `forbidden` remains downloadable but no further import is offered until access is reverified. In-page navigation and reload guards protect selected/pending/uncertain work; leaving cannot undo server commits.
+
+All import requests are mocked in automated checks; no live records are created. Before closing #26, use dedicated eligible test accounts to verify template download, valid and mixed-validity batches, duplicate rows/existing profiles, inactive accounts, guardian JSON, structural limits, service interruption and directory recovery, expired/revoked Admin access, Warden denial, report download, navigation focus/Escape, and narrow layouts. Record live acceptance, peer review and passing CI. No backend files, configuration, migrations or database data are changed by this frontend implementation.
+
+## Authorized student QR display — issue #27
+
+Verified Admin and Warden users open a student profile and select **Show QR code**. The frontend deliberately does not retrieve QR images automatically: the existing backend issues a stable identifier on first authorized retrieval. `features/students/api/student-qr.api.ts` calls only `GET /api/v1/students/{studentID}/qr`, using the student profile UUID, current Firebase bearer token, configured API origin/development proxy, no body, no query parameters, and `cache: no-store`. The separate Student-only `/api/v1/me/qr` route is not used by the staff web dashboard.
+
+The backend generates the black-on-white 320×320 PNG and checks current eligibility. The frontend checks success status, PNG media type and signature, then displays the image through a temporary Blob URL. Browser decode failure hides the image and download. **Download QR PNG** becomes available after decoding, saves `student-qr.png`, and contains the original backend PNG bytes. No external QR service, client-side token generation, QR payload decoding, token-in-URL, automatic download, or browser storage is involved. The raw identifier is not displayed as text or logged.
+
+**Refresh QR code** clears the existing image while rechecking with the backend; it does not rotate or regenerate the stable identifier. **Hide QR code**, navigation, staff/student changes, inactive-account rendering, and tab hiding revoke the temporary image URL. Hiding during a pending request aborts it and ignores late responses; returning to a visible tab requires explicit retrieval again. Requests are never automatically retried. Inactive profiles show an unavailable state without a request. Missing/ineligible profiles, invalid requests, service failures, expired sessions and forbidden access have safe recovery states. Session/permission errors remove the old image and block further retrieval; an expired session offers sign-in recovery. Current server checks happen on retrieval and normal route/session verification events, not continuously while an image is visible.
+
+The QR is a stable identification code, not a login credential or proof that a saved image's holder is the student. Previously downloaded copies are not revoked by clearing this UI. Showing, refreshing, or downloading does not record entry, exit, attendance or presence. Hardware scanning and current eligibility at scan time belong to the existing device/attendance workflows; this ticket adds no scanner or rotation endpoint and makes no claim of university-card compatibility. It works independently of profile-photo R2 storage, provided the backend QR endpoints and their existing schema are available.
+
+Automated tests mock authentication, network images and browser decode events. Before closing #27, record live acceptance with dedicated test profiles: Admin/Warden retrieval, matching stable PNGs across refresh, PNG download and local scannability, inactive/archived/missing target handling, expired/denied access, service failure/retry, keyboard hide/focus, tab-hiding cleanup, navigation between profiles, and narrow-screen image sizing without cropping the quiet border. First live retrieval can create the server's QR record; no live QR requests, backend files, migrations or database changes are performed during this frontend implementation. Peer review and passing CI remain required.
+
+## Student accommodation — issue #28
+
+Verified Admin and Warden users open a student profile, then select **Load accommodation**. This reads current allocation (`active=true`) separately from newest-first history, filtered by the profile's `student_id`, never its account or Firebase UID. History uses pages of 10 with the backend's filtered total; current allocation remains independent of the selected history page. Empty, loading, unavailable, expired-session and forbidden-access states are explicit. Directory filters remain in the existing profile URL/back link. Dates display in the browser's local time. Allocation responses contain bed UUIDs and audit references, not block/room names; the current/history view displays those real UUIDs rather than inventing room details. Legacy ended records may have no end reason and display **Ended**.
+
+The student page composes the allocation feature's public `StudentAccommodation` component, loaded separately from the initial bundle. `features/allocation/` owns allocation types, APIs, confirmation and history; `features/inventory/api/` owns read-only block/room/available-bed listing. The picker shows actual inventory block names, room numbers, bed numbers and the globally unique bed ID, with pages of 20 at each level. Changing block, room, or page clears the old choice and aborts superseded inventory reads. An empty room does not allow confirmation. Inventory creation, editing and policy configuration remain outside this ticket.
+
+`features/auth/api/authorized-request.ts` centralizes the existing current-Firebase-user UID check, ID token retrieval, post-response identity check, development proxy/production origin, no-store, omitted cookies and abort/timeout behavior. Student, inventory and allocation APIs call that authentication boundary; allocation does not call the student module's private API helper. Each feature still validates its own response shape and handles its own domain errors. Existing student API regression tests cover the extracted transport; no new dependency or credential storage is added.
+
+- **Assign bed** confirms the named student and chosen inventory path, then POSTs only `{student_id,bed_id}` to `/api/v1/allocations`. Only the documented 201 response matching this student/bed confirms success.
+- **Transfer bed** confirms the current bed and chosen destination, then POSTs only `{bed_id}` to `/api/v1/allocations/{allocationID}/transfer`. The server closes the old allocation and creates the new one atomically; the frontend does not revoke first, swap occupants, or evict another student.
+- **Revoke allocation** confirms release of the current bed, then POSTs an empty body to `/api/v1/allocations/{allocationID}/revoke`. History and accounts are retained. Already revoked rows can return their original ended record; a transferred predecessor cannot revoke its successor.
+
+Inactive student accounts cannot be assigned or transferred in the UI, but an existing allocation can still be revoked. The backend rechecks current staff authority, student eligibility and bed availability during every write. Account deactivation and profile archival do not automatically release beds. This ticket does not introduce gender zones or maintenance restrictions unsupported by the current API.
+
+Confirmation dialogs focus Cancel, support Escape while idle and disable fields/dismissal during writes. Duplicate clicks are guarded in memory; reload warns while saving. Requests abort on leaving the profile or switching staff/student/eligibility, and late responses are ignored. Aborting a request cannot undo a server commit: return and reload accommodation before retrying. The backend remains the concurrency authority.
+
+Successful writes refresh current assignment and history and reset history to page 1. A confirmed write followed by refresh failure remains reported as saved. Conflict, stale/missing resources, invalid/ineligible requests, timeouts, network failures or unverifiable acknowledgements remove the stale snapshot and require **Refresh accommodation** before exposing mutation controls again. There is no automatic write retry. Session/permission failures hide allocation details and disable controls; expired sessions offer sign-in recovery. Independent current/history requests may observe different concurrent snapshots, so Refresh is available whenever records change.
+
+Automated tests mock all writes and inventory reads. No backend code, configuration, migrations or database records are changed during implementation. Before closing #28, use dedicated authorized test fixtures to verify Admin/Warden access; assign/transfer/revoke and refreshed inventory; occupied/same-bed/stale conflicts preserving the original allocation; inactive-account revocation; paginated and legacy history; rejected permissions; interrupted-write recovery; native dialog focus/Escape; directory filters; and narrow layouts. Verify live backend behavior, peer review and passing CI separately.

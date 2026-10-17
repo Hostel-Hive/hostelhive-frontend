@@ -1,0 +1,138 @@
+import { lazy, Suspense, useCallback } from 'react';
+import {
+  Link,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
+import { routePaths } from '../../../app/router/routePaths';
+import useAuth from '../../auth/hooks/useAuth';
+import { getStudent } from '../api/students.api';
+import useStudentRequest from '../hooks/useStudentRequest';
+import StudentRequestState from '../components/StudentRequestState';
+import StudentArchiveAction from '../components/StudentArchiveAction';
+import StudentPhoto from '../components/StudentPhoto';
+import StudentQR from '../components/StudentQR';
+const StudentAccommodation = lazy(
+  () => import('../../allocation/components/StudentAccommodation'),
+);
+
+export default function StudentProfilePage() {
+  const { studentID = '' } = useParams();
+  const [params] = useSearchParams();
+  const { account } = useAuth();
+  const uid = account?.firebase_uid ?? '';
+  const load = useCallback(
+    (signal: AbortSignal) => getStudent(studentID, uid, signal),
+    [studentID, uid],
+  );
+  const { data, error, retry } = useStudentRequest(`${uid}:${studentID}`, load);
+  const search = params.toString();
+  const location = useLocation();
+  const notice: unknown = location.state?.studentNotice;
+  return (
+    <section className="students-page" aria-labelledby="student-profile-title">
+      <Link
+        className="student-back"
+        to={`${routePaths.students}${search ? `?${search}` : ''}`}
+      >
+        <span aria-hidden="true">← </span>Back to students
+      </Link>
+      <p className="eyebrow">Directory / Student profile</p>
+      <h1 id="student-profile-title">{data?.full_name ?? 'Student profile'}</h1>
+      {data &&
+        (notice === 'Student profile updated.' ||
+          notice === 'Student profile created.') && (
+          <p role="status">{notice}</p>
+        )}
+      {!data || error ? (
+        <StudentRequestState error={error} retry={retry} />
+      ) : (
+        <>
+          <Link
+            className="button-link"
+            to={`${routePaths.students}/${data.student_id}/edit${search ? `?${search}` : ''}`}
+          >
+            Edit profile
+          </Link>
+          <StudentArchiveAction
+            key={data.student_id}
+            student={data}
+            search={search}
+          />
+          <StudentPhoto
+            key={`${uid}:${data.student_id}`}
+            student={data}
+            uid={uid}
+          />
+          <StudentQR student={data} uid={uid} />
+          <Suspense
+            fallback={<p role="status">Loading accommodation controls…</p>}
+          >
+            <StudentAccommodation
+              studentID={data.student_id}
+              studentName={data.full_name}
+              eligible={data.account_active}
+              uid={uid}
+            />
+          </Suspense>
+          <div className="student-card">
+            <h2>Student details</h2>
+            <dl className="student-details">
+              <div>
+                <dt>Student ID</dt>
+                <dd className="student-id">{data.index_no}</dd>
+              </div>
+              <div>
+                <dt>Faculty</dt>
+                <dd>{data.faculty || 'Not provided'}</dd>
+              </div>
+              <div>
+                <dt>Year</dt>
+                <dd>{data.year}</dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd>{data.email || 'Not provided'}</dd>
+              </div>
+              <div>
+                <dt>Contact phone</dt>
+                <dd>{data.contact_phone || 'Not provided'}</dd>
+              </div>
+              <div>
+                <dt>Account status</dt>
+                <dd>{data.account_active ? 'Active' : 'Inactive'}</dd>
+              </div>
+            </dl>
+          </div>
+          <div className="student-card">
+            <h2>Guardian details</h2>
+            {data.guardians?.length ? (
+              data.guardians.map((guardian) => (
+                <dl
+                  className="student-details student-guardian"
+                  key={guardian.guardian_id}
+                >
+                  <div>
+                    <dt>Name</dt>
+                    <dd>{guardian.name || 'Not provided'}</dd>
+                  </div>
+                  <div>
+                    <dt>Relationship</dt>
+                    <dd>{guardian.relationship || 'Not provided'}</dd>
+                  </div>
+                  <div>
+                    <dt>Contact phone</dt>
+                    <dd>{guardian.contact_phone || 'Not provided'}</dd>
+                  </div>
+                </dl>
+              ))
+            ) : (
+              <p>No guardian details provided.</p>
+            )}
+          </div>
+        </>
+      )}
+    </section>
+  );
+}

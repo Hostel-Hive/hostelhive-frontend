@@ -1,7 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import AdminDashboardPage from '../../features/dashboard/pages/AdminDashboardPage';
 import WardenDashboardPage from '../../features/dashboard/pages/WardenDashboardPage';
+import StudentDirectoryPage from '../../features/students/pages/StudentDirectoryPage';
+import StudentProfilePage from '../../features/students/pages/StudentProfilePage';
+import StudentFormPage from '../../features/students/pages/StudentFormPage';
 import NotFoundPage from './NotFoundPage';
 import { routePaths } from './routePaths';
 import AuthLayout from '../../layouts/AuthLayout';
@@ -13,6 +17,10 @@ import PublicOnlyRoute from './PublicOnlyRoute';
 import RoleGuard from './RoleGuard';
 import useAuth from '../../features/auth/hooks/useAuth';
 import { dashboardForRole } from '../../config/roles';
+
+const StudentImportPage = lazy(
+  () => import('../../features/students/pages/StudentImportPage'),
+);
 
 function DashboardRedirect() {
   const { account } = useAuth();
@@ -47,7 +55,24 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          <Route path="students" element={<StudentDirectoryPage />} />
+          <Route path="students/new" element={<StudentFormPage creating />} />
+          <Route
+            path="students/:studentID/edit"
+            element={<StudentFormPage />}
+          />
+          <Route path="students/:studentID" element={<StudentProfilePage />} />
           <Route element={<RoleGuard role="admin" />}>
+            <Route
+              path="students/import"
+              element={
+                <Suspense
+                  fallback={<p role="status">Loading student import…</p>}
+                >
+                  <StudentImportPage />
+                </Suspense>
+              }
+            />
             <Route path="admin" element={<AdminDashboardPage />} />
           </Route>
           <Route element={<RoleGuard role="warden" />}>

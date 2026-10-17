@@ -4,6 +4,23 @@
 
 ### Added
 
+- Student accommodation integration for Admin/Warden: current bed assignment, paginated allocation history, available block/room/bed selection, confirmed assign/transfer/revoke, and explicit refresh after conflicts or uncertain outcomes (issue #28).
+
+- Student, allocation and inventory requests share the authentication module's current-session transport; feature APIs retain their own response validation and error handling.
+
+- Authorized student QR display for Admin/Warden profiles, explicit retrieval, PNG download, eligibility/error recovery and private image cleanup on hide, tab hiding and navigation (issue #27).
+
+- Admin-only student CSV import with authenticated template download, UTF-8/size/record/structure checks, a review step, partial row reports, safe CSV report download, and explicit recovery after uncertain outcomes (issue #26).
+
+- Private student profile photo display, validated JPEG/PNG upload and replacement, confirmed removal, and explicit status checks after uncertain writes. Photo controls use the existing authorized backend endpoints.
+
+- Student profile archival with confirmation, authorized empty-body DELETE, filter-preserving directory refresh and explicit recovery for uncertain outcomes (issue #24).
+
+- Student profile creation and editing through the existing authorized APIs, including guardian management, backend-aligned validation, save recovery, and unsaved-navigation protection.
+
+- Student directory and read-only profiles for Admin/Warden accounts, backed by Firebase-authorized student APIs (issue #19).
+- URL-preserved name/ID search, exact faculty and year filters, offset pagination, contact and guardian details, and request recovery states.
+
 - Firebase password recovery, generic request confirmation, resend cooldown, reset-link validation and policy-driven reset form (issue #14).
 - Reset success, invalid/expired-link recovery and service retry states using the shared authentication layout.
 - Password-flow SDK, form interaction and reset-request parsing tests.
