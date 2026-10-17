@@ -8,4 +8,5 @@ export const routePaths = {
   wardenDashboard: '/dashboard/warden',
   students: '/dashboard/students',
   studentImport: '/dashboard/students/import',
+  inventory: '/dashboard/inventory',
 } as const;

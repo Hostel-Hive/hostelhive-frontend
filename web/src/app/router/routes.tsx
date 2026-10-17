@@ -21,6 +21,9 @@ import { dashboardForRole } from '../../config/roles';
 const StudentImportPage = lazy(
   () => import('../../features/students/pages/StudentImportPage'),
 );
+const InventoryPage = lazy(
+  () => import('../../features/inventory/pages/InventoryPage'),
+);
 
 function DashboardRedirect() {
   const { account } = useAuth();
@@ -55,6 +58,14 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          <Route
+            path="inventory"
+            element={
+              <Suspense fallback={<p role="status">Loading inventory…</p>}>
+                <InventoryPage />
+              </Suspense>
+            }
+          />
           <Route path="students" element={<StudentDirectoryPage />} />
           <Route path="students/new" element={<StudentFormPage creating />} />
           <Route
