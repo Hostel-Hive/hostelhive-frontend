@@ -324,3 +324,32 @@
 .allocation-dialog [role='alert'] {
   color: var(--color-danger);
 }
+.attendance-sections {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+.attendance-presence--in {
+  background: var(--cyan-50);
+  color: var(--cyan-700);
+}
+.attendance-presence--out {
+  background: var(--amber-50);
+  color: var(--ink-800);
+}
+.attendance-reference {
+  font-size: var(--text-xs);
+  min-width: 200px;
+}
+.attendance-reference dd {
+  margin: var(--space-1) 0 var(--space-3);
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.student-attendance [role='alert'] {
+  color: var(--color-danger);
+}
+.student-attendance .student-pagination {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
