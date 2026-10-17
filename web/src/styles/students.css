@@ -270,3 +270,24 @@
 .student-import [role='alert'] {
   color: var(--color-danger);
 }
+.student-qr-result {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+.student-qr-image {
+  display: block;
+  width: 320px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  background: #fff;
+  border: 1px solid var(--color-border);
+}
+.student-qr [role='alert'] {
+  color: var(--color-danger);
+}
+.student-qr-result a[hidden] {
+  display: none;
+}
