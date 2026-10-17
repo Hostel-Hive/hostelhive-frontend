@@ -15,6 +15,7 @@ import '../styles/globals.css';
 import '../styles/ui.css';
 import '../styles/auth.css';
 import '../styles/students.css';
+import '../styles/inventory.css';
 
 parseEnvironment(import.meta.env);
 

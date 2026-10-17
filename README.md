@@ -20,6 +20,8 @@ See [web setup instructions](web/README.md) for installation, configuration and 
 
 ## Contribution workflow
 
+Issue #37 adds **Inventory** to the staff navigation. Admin and Warden accounts browse blocks, rooms and beds; only Admin accounts create or rename them. The inventory feature uses the existing backend APIs and shares the current-session Firebase transport with the student and allocation modules. See the web README for behavior and acceptance checks.
+
 Issue #14 implements password recovery at `/forgot-password` and the Firebase password-reset action handler at `/reset-password`. It uses the project's Firebase password policy, institution-neutral copy, shared controls and the existing authentication layout. See the web README for email-template action URL setup and live verification.
 
 Issue #7 adds the shared authentication layout and login flow at `/login`; `/` now opens login. Firebase credentials are exchanged directly with Firebase, and the backend `/api/v1/me` response determines whether an active Admin or Warden can enter their dashboard. Issue #11 protects dashboard routes, verifies restored sessions and adds role-filtered navigation and sign-out. See the web README for public Firebase configuration and live verification.
