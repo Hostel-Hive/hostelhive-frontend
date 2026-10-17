@@ -4,6 +4,8 @@
 
 ### Added
 
+- Read-only student presence and movement/scan history for Admin/Warden, with independent retries, explicit recorded/ignored outcomes, legacy permission labels, pagination and access-loss cleanup (issue #29).
+
 - Student accommodation integration for Admin/Warden: current bed assignment, paginated allocation history, available block/room/bed selection, confirmed assign/transfer/revoke, and explicit refresh after conflicts or uncertain outcomes (issue #28).
 
 - Student, allocation and inventory requests share the authentication module's current-session transport; feature APIs retain their own response validation and error handling.

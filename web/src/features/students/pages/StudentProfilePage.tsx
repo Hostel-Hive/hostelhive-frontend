@@ -16,6 +16,9 @@ import StudentQR from '../components/StudentQR';
 const StudentAccommodation = lazy(
   () => import('../../allocation/components/StudentAccommodation'),
 );
+const StudentAttendance = lazy(
+  () => import('../../attendance/components/StudentAttendance'),
+);
 
 export default function StudentProfilePage() {
   const { studentID = '' } = useParams();
@@ -75,6 +78,11 @@ export default function StudentProfilePage() {
               eligible={data.account_active}
               uid={uid}
             />
+          </Suspense>
+          <Suspense
+            fallback={<p role="status">Loading attendance controls…</p>}
+          >
+            <StudentAttendance studentID={data.student_id} uid={uid} />
           </Suspense>
           <div className="student-card">
             <h2>Student details</h2>
