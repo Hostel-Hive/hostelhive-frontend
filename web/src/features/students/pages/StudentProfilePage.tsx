@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { lazy, Suspense, useCallback } from 'react';
 import {
   Link,
   useLocation,
@@ -13,6 +13,9 @@ import StudentRequestState from '../components/StudentRequestState';
 import StudentArchiveAction from '../components/StudentArchiveAction';
 import StudentPhoto from '../components/StudentPhoto';
 import StudentQR from '../components/StudentQR';
+const StudentAccommodation = lazy(
+  () => import('../../allocation/components/StudentAccommodation'),
+);
 
 export default function StudentProfilePage() {
   const { studentID = '' } = useParams();
@@ -63,6 +66,16 @@ export default function StudentProfilePage() {
             uid={uid}
           />
           <StudentQR student={data} uid={uid} />
+          <Suspense
+            fallback={<p role="status">Loading accommodation controls…</p>}
+          >
+            <StudentAccommodation
+              studentID={data.student_id}
+              studentName={data.full_name}
+              eligible={data.account_active}
+              uid={uid}
+            />
+          </Suspense>
           <div className="student-card">
             <h2>Student details</h2>
             <dl className="student-details">
