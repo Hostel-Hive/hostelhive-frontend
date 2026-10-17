@@ -39,7 +39,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
-function validStudent(value: unknown): value is Student {
+export function validStudent(value: unknown): value is Student {
   if (!object(value)) return false;
   return (
     typeof value.student_id === 'string' &&
@@ -58,6 +58,8 @@ function validStudent(value: unknown): value is Student {
     Number(value.year) >= 1 &&
     Number(value.year) <= 10 &&
     typeof value.account_active === 'boolean' &&
+    (value.profile_image_url === undefined ||
+      typeof value.profile_image_url === 'string') &&
     (value.guardians === undefined ||
       (Array.isArray(value.guardians) &&
         value.guardians.every(
@@ -94,14 +96,16 @@ export function directoryQuery(params: URLSearchParams) {
   if (year) query.set('year', year);
   return query;
 }
-async function request(
+export async function studentResponse(
   path: string,
   uid: string,
   signal: AbortSignal,
-  input?:
-    | { method: 'POST' | 'PUT'; body: StudentDetails | CreateStudentInput }
-    | { method: 'DELETE' },
-): Promise<unknown> {
+  input?: {
+    method: 'POST' | 'PUT' | 'DELETE';
+    body?: BodyInit;
+    contentType?: string;
+  },
+): Promise<Response> {
   const auth = configuredAuth();
   if (!auth) throw session();
   await auth.authStateReady();
@@ -129,14 +133,12 @@ async function request(
   const response = await fetch(`${base}/api/v1/students${path}`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      ...(input && 'body' in input
-        ? { 'Content-Type': 'application/json' }
-        : {}),
+      ...(input?.contentType ? { 'Content-Type': input.contentType } : {}),
     },
     ...(input
       ? {
           method: input.method,
-          ...('body' in input ? { body: JSON.stringify(input.body) } : {}),
+          ...(input.body !== undefined ? { body: input.body } : {}),
         }
       : {}),
     cache: 'no-store',
@@ -152,6 +154,11 @@ async function request(
     );
   if (response.status === 404)
     throw new StudentRequestError('not-found', 'Student profile not found.');
+  if (response.status === 413 || response.status === 415)
+    throw new StudentRequestError(
+      'invalid',
+      'Choose a JPEG or PNG photo up to 5 MiB.',
+    );
   if (response.status === 400)
     throw new StudentRequestError(
       'invalid',
@@ -170,6 +177,27 @@ async function request(
     );
   }
   if (!response.ok) throw unavailable();
+  return response;
+}
+async function request(
+  path: string,
+  uid: string,
+  signal: AbortSignal,
+  input?:
+    | { method: 'POST' | 'PUT'; body: StudentDetails | CreateStudentInput }
+    | { method: 'DELETE' },
+): Promise<unknown> {
+  const response = await studentResponse(
+    path,
+    uid,
+    signal,
+    input && {
+      method: input.method,
+      ...('body' in input
+        ? { body: JSON.stringify(input.body), contentType: 'application/json' }
+        : {}),
+    },
+  );
   if (input?.method === 'DELETE') {
     if (response.status !== 204) throw unavailable();
     return;

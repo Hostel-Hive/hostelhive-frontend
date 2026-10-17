@@ -11,6 +11,7 @@ import { getStudent } from '../api/students.api';
 import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
 import StudentArchiveAction from '../components/StudentArchiveAction';
+import StudentPhoto from '../components/StudentPhoto';
 
 export default function StudentProfilePage() {
   const { studentID = '' } = useParams();
@@ -54,6 +55,11 @@ export default function StudentProfilePage() {
             key={data.student_id}
             student={data}
             search={search}
+          />
+          <StudentPhoto
+            key={`${uid}:${data.student_id}`}
+            student={data}
+            uid={uid}
           />
           <div className="student-card">
             <h2>Student details</h2>

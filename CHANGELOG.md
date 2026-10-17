@@ -4,6 +4,8 @@
 
 ### Added
 
+- Private student profile photo display, validated JPEG/PNG upload and replacement, confirmed removal, and explicit status checks after uncertain writes. Photo controls use the existing authorized backend endpoints.
+
 - Student profile archival with confirmation, authorized empty-body DELETE, filter-preserving directory refresh and explicit recovery for uncertain outcomes (issue #24).
 
 - Student profile creation and editing through the existing authorized APIs, including guardian management, backend-aligned validation, save recovery, and unsaved-navigation protection.

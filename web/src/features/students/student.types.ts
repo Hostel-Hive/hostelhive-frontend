@@ -14,6 +14,7 @@ export interface Student {
   contact_phone: string;
   email: string;
   account_active: boolean;
+  profile_image_url?: string;
   guardians?: Guardian[];
   created_at: string;
   updated_at: string;
