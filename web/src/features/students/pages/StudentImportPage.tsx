@@ -484,7 +484,11 @@ function ImportWorkspace({ uid }: { uid: string }) {
             rows are rejected as duplicates; imports never overwrite or restore
             profiles.
           </p>
-          <Link to={routePaths.students} target="_blank" rel="noopener noreferrer">
+          <Link
+            to={routePaths.students}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Open student directory in a new tab
           </Link>
           {!blocked && (
