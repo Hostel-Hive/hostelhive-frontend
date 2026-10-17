@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { routePaths } from '../../../app/router/routePaths';
 import Input from '../../../shared/components/ui/Input';
 import Button from '../../../shared/components/ui/Button';
@@ -9,6 +9,7 @@ import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
 
 export default function StudentDirectoryPage() {
+  const location = useLocation();
   const { account } = useAuth();
   const [params, setParams] = useSearchParams();
   const search = params.toString();
@@ -32,6 +33,9 @@ export default function StudentDirectoryPage() {
     <section className="students-page" aria-labelledby="students-title">
       <p className="eyebrow">Directory / Students</p>
       <h1 id="students-title">Students</h1>
+      {location.state?.studentNotice === 'Student profile archived.' && (
+        <p role="status">Student profile archived.</p>
+      )}
       <Link
         className="button-link"
         to={`${routePaths.students}/new${search ? `?${search}` : ''}`}

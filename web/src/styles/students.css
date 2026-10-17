@@ -184,6 +184,18 @@
 .student-discard::backdrop {
   background: #18103780;
 }
+.student-archive-trigger {
+  margin: var(--space-4) 0 0 var(--space-3);
+}
+.student-archive-dialog {
+  max-width: min(560px, calc(100% - 32px));
+}
+.student-archive-dialog [role='alert'] {
+  color: var(--color-danger);
+}
+.student-archive-dialog .student-form-actions {
+  margin-top: var(--space-5);
+}
 @media (max-width: 767px) {
   .student-form-grid {
     grid-template-columns: minmax(0, 1fr);

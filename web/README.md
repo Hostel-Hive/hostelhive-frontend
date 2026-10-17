@@ -200,3 +200,13 @@ Editable fields follow the backend limits: student ID 64 characters, name 200, f
 The router now supports navigation blocking. Dirty forms show a discard dialog for Cancel, internal navigation, and browser history navigation, plus the browser warning on refresh/close. Save success opens the profile and preserves directory filters. Pending submission disables controls and duplicate requests. Failed requests preserve values; rejected sessions and forbidden/missing records prevent another save. A timeout/network failure can leave the save outcome unknown, so check existing records before submitting again. Mutations are never automatically retried.
 
 Live acceptance checks require dedicated test records: create a profile for an eligible account, edit fields/guardians, verify duplicates and inactive-account rejection, test unsaved navigation, and inspect desktop/mobile keyboard behavior. Automated tests mock the services and do not create real accounts or database records. No backend or database files were changed for this frontend ticket.
+
+## Student profile archival — issue #24
+
+Admin and Warden users can select Archive student profile from a loaded profile. The native modal identifies the student, focuses Cancel, traps focus through the browser modal behavior, supports Escape when idle, and restores focus on dismissal. It explains preservation of history, separate account deactivation, and separate bed-allocation revocation. No restore action is exposed.
+
+Confirmation sends `DELETE /api/v1/students/{studentID}` with a current Firebase bearer token and no body. Only HTTP 204 confirms success. The frontend returns to the directory with its filters/page intact, fetches fresh results, and displays a success notice. Empty last pages retain Previous navigation. Requests are never automatically retried.
+
+Pending requests disable confirmation/dismissal. Session, forbidden, invalid and missing-profile errors do not claim success. A timeout, network error, or service failure has an uncertain outcome: Check profile performs only GET. If the profile is still available, staff can review and explicitly confirm another archive. If absent, return to the directory without claiming a newly confirmed archival. Closing/reopening the dialog does not bypass the check requirement.
+
+Automated tests mock all requests. Before closing #24, verify with dedicated test data: cancel/Escape/focus, successful archival and refreshed filters, duplicate-click prevention, denied/expired sessions, missing profiles, and service failure/check recovery. Check native modal keyboard behavior and narrow layouts in the browser. No backend files, migrations, or database records were changed during implementation.

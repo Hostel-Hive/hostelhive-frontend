@@ -4,6 +4,8 @@
 
 ### Added
 
+- Student profile archival with confirmation, authorized empty-body DELETE, filter-preserving directory refresh and explicit recovery for uncertain outcomes (issue #24).
+
 - Student profile creation and editing through the existing authorized APIs, including guardian management, backend-aligned validation, save recovery, and unsaved-navigation protection.
 
 - Student directory and read-only profiles for Admin/Warden accounts, backed by Firebase-authorized student APIs (issue #19).
