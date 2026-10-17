@@ -4,6 +4,10 @@
 
 ### Added
 
+- Student accommodation integration for Admin/Warden: current bed assignment, paginated allocation history, available block/room/bed selection, confirmed assign/transfer/revoke, and explicit refresh after conflicts or uncertain outcomes (issue #28).
+
+- Student, allocation and inventory requests share the authentication module's current-session transport; feature APIs retain their own response validation and error handling.
+
 - Authorized student QR display for Admin/Warden profiles, explicit retrieval, PNG download, eligibility/error recovery and private image cleanup on hide, tab hiding and navigation (issue #27).
 
 - Admin-only student CSV import with authenticated template download, UTF-8/size/record/structure checks, a review step, partial row reports, safe CSV report download, and explicit recovery after uncertain outcomes (issue #26).
