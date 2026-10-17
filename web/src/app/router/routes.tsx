@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import AdminDashboardPage from '../../features/dashboard/pages/AdminDashboardPage';
 import WardenDashboardPage from '../../features/dashboard/pages/WardenDashboardPage';
@@ -16,6 +17,10 @@ import PublicOnlyRoute from './PublicOnlyRoute';
 import RoleGuard from './RoleGuard';
 import useAuth from '../../features/auth/hooks/useAuth';
 import { dashboardForRole } from '../../config/roles';
+
+const StudentImportPage = lazy(
+  () => import('../../features/students/pages/StudentImportPage'),
+);
 
 function DashboardRedirect() {
   const { account } = useAuth();
@@ -58,6 +63,16 @@ export default function AppRoutes() {
           />
           <Route path="students/:studentID" element={<StudentProfilePage />} />
           <Route element={<RoleGuard role="admin" />}>
+            <Route
+              path="students/import"
+              element={
+                <Suspense
+                  fallback={<p role="status">Loading student import…</p>}
+                >
+                  <StudentImportPage />
+                </Suspense>
+              }
+            />
             <Route path="admin" element={<AdminDashboardPage />} />
           </Route>
           <Route element={<RoleGuard role="warden" />}>

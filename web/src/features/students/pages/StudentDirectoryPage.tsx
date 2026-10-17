@@ -45,6 +45,14 @@ export default function StudentDirectoryPage() {
       <p className="page-description">
         Browse resident profiles and account status.
       </p>
+      {account?.role === 'admin' && (
+        <Link
+          className="button-link"
+          to={`${routePaths.studentImport}${search ? `?${search}` : ''}`}
+        >
+          Import CSV
+        </Link>
+      )}
       <form
         key={search}
         className="student-filters"
