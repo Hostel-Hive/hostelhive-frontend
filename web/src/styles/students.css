@@ -197,6 +197,9 @@
   margin-top: var(--space-5);
 }
 @media (max-width: 767px) {
+  .student-photo-content {
+    flex-direction: column;
+  }
   .student-form-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -206,4 +209,40 @@
   .student-filters > div {
     flex-basis: 100%;
   }
+}
+.student-photo-content {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+.student-photo-image,
+.student-photo-placeholder {
+  width: 128px;
+  height: 128px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  object-fit: cover;
+}
+.student-photo-placeholder {
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+  background: var(--ink-100);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+.student-photo-controls {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
+}
+.student-photo-controls input {
+  max-width: 100%;
+  font: inherit;
+}
+.student-photo [role='alert'] {
+  color: var(--color-danger);
 }
