@@ -157,7 +157,9 @@ export async function studentResponse(
   if (response.status === 413 || response.status === 415)
     throw new StudentRequestError(
       'invalid',
-      'Choose a JPEG or PNG photo up to 5 MiB.',
+      path.startsWith('/import')
+        ? 'Choose a UTF-8 CSV up to 2 MiB.'
+        : 'Choose a JPEG or PNG photo up to 5 MiB.',
     );
   if (response.status === 400)
     throw new StudentRequestError(
