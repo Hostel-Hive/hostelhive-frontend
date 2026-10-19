@@ -8,10 +8,17 @@ export default function ProtectedRoute() {
   const { pathname } = useLocation();
   if (
     auth.verifiedPath !== pathname ||
-    auth.status === 'checking' ||
+    (auth.status === 'checking' && !auth.account) ||
     auth.status === 'error'
   )
     return <SessionGate />;
   if (!auth.account) return <Navigate to={routePaths.login} replace />;
-  return <Outlet />;
+  return (
+    <div
+      key={`${pathname}:${auth.account.firebase_uid}:${auth.account.role}`}
+      style={{ display: 'contents' }}
+    >
+      <Outlet />
+    </div>
+  );
 }
