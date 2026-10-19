@@ -24,6 +24,12 @@ const StudentImportPage = lazy(
 const InventoryPage = lazy(
   () => import('../../features/inventory/pages/InventoryPage'),
 );
+const LeaveListPage = lazy(
+  () => import('../../features/leave/pages/LeaveListPage'),
+);
+const LeaveDetailPage = lazy(
+  () => import('../../features/leave/pages/LeaveDetailPage'),
+);
 
 function DashboardRedirect() {
   const { account } = useAuth();
@@ -58,6 +64,22 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          <Route
+            path="leaves"
+            element={
+              <Suspense fallback={<p role="status">Loading leave requests…</p>}>
+                <LeaveListPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="leaves/:leaveID"
+            element={
+              <Suspense fallback={<p role="status">Loading leave request…</p>}>
+                <LeaveDetailPage />
+              </Suspense>
+            }
+          />
           <Route
             path="inventory"
             element={
