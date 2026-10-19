@@ -9,4 +9,5 @@ export const routePaths = {
   students: '/dashboard/students',
   studentImport: '/dashboard/students/import',
   inventory: '/dashboard/inventory',
+  leaves: '/dashboard/leaves',
 } as const;
