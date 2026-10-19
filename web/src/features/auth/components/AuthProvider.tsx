@@ -31,36 +31,45 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     ++generation.current;
   }, []);
 
-  const retry = useCallback(async () => {
-    if (operation.current) return;
-    const current = ++generation.current;
-    setState({
-      status: 'checking',
-      account: null,
-      message: '',
-      verifiedPath: pathname,
-    });
-    try {
-      const account = await restoreStaffSession();
-      if (mounted.current && current === generation.current) {
-        setState({
-          status: account ? 'authenticated' : 'anonymous',
-          account,
-          message: '',
-          verifiedPath: pathname,
-        });
+  const retry = useCallback(
+    async (preservePage = false) => {
+      if (operation.current) return;
+      const current = ++generation.current;
+      setState((previous) => ({
+        status: 'checking',
+        // Focus can return from a native file chooser. Preserve the verified
+        // identity and page during this background check, so local selections
+        // survive without flicker. All failures clear the identity.
+        account:
+          preservePage && previous.verifiedPath === pathname
+            ? previous.account
+            : null,
+        message: '',
+        verifiedPath: pathname,
+      }));
+      try {
+        const account = await restoreStaffSession();
+        if (mounted.current && current === generation.current) {
+          setState({
+            status: account ? 'authenticated' : 'anonymous',
+            account,
+            message: '',
+            verifiedPath: pathname,
+          });
+        }
+      } catch (error) {
+        if (mounted.current && current === generation.current) {
+          setState({
+            status: isSessionRejected(error) ? 'anonymous' : 'error',
+            account: null,
+            message: loginErrorMessage(error),
+            verifiedPath: pathname,
+          });
+        }
       }
-    } catch (error) {
-      if (mounted.current && current === generation.current) {
-        setState({
-          status: isSessionRejected(error) ? 'anonymous' : 'error',
-          account: null,
-          message: loginErrorMessage(error),
-          verifiedPath: pathname,
-        });
-      }
-    }
-  }, [pathname]);
+    },
+    [pathname],
+  );
 
   useEffect(() => {
     mounted.current = true;
@@ -96,10 +105,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       onError(error);
     }
     const handleFocus = () => {
-      void retry();
+      void retry(true);
     };
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') void retry();
+      if (document.visibilityState === 'visible') void retry(true);
     };
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibility);

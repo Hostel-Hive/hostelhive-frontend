@@ -18,7 +18,17 @@ Design tokens live in `web/src/styles/tokens.css` and shared shell styles in `we
 
 See [web setup instructions](web/README.md) for installation, configuration and commands.
 
+Issue #104 adds Admin student registration by university email using the backend invitation API. Account UUIDs remain internal in this flow; the existing-account profile form remains a separate option. See [registration integration and acceptance checks](docs/issues/104-student-invitation-registration.md).
+
 ## Contribution workflow
+
+Issue #43 adds **Complaints** for Admin/Warden staff: filtered browsing, details, chronological history, student-visible notes and confirmed status changes. Writes follow backend request-ID/version semantics; uncertain retries preserve the original payload, and conflicts require reloading and explicit review. See the web README for the workflow and acceptance checks.
+
+Issue #41 adds **Access requests** for Admin/Warden review of early-exit and late-entry requests, using the existing late-access APIs. The interface displays recorded permission use separately from approval status and does not change attendance or scanner behavior. The GitHub-ready issue draft is in [docs/issues/41-late-access-request-management.md](docs/issues/41-late-access-request-management.md).
+
+Issue #39 adds **Leave requests** for Admin/Warden staff: filtered browsing, request details and confirmed approval/rejection through the existing leave APIs. Decisions do not change attendance or presence. Implementation, recovery behavior and live acceptance checks are described in the web README.
+
+Issue #37 adds **Inventory** to the staff navigation. Admin and Warden accounts browse blocks, rooms and beds; only Admin accounts create or rename them. The inventory feature uses the existing backend APIs and shares the current-session Firebase transport with the student and allocation modules. See the web README for behavior and acceptance checks.
 
 Issue #14 implements password recovery at `/forgot-password` and the Firebase password-reset action handler at `/reset-password`. It uses the project's Firebase password policy, institution-neutral copy, shared controls and the existing authentication layout. See the web README for email-template action URL setup and live verification.
 

@@ -2,7 +2,23 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Stabilized asynchronous UI checks for lazy routes on Windows and under coverage, with bounded waits and explicit React act-environment setup for imported Vitest hooks. Assertions and coverage gates are unchanged.
+
 ### Added
+
+- Admin student registration by university email through the invitation API, including normalized profile/guardian details, safe request replay, delivery/setup status refresh and a separate existing-account profile workflow (issue #104).
+
+- Admin/Warden complaint tracking with category/status/student/date filters, chronological history, student-visible notes, confirmed resolution/reopening, version checks and idempotent recovery after uncertain writes (issue #43).
+
+- Staff early-exit/late-entry request review with status/student filters, pagination, direction/expected-time details, recorded permission use, confirmed Admin/Warden decisions and conflict/uncertain-response recovery (issue #41).
+
+- Staff leave request browsing and details with status/student filters, pagination, Admin/Warden approval and rejection, decision confirmation, validation, draft guards and status checks after uncertain or conflicting outcomes (issue #39).
+
+- Hostel inventory browsing for Admin/Warden with block → room → bed navigation, server occupancy counts, availability filters and pagination; Admin-only creation/renaming with validation, draft protection and explicit recovery after uncertain saves (issue #37).
+
+- Read-only student presence and movement/scan history for Admin/Warden, with independent retries, explicit recorded/ignored outcomes, legacy permission labels, pagination and access-loss cleanup (issue #29).
 
 - Student accommodation integration for Admin/Warden: current bed assignment, paginated allocation history, available block/room/bed selection, confirmed assign/transfer/revoke, and explicit refresh after conflicts or uncertain outcomes (issue #28).
 

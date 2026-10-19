@@ -12,9 +12,14 @@ import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
 import StudentArchiveAction from '../components/StudentArchiveAction';
 import StudentPhoto from '../components/StudentPhoto';
+import StudentInvitationStatus from '../components/StudentInvitationStatus';
+import { validInvitation } from '../api/student-invitations.api';
 import StudentQR from '../components/StudentQR';
 const StudentAccommodation = lazy(
   () => import('../../allocation/components/StudentAccommodation'),
+);
+const StudentAttendance = lazy(
+  () => import('../../attendance/components/StudentAttendance'),
 );
 
 export default function StudentProfilePage() {
@@ -30,6 +35,12 @@ export default function StudentProfilePage() {
   const search = params.toString();
   const location = useLocation();
   const notice: unknown = location.state?.studentNotice;
+  const invitation: unknown = location.state?.invitation;
+  const showInvitation =
+    account?.role === 'admin' &&
+    location.state?.invitationActor === uid &&
+    validInvitation(invitation) &&
+    invitation.student_id === data?.student_id;
   return (
     <section className="students-page" aria-labelledby="student-profile-title">
       <Link
@@ -49,6 +60,13 @@ export default function StudentProfilePage() {
         <StudentRequestState error={error} retry={retry} />
       ) : (
         <>
+          {showInvitation && validInvitation(invitation) && (
+            <StudentInvitationStatus
+              key={`${uid}:${invitation.invitation_id}`}
+              initial={invitation}
+              uid={uid}
+            />
+          )}
           <Link
             className="button-link"
             to={`${routePaths.students}/${data.student_id}/edit${search ? `?${search}` : ''}`}
@@ -75,6 +93,11 @@ export default function StudentProfilePage() {
               eligible={data.account_active}
               uid={uid}
             />
+          </Suspense>
+          <Suspense
+            fallback={<p role="status">Loading attendance controls…</p>}
+          >
+            <StudentAttendance studentID={data.student_id} uid={uid} />
           </Suspense>
           <div className="student-card">
             <h2>Student details</h2>

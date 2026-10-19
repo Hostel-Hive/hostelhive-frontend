@@ -84,7 +84,22 @@ describe('protected dashboard access', () => {
       const nav = within(
         screen.getByRole('navigation', { name: 'Primary navigation' }),
       );
-      expect(nav.getAllByRole('link')).toHaveLength(2);
+      expect(nav.getAllByRole('link')).toHaveLength(6);
+      expect(nav.getByRole('link', { name: 'Complaints' })).toHaveAttribute(
+        'href',
+        '/dashboard/complaints',
+      );
+      expect(
+        nav.getByRole('link', { name: 'Access requests' }),
+      ).toHaveAttribute('href', '/dashboard/late-access-requests');
+      expect(nav.getByRole('link', { name: 'Leave requests' })).toHaveAttribute(
+        'href',
+        '/dashboard/leaves',
+      );
+      expect(nav.getByRole('link', { name: 'Inventory' })).toHaveAttribute(
+        'href',
+        '/dashboard/inventory',
+      );
       expect(
         nav.getByRole('link', {
           name: role === 'admin' ? 'Admin dashboard' : 'Warden dashboard',

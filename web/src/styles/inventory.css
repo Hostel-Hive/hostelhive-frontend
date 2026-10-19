@@ -1,0 +1,139 @@
+.inventory-page {
+  max-width: 1200px;
+}
+.inventory-page h1 {
+  font-size: var(--text-heading);
+}
+.inventory-page h2,
+.inventory-dialog h2 {
+  font-size: var(--text-lg);
+}
+.inventory-actions,
+.inventory-toolbar,
+.inventory-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.inventory-toolbar {
+  margin: var(--space-5) 0;
+}
+.inventory-toolbar h2 {
+  margin-right: auto;
+}
+.inventory-toolbar label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.inventory-parent {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+.inventory-table-wrap {
+  overflow-x: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+.inventory-page table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--text-sm);
+}
+.inventory-page caption {
+  text-align: left;
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+}
+.inventory-page th,
+.inventory-page td {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  overflow-wrap: anywhere;
+}
+.inventory-page thead {
+  background: var(--ink-100);
+  font-size: var(--text-xs);
+  color: var(--ink-600);
+}
+.inventory-page tbody th {
+  min-width: 8rem;
+  max-width: 20rem;
+}
+.inventory-page tbody tr:hover {
+  background: var(--cyan-50);
+}
+.inventory-badge {
+  display: inline-block;
+  white-space: nowrap;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+  background: var(--amber-100);
+  color: var(--ink-900);
+}
+.inventory-badge--available {
+  background: var(--cyan-100);
+}
+.inventory-pagination {
+  justify-content: center;
+  margin: var(--space-5) 0;
+  font-size: var(--text-sm);
+}
+.inventory-empty {
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.inventory-dialog {
+  width: min(32rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: var(--space-6);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+}
+.inventory-dialog::backdrop {
+  background: #18103766;
+}
+.inventory-dialog .ui-input {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-2);
+}
+.inventory-dialog label {
+  font-weight: 600;
+}
+.inventory-dialog p {
+  line-height: 1.6;
+}
+.inventory-dialog [role='alert'] {
+  color: var(--color-danger);
+}
+.inventory-warning {
+  padding: var(--space-3);
+  margin: var(--space-4) 0;
+  background: var(--amber-50);
+  border: 1px solid var(--amber-300);
+  border-radius: var(--radius-control);
+}
+.inventory-warning a {
+  color: var(--cyan-700);
+}
+@media (max-width: 600px) {
+  .inventory-toolbar > .ui-button {
+    flex: 1 1 auto;
+  }
+  .inventory-dialog {
+    padding: var(--space-4);
+  }
+}

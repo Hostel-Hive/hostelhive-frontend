@@ -47,6 +47,22 @@ async function fillForm(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('staff login', () => {
+  it('toggles password visibility with the keyboard without submitting or changing the password', async () => {
+    const user = await openLogin();
+    const password = screen.getByLabelText('Password', { exact: true });
+    await user.type(password, 'existing-password');
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Show password' })).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(password).toHaveAttribute('type', 'text');
+    expect(password).toHaveValue('existing-password');
+    expect(screen.getByRole('button', { name: 'Hide password' })).toHaveFocus();
+    await user.keyboard(' ');
+    expect(password).toHaveAttribute('type', 'password');
+    expect(password).toHaveValue('existing-password');
+    expect(login).not.toHaveBeenCalled();
+  });
+
   it('opens login from the home route and exposes the shared layout', async () => {
     window.history.replaceState({}, '', '/');
     await openLogin();

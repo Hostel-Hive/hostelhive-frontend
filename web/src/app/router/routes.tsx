@@ -21,6 +21,28 @@ import { dashboardForRole } from '../../config/roles';
 const StudentImportPage = lazy(
   () => import('../../features/students/pages/StudentImportPage'),
 );
+const InventoryPage = lazy(
+  () => import('../../features/inventory/pages/InventoryPage'),
+);
+const LeaveListPage = lazy(
+  () => import('../../features/leave/pages/LeaveListPage'),
+);
+const LeaveDetailPage = lazy(
+  () => import('../../features/leave/pages/LeaveDetailPage'),
+);
+const LateAccessListPage = lazy(
+  () => import('../../features/late-access/pages/LateAccessListPage'),
+);
+const LateAccessDetailPage = lazy(
+  () => import('../../features/late-access/pages/LateAccessDetailPage'),
+);
+
+const ComplaintListPage = lazy(
+  () => import('../../features/complaints/pages/ComplaintListPage'),
+);
+const ComplaintDetailPage = lazy(
+  () => import('../../features/complaints/pages/ComplaintDetailPage'),
+);
 
 function DashboardRedirect() {
   const { account } = useAuth();
@@ -55,6 +77,64 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          <Route
+            path="complaints"
+            element={
+              <Suspense fallback={<p role="status">Loading complaints…</p>}>
+                <ComplaintListPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="complaints/:complaintID"
+            element={
+              <Suspense fallback={<p role="status">Loading complaint…</p>}>
+                <ComplaintDetailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="late-access-requests"
+            element={
+              <Suspense
+                fallback={<p role="status">Loading access requests…</p>}
+              >
+                <LateAccessListPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="late-access-requests/:lateAccessID"
+            element={
+              <Suspense fallback={<p role="status">Loading access request…</p>}>
+                <LateAccessDetailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="leaves"
+            element={
+              <Suspense fallback={<p role="status">Loading leave requests…</p>}>
+                <LeaveListPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="leaves/:leaveID"
+            element={
+              <Suspense fallback={<p role="status">Loading leave request…</p>}>
+                <LeaveDetailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="inventory"
+            element={
+              <Suspense fallback={<p role="status">Loading inventory…</p>}>
+                <InventoryPage />
+              </Suspense>
+            }
+          />
           <Route path="students" element={<StudentDirectoryPage />} />
           <Route path="students/new" element={<StudentFormPage creating />} />
           <Route
