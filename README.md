@@ -20,6 +20,8 @@ See [web setup instructions](web/README.md) for installation, configuration and 
 
 ## Contribution workflow
 
+Issue #43 adds **Complaints** for Admin/Warden staff: filtered browsing, details, chronological history, student-visible notes and confirmed status changes. Writes follow backend request-ID/version semantics; uncertain retries preserve the original payload, and conflicts require reloading and explicit review. See the web README for the workflow and acceptance checks.
+
 Issue #41 adds **Access requests** for Admin/Warden review of early-exit and late-entry requests, using the existing late-access APIs. The interface displays recorded permission use separately from approval status and does not change attendance or scanner behavior. The GitHub-ready issue draft is in [docs/issues/41-late-access-request-management.md](docs/issues/41-late-access-request-management.md).
 
 Issue #39 adds **Leave requests** for Admin/Warden staff: filtered browsing, request details and confirmed approval/rejection through the existing leave APIs. Decisions do not change attendance or presence. Implementation, recovery behavior and live acceptance checks are described in the web README.
