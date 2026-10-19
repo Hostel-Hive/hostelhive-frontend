@@ -10,4 +10,5 @@ export const routePaths = {
   studentImport: '/dashboard/students/import',
   inventory: '/dashboard/inventory',
   leaves: '/dashboard/leaves',
+  lateAccess: '/dashboard/late-access-requests',
 } as const;

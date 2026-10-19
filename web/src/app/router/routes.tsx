@@ -30,6 +30,12 @@ const LeaveListPage = lazy(
 const LeaveDetailPage = lazy(
   () => import('../../features/leave/pages/LeaveDetailPage'),
 );
+const LateAccessListPage = lazy(
+  () => import('../../features/late-access/pages/LateAccessListPage'),
+);
+const LateAccessDetailPage = lazy(
+  () => import('../../features/late-access/pages/LateAccessDetailPage'),
+);
 
 function DashboardRedirect() {
   const { account } = useAuth();
@@ -64,6 +70,24 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          <Route
+            path="late-access-requests"
+            element={
+              <Suspense
+                fallback={<p role="status">Loading access requests…</p>}
+              >
+                <LateAccessListPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="late-access-requests/:lateAccessID"
+            element={
+              <Suspense fallback={<p role="status">Loading access request…</p>}>
+                <LateAccessDetailPage />
+              </Suspense>
+            }
+          />
           <Route
             path="leaves"
             element={
