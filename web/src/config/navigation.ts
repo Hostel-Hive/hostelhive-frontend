@@ -10,4 +10,5 @@ export const dashboardNavigation = [
   { label: 'Students', path: routePaths.students, role: 'all' },
   { label: 'Inventory', path: routePaths.inventory, role: 'all' },
   { label: 'Leave requests', path: routePaths.leaves, role: 'all' },
+  { label: 'Access requests', path: routePaths.lateAccess, role: 'all' },
 ] as const;

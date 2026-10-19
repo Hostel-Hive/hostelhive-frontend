@@ -17,6 +17,7 @@ import '../styles/auth.css';
 import '../styles/students.css';
 import '../styles/inventory.css';
 import '../styles/leave.css';
+import '../styles/late-access.css';
 
 parseEnvironment(import.meta.env);
 

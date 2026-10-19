@@ -20,6 +20,8 @@ See [web setup instructions](web/README.md) for installation, configuration and 
 
 ## Contribution workflow
 
+Issue #41 adds **Access requests** for Admin/Warden review of early-exit and late-entry requests, using the existing late-access APIs. The interface displays recorded permission use separately from approval status and does not change attendance or scanner behavior. The GitHub-ready issue draft is in [docs/issues/41-late-access-request-management.md](docs/issues/41-late-access-request-management.md).
+
 Issue #39 adds **Leave requests** for Admin/Warden staff: filtered browsing, request details and confirmed approval/rejection through the existing leave APIs. Decisions do not change attendance or presence. Implementation, recovery behavior and live acceptance checks are described in the web README.
 
 Issue #37 adds **Inventory** to the staff navigation. Admin and Warden accounts browse blocks, rooms and beds; only Admin accounts create or rename them. The inventory feature uses the existing backend APIs and shares the current-session Firebase transport with the student and allocation modules. See the web README for behavior and acceptance checks.
