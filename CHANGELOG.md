@@ -4,6 +4,8 @@
 
 ### Added
 
+- Staff early-exit/late-entry request review with status/student filters, pagination, direction/expected-time details, recorded permission use, confirmed Admin/Warden decisions and conflict/uncertain-response recovery (issue #41).
+
 - Staff leave request browsing and details with status/student filters, pagination, Admin/Warden approval and rejection, decision confirmation, validation, draft guards and status checks after uncertain or conflicting outcomes (issue #39).
 
 - Hostel inventory browsing for Admin/Warden with block → room → bed navigation, server occupancy counts, availability filters and pagination; Admin-only creation/renaming with validation, draft protection and explicit recovery after uncertain saves (issue #37).
