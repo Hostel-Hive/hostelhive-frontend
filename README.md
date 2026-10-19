@@ -18,6 +18,8 @@ Design tokens live in `web/src/styles/tokens.css` and shared shell styles in `we
 
 See [web setup instructions](web/README.md) for installation, configuration and commands.
 
+Issue #104 adds Admin student registration by university email using the backend invitation API. Account UUIDs remain internal in this flow; the existing-account profile form remains a separate option. See [registration integration and acceptance checks](docs/issues/104-student-invitation-registration.md).
+
 ## Contribution workflow
 
 Issue #43 adds **Complaints** for Admin/Warden staff: filtered browsing, details, chronological history, student-visible notes and confirmed status changes. Writes follow backend request-ID/version semantics; uncertain retries preserve the original payload, and conflicts require reloading and explicit review. See the web README for the workflow and acceptance checks.

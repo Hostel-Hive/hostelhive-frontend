@@ -2,7 +2,13 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Stabilized asynchronous UI checks for lazy routes on Windows and under coverage, with bounded waits and explicit React act-environment setup for imported Vitest hooks. Assertions and coverage gates are unchanged.
+
 ### Added
+
+- Admin student registration by university email through the invitation API, including normalized profile/guardian details, safe request replay, delivery/setup status refresh and a separate existing-account profile workflow (issue #104).
 
 - Admin/Warden complaint tracking with category/status/student/date filters, chronological history, student-visible notes, confirmed resolution/reopening, version checks and idempotent recovery after uncertain writes (issue #43).
 

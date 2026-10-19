@@ -366,3 +366,7 @@ Presence and history are independent request snapshots. A temporary failure in o
 Inactive student accounts retain staff-readable attendance when their profile can still be opened; the UI does not require an active QR or bed allocation to read history. Presence and scans are historical records, not proof of physical occupancy, passage, time spent in the hostel or an attendance percentage. The frontend neither reconstructs missed movements nor changes leave, permission, incident or scanner state.
 
 Automated tests mock every read and authentication boundary. Before closing #29, verify with dedicated authorized fixtures: Admin/Warden retrieval; signed-out and denied access; IN, OUT and UNKNOWN; recorded versus ignored scans; legacy and current permission assessments; page navigation/refresh; partial service failures and scoped retries; inactive-account history; local-time display; stale-request cleanup and narrow layouts. Confirm live behavior, peer review and passing CI separately. No backend code, configuration, migrations or database records are changed during this frontend implementation.
+
+## Student invitation registration (#104)
+
+Admins use Students > Add student to register with a university email and queue private account setup. The separate existing-account profile option and Warden workflow are preserved. See [API, recovery behavior, prerequisites and live acceptance steps](../docs/issues/104-student-invitation-registration.md).

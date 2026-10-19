@@ -10,6 +10,10 @@ import {
   studentError,
   StudentRequestError,
 } from '../api/students.api';
+import {
+  registerStudentInvitation,
+  type StudentInvitationInput,
+} from '../api/student-invitations.api';
 import StudentDiscardDialog from './StudentDiscardDialog';
 import type { CreateStudentInput, Student } from '../student.types';
 import { normalizeStudent, validateStudent } from '../student.schema';
@@ -17,13 +21,16 @@ import { normalizeStudent, validateStudent } from '../student.schema';
 export default function StudentProfileForm({
   student,
   search,
+  inviting = false,
 }: {
   student?: Student;
   search: string;
+  inviting?: boolean;
 }) {
   const { account, signOut } = useAuth();
   const navigate = useNavigate();
-  const [initial] = useState<CreateStudentInput>(() => ({
+  const [initial] = useState<CreateStudentInput & { email: string }>(() => ({
+    email: '',
     user_id: student?.user_id ?? '',
     index_no: student?.index_no ?? '',
     full_name: student?.full_name ?? '',
@@ -42,6 +49,8 @@ export default function StudentProfileForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<StudentRequestError>();
   const [pending, setPending] = useState(false);
+  const [uncertain, setUncertain] = useState(false);
+  const attempt = useRef<StudentInvitationInput | null>(null);
   const [discard, setDiscard] = useState(false);
   const form = useRef<HTMLFormElement>(null);
   const active = useRef(false);
@@ -98,6 +107,7 @@ export default function StudentProfileForm({
         <Input
           id={id}
           name={id}
+          type={id === 'email' ? 'email' : 'text'}
           value={text}
           maxLength={maxLength}
           onChange={(event) => update(event.target.value)}
@@ -114,7 +124,9 @@ export default function StudentProfileForm({
   }
   async function submit() {
     if (operation.current || locked) return;
-    const nextErrors = validateStudent(value, !student);
+    const nextErrors = validateStudent(value, !student && !inviting);
+    if (inviting && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email.trim()))
+      nextErrors.email = 'Enter a valid university email.';
     setErrors(nextErrors);
     setError(undefined);
     if (Object.keys(nextErrors).length) {
@@ -138,6 +150,46 @@ export default function StudentProfileForm({
         contact_phone: input.contact_phone,
         guardians: input.guardians,
       };
+      if (inviting) {
+        if (account?.role !== 'admin')
+          throw new StudentRequestError(
+            'forbidden',
+            'Only an Admin can register invitations.',
+          );
+        const normalized = {
+          ...details,
+          email: value.email.trim().toLowerCase(),
+        };
+        const previous = attempt.current;
+        const { request_id: previousID, ...previousDetails } = previous ?? {};
+        if (
+          !uncertain &&
+          JSON.stringify(previousDetails) !== JSON.stringify(normalized)
+        ) {
+          attempt.current = { ...normalized, request_id: crypto.randomUUID() };
+        } else if (!previousID) {
+          attempt.current = { ...normalized, request_id: crypto.randomUUID() };
+        }
+        const result = await registerStudentInvitation(
+          attempt.current!,
+          account.firebase_uid,
+          controller.current.signal,
+        );
+        if (active.current) {
+          allowLeave.current = true;
+          navigate(
+            `${routePaths.students}/${result.invitation.student_id}${suffix}`,
+            {
+              replace: true,
+              state: {
+                invitation: result.invitation,
+                invitationActor: account.firebase_uid,
+              },
+            },
+          );
+        }
+        return;
+      }
       const saved = student
         ? await updateStudent(
             student.student_id,
@@ -164,14 +216,21 @@ export default function StudentProfileForm({
     } catch (reason) {
       if (active.current) {
         const failure = studentError(reason);
-        setError(
-          failure.kind === 'unavailable'
-            ? new StudentRequestError(
-                'unavailable',
-                'Unable to confirm the profile save. Your form values have been kept.',
-              )
-            : failure,
-        );
+        if (inviting) {
+          setUncertain(
+            failure.kind === 'unavailable' ||
+              (uncertain && failure.kind === 'session'),
+          );
+          setError(failure);
+        } else
+          setError(
+            failure.kind === 'unavailable'
+              ? new StudentRequestError(
+                  'unavailable',
+                  'Unable to confirm the profile save. Your form values have been kept.',
+                )
+              : failure,
+          );
       }
     } finally {
       operation.current = false;
@@ -192,7 +251,7 @@ export default function StudentProfileForm({
         {error && (
           <div role="alert" className="auth-error">
             {error.message}
-            {error.kind === 'unavailable' && (
+            {error.kind === 'unavailable' && !inviting && (
               <p>
                 The service could not confirm the save. Check the existing
                 profile before submitting again if the connection was
@@ -204,9 +263,9 @@ export default function StudentProfileForm({
         {error?.kind === 'session' && (
           <Button onClick={() => void signOut()}>Sign in again</Button>
         )}
-        <fieldset disabled={locked}>
+        <fieldset disabled={locked || uncertain}>
           <legend>Student details</legend>
-          {!student && (
+          {!student && !inviting && (
             <>
               <p className="student-form-help">
                 Enter the student account UUID supplied by an administrator.
@@ -222,6 +281,22 @@ export default function StudentProfileForm({
               )}
             </>
           )}
+          {inviting && (
+            <>
+              <p className="student-form-help">
+                Register the student using their university email. They will
+                receive a private link to choose their HostelHive password.
+                Email delivery is processed in the background.
+              </p>
+              {field(
+                'email',
+                'University email',
+                value.email,
+                (text) => change('email', text),
+                254,
+              )}
+            </>
+          )}
           {student && (
             <p className="student-form-help">
               Login email: {student.email}. Account identity and login
@@ -231,7 +306,7 @@ export default function StudentProfileForm({
           <div className="student-form-grid">
             {field(
               'index_no',
-              'Student ID',
+              'University registration / index number',
               value.index_no,
               (text) => change('index_no', text),
               64,
@@ -283,7 +358,7 @@ export default function StudentProfileForm({
             )}
           </div>
         </fieldset>
-        <fieldset disabled={locked}>
+        <fieldset disabled={locked || uncertain}>
           <legend>Guardian details</legend>
           <p className="student-form-help">
             Provide at least one guardian; up to ten are supported.
@@ -355,7 +430,15 @@ export default function StudentProfileForm({
             type="submit"
             disabled={locked || (Boolean(student) && !dirty)}
           >
-            {pending ? 'Saving…' : student ? 'Save changes' : 'Create profile'}
+            {pending
+              ? 'Saving…'
+              : inviting
+                ? uncertain
+                  ? 'Retry same registration'
+                  : 'Register student'
+                : student
+                  ? 'Save changes'
+                  : 'Create profile'}
           </Button>
           <Button
             variant="secondary"
@@ -368,7 +451,18 @@ export default function StudentProfileForm({
             Cancel
           </Button>
         </div>
-        {pending && <p role="status">Saving student profile…</p>}
+        {uncertain && (
+          <p role="status">
+            The registration result is unknown. Your original details are locked
+            so retrying safely checks the same registration. If you leave or
+            reload, check the directory before starting another registration.
+          </p>
+        )}
+        {pending && (
+          <p role="status">
+            {inviting ? 'Registering student…' : 'Saving student profile…'}
+          </p>
+        )}
       </form>
       {(discard || blocker.state === 'blocked') && (
         <StudentDiscardDialog
