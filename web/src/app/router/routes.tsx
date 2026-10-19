@@ -37,6 +37,13 @@ const LateAccessDetailPage = lazy(
   () => import('../../features/late-access/pages/LateAccessDetailPage'),
 );
 
+const ComplaintListPage = lazy(
+  () => import('../../features/complaints/pages/ComplaintListPage'),
+);
+const ComplaintDetailPage = lazy(
+  () => import('../../features/complaints/pages/ComplaintDetailPage'),
+);
+
 function DashboardRedirect() {
   const { account } = useAuth();
   return (
@@ -70,6 +77,22 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          <Route
+            path="complaints"
+            element={
+              <Suspense fallback={<p role="status">Loading complaints…</p>}>
+                <ComplaintListPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="complaints/:complaintID"
+            element={
+              <Suspense fallback={<p role="status">Loading complaint…</p>}>
+                <ComplaintDetailPage />
+              </Suspense>
+            }
+          />
           <Route
             path="late-access-requests"
             element={

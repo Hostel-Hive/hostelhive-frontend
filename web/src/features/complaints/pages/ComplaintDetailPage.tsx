@@ -1,0 +1,243 @@
+import { useCallback, useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { routePaths } from '../../../app/router/routePaths';
+import Button from '../../../shared/components/ui/Button';
+import useAuth from '../../auth/hooks/useAuth';
+import {
+  complaintFilters,
+  getComplaint,
+  listComplaintUpdates,
+  statusLabel,
+  type ComplaintError,
+} from '../api/complaints.api';
+import type {
+  Complaint,
+  ComplaintPage,
+  ComplaintUpdate,
+} from '../complaints.types';
+import useComplaintRequest from '../hooks/useComplaintRequest';
+import ComplaintRequestState from '../components/ComplaintRequestState';
+import ComplaintDate from '../components/ComplaintDate';
+import ComplaintActionDialog from '../components/ComplaintActionDialog';
+type Snapshot = { row: Complaint; history: ComplaintPage<ComplaintUpdate> };
+const actionLabels = {
+  created: 'Complaint submitted',
+  note: 'Note added',
+  status: 'Status changed',
+  image_added: 'Photo attached',
+  image_removed: 'Photo removed',
+};
+export default function ComplaintDetailPage() {
+  const { complaintID = '' } = useParams();
+  const { account } = useAuth();
+  const uid = account?.firebase_uid ?? '';
+  return (
+    <ComplaintDetailContent
+      key={`${uid}:${complaintID}`}
+      id={complaintID}
+      uid={uid}
+    />
+  );
+}
+function ComplaintDetailContent({ id, uid }: { id: string; uid: string }) {
+  const [params] = useSearchParams();
+  const [offset, setOffset] = useState(0);
+  const [editor, setEditor] = useState<'note' | 'status'>();
+  const [notice, setNotice] = useState('');
+  const title = useRef<HTMLHeadingElement>(null);
+  const key = `${uid}:${id}:${offset}`;
+  const load = useCallback(
+    async (signal: AbortSignal): Promise<Snapshot> => {
+      const [row, history] = await Promise.all([
+        getComplaint(id, uid, signal),
+        listComplaintUpdates(id, uid, signal, offset),
+      ]);
+      return { row, history };
+    },
+    [id, uid, offset],
+  );
+  const request = useComplaintRequest(key, load);
+  const [override, setOverride] = useState<{
+    key: string;
+    data?: Snapshot;
+    error?: ComplaintError;
+  }>();
+  const current = override?.key === key ? override : undefined;
+  const error = current?.error ?? request.error;
+  const data = !error ? (current?.data ?? request.data) : undefined;
+  let back: string = routePaths.complaints;
+  try {
+    const q = complaintFilters(params);
+    q.delete('limit');
+    back += `?${q}`;
+  } catch {
+    /* Discard unsupported return filters. */
+  }
+  function refresh() {
+    setOverride(undefined);
+    setOffset(0);
+    request.retry();
+  }
+  function paginate(next: number) {
+    setOverride(undefined);
+    setOffset(next);
+  }
+  return (
+    <section
+      className="complaint-page"
+      aria-labelledby="complaint-detail-title"
+    >
+      <Link to={back}>Back to complaints</Link>
+      <p className="eyebrow">Operations / Complaint</p>
+      <h1 id="complaint-detail-title" ref={title} tabIndex={-1}>
+        Complaint details
+      </h1>
+      {notice && <p role="status">{notice}</p>}
+      {!data || error ? (
+        <ComplaintRequestState error={error} retry={refresh} />
+      ) : (
+        <>
+          <div className="complaint-toolbar">
+            <span
+              className={`complaint-badge complaint-badge--${data.row.status}`}
+            >
+              {statusLabel(data.row.status)}
+            </span>
+            <span>Version {data.row.version}</span>
+            <Button variant="secondary" onClick={refresh}>
+              Refresh complaint
+            </Button>
+          </div>
+          <div className="complaint-card">
+            <h2>Complaint</h2>
+            <dl className="complaint-details">
+              <dt>Complaint ID</dt>
+              <dd className="complaint-id">{data.row.complaint_id}</dd>
+              <dt>Student ID</dt>
+              <dd className="complaint-id">{data.row.student_id}</dd>
+              <dt>Category</dt>
+              <dd>
+                {data.row.category === 'maintenance'
+                  ? 'Maintenance'
+                  : 'Disciplinary'}
+              </dd>
+              <dt>Original description</dt>
+              <dd className="complaint-prose">{data.row.description}</dd>
+              <dt>Created</dt>
+              <dd>
+                <ComplaintDate value={data.row.created_at} />
+              </dd>
+              <dt>Updated</dt>
+              <dd>
+                <ComplaintDate value={data.row.updated_at} />
+              </dd>
+              <dt>Submitted by (account ID)</dt>
+              <dd className="complaint-id">{data.row.submitted_by}</dd>
+            </dl>
+          </div>
+          <div className="complaint-card">
+            <h2>Manage complaint</h2>
+            <p>All notes and explanations are visible to the owning student.</p>
+            <div className="complaint-actions">
+              {data.row.status !== 'resolved' && (
+                <Button onClick={() => setEditor('note')}>Add note</Button>
+              )}
+              <Button variant="secondary" onClick={() => setEditor('status')}>
+                {data.row.status === 'resolved'
+                  ? 'Reopen complaint'
+                  : 'Change status'}
+              </Button>
+            </div>
+          </div>
+          <div className="complaint-card">
+            <h2>Update history</h2>
+            <p>
+              Oldest version first · Dates include your browser’s local
+              timezone.
+            </p>
+            {data.history.items.length === 0 ? (
+              <p role="status">No updates on this page.</p>
+            ) : (
+              <ol className="complaint-history" start={data.history.offset + 1}>
+                {data.history.items.map((update) => (
+                  <li key={update.update_id}>
+                    <h3>{actionLabels[update.action]}</h3>
+                    <p>
+                      Version {update.version} ·{' '}
+                      <ComplaintDate value={update.occurred_at} />
+                    </p>
+                    <p>
+                      {update.previous_status
+                        ? `${statusLabel(update.previous_status)} → `
+                        : ''}
+                      {statusLabel(update.new_status)}
+                    </p>
+                    <p className="complaint-prose">
+                      {update.text || 'No explanation provided.'}
+                    </p>
+                    <p className="complaint-id">Actor: {update.actor_id}</p>
+                    {update.image_id && (
+                      <p className="complaint-id">
+                        Photo reference: {update.image_id}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            )}
+            <nav
+              className="complaint-pagination"
+              aria-label="Complaint history pagination"
+            >
+              <Button
+                variant="secondary"
+                disabled={!data.history.offset}
+                onClick={() => paginate(Math.max(0, data.history.offset - 20))}
+              >
+                Previous history
+              </Button>
+              <span>
+                History page {Math.floor(data.history.offset / 20) + 1} ·{' '}
+                {data.history.total} updates
+              </span>
+              <Button
+                variant="secondary"
+                disabled={
+                  !data.history.has_more ||
+                  data.history.offset > Number.MAX_SAFE_INTEGER - 40
+                }
+                onClick={() => paginate(data.history.offset + 20)}
+              >
+                Next history
+              </Button>
+            </nav>
+          </div>
+          {editor && (
+            <ComplaintActionDialog
+              row={data.row}
+              noteOnly={editor === 'note'}
+              uid={uid}
+              historyOffset={offset}
+              onClose={() => setEditor(undefined)}
+              onSaved={() => {
+                setEditor(undefined);
+                setNotice(
+                  'Complaint action saved. Refreshing details and history.',
+                );
+                title.current?.focus();
+                refresh();
+              }}
+              onChecked={(row, history) => {
+                setOverride({ key, data: { row, history } });
+              }}
+              onDenied={(failure) => {
+                setEditor(undefined);
+                setOverride({ key, error: failure });
+              }}
+            />
+          )}
+        </>
+      )}
+    </section>
+  );
+}

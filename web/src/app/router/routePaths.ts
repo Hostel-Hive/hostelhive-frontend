@@ -11,4 +11,5 @@ export const routePaths = {
   inventory: '/dashboard/inventory',
   leaves: '/dashboard/leaves',
   lateAccess: '/dashboard/late-access-requests',
+  complaints: '/dashboard/complaints',
 } as const;
