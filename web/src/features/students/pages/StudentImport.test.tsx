@@ -207,9 +207,11 @@ it('downloads the server template privately and releases its Blob URL on unmount
 it('requires file review and explicit confirmation before sending, then shows every row result', async () => {
   open();
   await choose();
-  expect(
-    screen.getByRole('heading', { name: '2. Review 3 records' }),
-  ).toHaveFocus();
+  await waitFor(() =>
+    expect(
+      screen.getByRole('heading', { name: '2. Review 3 records' }),
+    ).toHaveFocus(),
+  );
   expect(
     screen.getByRole('button', { name: 'Import 3 records' }),
   ).toBeDisabled();

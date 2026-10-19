@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { getStudent } from '../api/students.api';
 import useAuth from '../../auth/hooks/useAuth';
 import useStudentRequest from '../hooks/useStudentRequest';
@@ -32,6 +32,13 @@ export default function StudentFormPage({
   creating?: boolean;
 }) {
   const [params] = useSearchParams();
+  const { account } = useAuth();
+  const inviting =
+    account?.role === 'admin' && params.get('registration') !== 'existing';
+  const filtered = new URLSearchParams(params);
+  filtered.delete('registration');
+  const modeLink = new URLSearchParams(filtered);
+  if (inviting) modeLink.set('registration', 'existing');
   return (
     <section className="students-page" aria-labelledby="student-form-title">
       <p className="eyebrow">Directory / Students</p>
@@ -40,11 +47,28 @@ export default function StudentFormPage({
       </h1>
       <p className="page-description">
         {creating
-          ? 'Create a profile for an existing active student account.'
+          ? inviting
+            ? 'Register a student and queue their account setup invitation.'
+            : 'Create a profile for an existing active student account.'
           : 'Update student and guardian details.'}
       </p>
       {creating ? (
-        <StudentProfileForm search={params.toString()} />
+        <>
+          {account?.role === 'admin' && (
+            <p>
+              <Link to={`?${modeLink.toString()}`}>
+                {inviting
+                  ? 'Create a profile for an existing account instead'
+                  : 'Register with a university email instead'}
+              </Link>
+            </p>
+          )}
+          <StudentProfileForm
+            key={`${account?.firebase_uid}:${inviting}`}
+            inviting={inviting}
+            search={filtered.toString()}
+          />
+        </>
       ) : (
         <EditStudent />
       )}

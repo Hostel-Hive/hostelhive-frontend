@@ -81,7 +81,7 @@ beforeEach(() => {
     user_id: 'staff',
     firebase_uid: 'staff-uid',
     email: 'staff@example.com',
-    role: 'admin',
+    role: 'warden',
     is_active: true,
   });
   vi.mocked(subscribeStaffSession).mockImplementation((change) => {
@@ -109,7 +109,7 @@ async function fillCreate() {
   await screen.findByLabelText('Student account ID');
   for (const [label, value] of [
     ['Student account ID', studentFixture.user_id],
-    ['Student ID', studentFixture.index_no],
+    ['University registration / index number', studentFixture.index_no],
     ['Full name', studentFixture.full_name],
     ['Faculty', studentFixture.faculty],
     ['Contact phone', studentFixture.contact_phone],
@@ -154,7 +154,7 @@ describe('add and edit student profiles', () => {
         role,
         is_active: true,
       });
-      renderAt('/dashboard/students/new?q=Alex');
+      renderAt('/dashboard/students/new?registration=existing&q=Alex');
       await fillCreate();
       await userEvent.click(
         screen.getByRole('button', { name: 'Create profile' }),

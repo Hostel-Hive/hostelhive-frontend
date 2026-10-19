@@ -13,6 +13,7 @@ export default function LoginForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {},
@@ -51,6 +52,7 @@ export default function LoginForm() {
       const account: StaffAccount = await signIn(input);
       if (!mounted.current) return;
       setPassword('');
+      setShowPassword(false);
       navigate(
         account.role === 'admin'
           ? routePaths.adminDashboard
@@ -61,6 +63,7 @@ export default function LoginForm() {
       if (!mounted.current) return;
       setError(loginErrorMessage(reason));
       setPassword('');
+      setShowPassword(false);
       passwordRef.current?.focus();
     } finally {
       busy.current = false;
@@ -122,20 +125,47 @@ export default function LoginForm() {
           <label htmlFor="login-password">Password</label>
           <Link to={routePaths.forgotPassword}>Forgot password?</Link>
         </div>
-        <Input
-          ref={passwordRef}
-          id="login-password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          placeholder="Enter your password"
-          required
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          aria-invalid={Boolean(errors.password)}
-          aria-describedby={errors.password ? 'password-error' : undefined}
-          disabled={submitting}
-        />
+        <div className="auth-password-wrapper">
+          <Input
+            ref={passwordRef}
+            id="login-password"
+            name="password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
+            placeholder="Enter your password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby={errors.password ? 'password-error' : undefined}
+            disabled={submitting}
+          />
+          <button
+            type="button"
+            className="auth-password-toggle"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-controls="login-password"
+            disabled={submitting}
+            onClick={() => setShowPassword((visible) => !visible)}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+              <circle cx="12" cy="12" r="3" />
+              {showPassword && <path d="m3 3 18 18" />}
+            </svg>
+          </button>
+        </div>
         {errors.password && (
           <p id="password-error" className="field-error">
             {errors.password}
