@@ -58,3 +58,7 @@ Student login is available at `/login`; staff use `/staff/login`. The homepage
 opens student login, and `/student/login` redirects to `/login`.
 See [student login setup and verification](docs/student-login.md) for backend
 requirements, setup completion, portal boundaries and live acceptance checks.
+
+The student dashboard at `/student` displays the signed-in student's profile,
+guardians, accommodation, recorded presence and private QR access. See
+[dashboard integration and verification](docs/student-dashboard.md).

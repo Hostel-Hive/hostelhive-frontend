@@ -44,8 +44,10 @@ URL or replace the invitation's provider-hosted password setup process.
    already verified page, or an anonymous login draft, visible while checking;
    rejected sessions clear protected content.
 
-The `/student` page is a protected welcome screen. Full student dashboard and
-module screens remain separate work.
+The `/student` page now opens the read-only student dashboard described in
+[student dashboard integration](student-dashboard.md). Requests and other student
+module screens remain separate work; no links to staff-only screens are presented
+as student features.
 
 ## Live acceptance checklist
 
