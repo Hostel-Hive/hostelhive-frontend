@@ -107,6 +107,23 @@ export default function AppRoutes() {
         />
       </Route>
       <Route element={<ProtectedRoute portal="student" />}>
+        {(
+          [
+            [routePaths.ownStudentProfile, 'profile'],
+            [routePaths.ownStudentAccommodation, 'accommodation'],
+            [routePaths.ownStudentQR, 'qr'],
+          ] as const
+        ).map(([path, view]) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <Suspense fallback={<p role="status">Loading student page…</p>}>
+                <StudentHomePage view={view} />
+              </Suspense>
+            }
+          />
+        ))}
         <Route
           path={routePaths.studentHome}
           element={

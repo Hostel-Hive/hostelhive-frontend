@@ -15,6 +15,14 @@ import {
 } from '../api/student-setup.api';
 import { requestPasswordReset } from '../api/password.api';
 import type { StudentAccount, StaffAccount } from '../auth.types';
+import { getOwnProfile } from '../../student-portal/api/student-portal.api';
+import { ownStudentProfile } from '../../../test/fixtures/ownStudentProfile';
+vi.mock('../../student-portal/api/student-portal.api', async (original) => ({
+  ...(await original<
+    typeof import('../../student-portal/api/student-portal.api')
+  >()),
+  getOwnProfile: vi.fn(),
+}));
 vi.mock('../api/auth.api', async (original) => ({
   ...(await original<typeof import('../api/auth.api')>()),
   login: vi.fn(),
@@ -39,6 +47,7 @@ const student: StudentAccount = {
 };
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(getOwnProfile).mockResolvedValue(ownStudentProfile);
   vi.mocked(restoreStaffSession).mockResolvedValue(null);
   vi.mocked(subscribeStaffSession).mockImplementation((change) => {
     let active = true;
@@ -58,6 +67,50 @@ function open(path = '/login') {
   window.history.replaceState({}, '', path);
   return render(<App />);
 }
+it('navigates between separate student pages and highlights only the current route', async () => {
+  vi.mocked(restoreStaffSession).mockResolvedValue(student);
+  open('/student');
+  await screen.findByRole('button', { name: 'Refresh dashboard' });
+  const user = userEvent.setup();
+  for (const [label, path, title] of [
+    ['My profile', '/student/profile', 'My profile'],
+    ['Accommodation', '/student/accommodation', 'Accommodation'],
+    ['My QR code', '/student/qr', 'My QR code'],
+    ['Overview', '/student', 'Welcome to HostelHive.'],
+  ]) {
+    await user.click(screen.getByRole('link', { name: label }));
+    const heading = await screen.findByRole('heading', {
+      name: title,
+      level: 1,
+    });
+    expect(window.location.pathname).toBe(path);
+    expect(window.location.hash).toBe('');
+    expect(heading).toHaveFocus();
+    expect(screen.getByRole('link', { name: label })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(document.querySelectorAll('nav [aria-current="page"]')).toHaveLength(
+      1,
+    );
+    if (path === '/student/profile')
+      expect(
+        screen.queryByRole('button', { name: 'Show QR code' }),
+      ).not.toBeInTheDocument();
+  }
+});
+it.each([
+  ['/student/profile', 'My profile'],
+  ['/student/accommodation', 'Accommodation'],
+  ['/student/qr', 'My QR code'],
+])('supports direct entry to %s', async (path, title) => {
+  vi.mocked(restoreStaffSession).mockResolvedValue(student);
+  open(path);
+  expect(
+    await screen.findByRole('heading', { name: title, level: 1 }),
+  ).toBeVisible();
+  expect(window.location.pathname).toBe(path);
+});
 it.each(['/', '/student/login'])(
   'opens the canonical student login from %s and links to staff login',
   async (path) => {
