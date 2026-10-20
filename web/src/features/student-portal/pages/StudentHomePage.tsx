@@ -15,6 +15,9 @@ import OwnStudentPhoto from '../components/OwnStudentPhoto';
 import OwnStudentQR from '../components/OwnStudentQR';
 import StudentAccountMenu from '../components/StudentAccountMenu';
 import OwnAttendanceHistory from '../components/OwnAttendanceHistory';
+import OwnComplaintList from '../components/OwnComplaintList';
+import OwnComplaintForm from '../components/OwnComplaintForm';
+import OwnComplaintDetail from '../components/OwnComplaintDetail';
 import OwnLeaveList from '../components/OwnLeaveList';
 import OwnLeaveForm from '../components/OwnLeaveForm';
 import OwnLeaveDetail from '../components/OwnLeaveDetail';
@@ -48,6 +51,9 @@ export type StudentView =
   | 'accommodation'
   | 'qr'
   | 'attendance'
+  | 'complaints'
+  | 'complaint-new'
+  | 'complaint-detail'
   | 'leaves'
   | 'leave-new'
   | 'leave-detail'
@@ -65,6 +71,9 @@ export default function StudentHomePage({
     accommodation: 'Accommodation',
     qr: 'My QR code',
     attendance: 'Attendance',
+    complaints: 'Complaints',
+    'complaint-new': 'New complaint',
+    'complaint-detail': 'Complaint details',
     leaves: 'Leave requests',
     'leave-new': 'New leave request',
     'leave-detail': 'Leave request',
@@ -140,6 +149,7 @@ export default function StudentHomePage({
             </NavLink>
             <NavLink to={routePaths.ownStudentQR}>My QR code</NavLink>
             <NavLink to={routePaths.ownStudentAttendance}>Attendance</NavLink>
+            <NavLink to={routePaths.ownComplaints}>Complaints</NavLink>
             <NavLink to={routePaths.ownLeaves}>Leave requests</NavLink>
             <NavLink to={routePaths.ownLateAccess}>Access requests</NavLink>
           </nav>
@@ -172,6 +182,11 @@ export default function StudentHomePage({
                     accommodation: 'Your current hostel block, room and bed.',
                     qr: 'Your student identification code for the hostel scanner.',
                     attendance: 'Your recorded hostel entries and exits.',
+                    complaints: 'Report concerns and track staff responses.',
+                    'complaint-new':
+                      'Submit a maintenance or disciplinary concern.',
+                    'complaint-detail':
+                      'Your complaint, staff responses and update history.',
                     leaves: 'Request leave and follow your approval status.',
                     'leave-new':
                       'Submit your planned time away for staff review.',
@@ -189,6 +204,9 @@ export default function StudentHomePage({
             </div>
             {![
               'attendance',
+              'complaints',
+              'complaint-new',
+              'complaint-detail',
               'leaves',
               'leave-new',
               'leave-detail',
@@ -322,6 +340,30 @@ export default function StudentHomePage({
                 </>
               )}
               <div className="portal-page-content">
+                {view === 'complaints' && (
+                  <OwnComplaintList
+                    key={uid + ':' + data.student_id}
+                    uid={uid}
+                    studentID={data.student_id}
+                    onAccessError={invalidate}
+                  />
+                )}
+                {view === 'complaint-new' && (
+                  <OwnComplaintForm
+                    key={uid + ':' + data.student_id}
+                    uid={uid}
+                    studentID={data.student_id}
+                    onAccessError={invalidate}
+                  />
+                )}
+                {view === 'complaint-detail' && (
+                  <OwnComplaintDetail
+                    key={uid + ':' + data.student_id}
+                    uid={uid}
+                    studentID={data.student_id}
+                    onAccessError={invalidate}
+                  />
+                )}
                 {view === 'access' && (
                   <OwnLateAccessList
                     key={uid + ':' + data.student_id}

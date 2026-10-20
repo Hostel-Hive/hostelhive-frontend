@@ -121,7 +121,7 @@ export function complaintFilters(params: URLSearchParams): URLSearchParams {
     );
   return output;
 }
-function validComplaint(v: unknown): v is Complaint {
+export function validComplaint(v: unknown): v is Complaint {
   if (!v || typeof v !== 'object') return false;
   const r = v as Complaint;
   return (
@@ -138,7 +138,7 @@ function validComplaint(v: unknown): v is Complaint {
     timestamp(r.updated_at)
   );
 }
-function validUpdate(v: unknown): v is ComplaintUpdate {
+export function validUpdate(v: unknown): v is ComplaintUpdate {
   if (!v || typeof v !== 'object') return false;
   const r = v as ComplaintUpdate;
   return (
@@ -200,7 +200,7 @@ async function json(response: Response): Promise<unknown> {
     );
   return response.json();
 }
-function validPage<T>(
+export function validPage<T>(
   v: unknown,
   offset: number,
   validate: (r: unknown) => r is T,
