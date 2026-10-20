@@ -17,6 +17,12 @@ import PublicOnlyRoute from './PublicOnlyRoute';
 import RoleGuard from './RoleGuard';
 import useAuth from '../../features/auth/hooks/useAuth';
 import { dashboardForRole } from '../../config/roles';
+const StudentSetupPage = lazy(
+  () => import('../../features/auth/pages/StudentSetupPage'),
+);
+const StudentHomePage = lazy(
+  () => import('../../features/student-portal/pages/StudentHomePage'),
+);
 
 const StudentImportPage = lazy(
   () => import('../../features/students/pages/StudentImportPage'),
@@ -59,11 +65,37 @@ export default function AppRoutes() {
     <Routes>
       <Route
         path={routePaths.home}
-        element={<Navigate to={routePaths.login} replace />}
+        element={<Navigate to={routePaths.studentLogin} replace />}
+      />
+      <Route
+        path="/student/login"
+        element={<Navigate to={routePaths.studentLogin} replace />}
       />
       <Route element={<AuthLayout />}>
         <Route element={<PublicOnlyRoute />}>
           <Route path={routePaths.login} element={<LoginPage />} />
+          <Route
+            path={routePaths.studentLogin}
+            element={<LoginPage student />}
+          />
+        </Route>
+        <Route
+          path={routePaths.studentForgotPassword}
+          element={<PasswordRecoveryPage student />}
+        />
+        <Route
+          path={routePaths.studentResetPassword}
+          element={<ResetPasswordPage />}
+        />
+        <Route element={<ProtectedRoute portal="student" allowSetup />}>
+          <Route
+            path={routePaths.studentSetup}
+            element={
+              <Suspense fallback={<p role="status">Loading account setup…</p>}>
+                <StudentSetupPage />
+              </Suspense>
+            }
+          />
         </Route>
         <Route
           path={routePaths.forgotPassword}
@@ -72,6 +104,16 @@ export default function AppRoutes() {
         <Route
           path={routePaths.resetPassword}
           element={<ResetPasswordPage />}
+        />
+      </Route>
+      <Route element={<ProtectedRoute portal="student" />}>
+        <Route
+          path={routePaths.studentHome}
+          element={
+            <Suspense fallback={<p role="status">Loading student portal…</p>}>
+              <StudentHomePage />
+            </Suspense>
+          }
         />
       </Route>
       <Route element={<ProtectedRoute />}>

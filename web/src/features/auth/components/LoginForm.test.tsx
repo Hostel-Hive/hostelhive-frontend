@@ -31,7 +31,7 @@ const account: StaffAccount = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(restoreStaffSession).mockResolvedValue(null);
-  window.history.replaceState({}, '', '/login');
+  window.history.replaceState({}, '', '/staff/login');
 });
 async function openLogin() {
   render(<App />);
@@ -63,10 +63,9 @@ describe('staff login', () => {
     expect(login).not.toHaveBeenCalled();
   });
 
-  it('opens login from the home route and exposes the shared layout', async () => {
-    window.history.replaceState({}, '', '/');
+  it('opens staff login and exposes the shared layout', async () => {
     await openLogin();
-    expect(window.location.pathname).toBe('/login');
+    expect(window.location.pathname).toBe('/staff/login');
     expect(
       screen.getByRole('heading', { name: 'Sign in to HostelHive.' }),
     ).toBeVisible();
@@ -129,7 +128,7 @@ describe('staff login', () => {
       'Check your email and password',
     );
     expect(screen.getByLabelText('Password', { exact: true })).toHaveValue('');
-    expect(window.location.pathname).toBe('/login');
+    expect(window.location.pathname).toBe('/staff/login');
     expect(login).toHaveBeenCalledWith(
       expect.objectContaining({ rememberMe: false }),
     );

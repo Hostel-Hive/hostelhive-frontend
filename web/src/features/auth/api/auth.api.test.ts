@@ -177,6 +177,50 @@ describe('Firebase sign-in and backend account verification', () => {
   });
 });
 
+describe('student account verification', () => {
+  it.each([undefined, false, true])(
+    'accepts student setup state %s on student login and session restoration',
+    async (setup) => {
+      const student = {
+        ...account,
+        role: 'student',
+        ...(setup === undefined ? {} : { setup_required: setup }),
+      };
+      fetchMock.mockImplementation(
+        async () => new Response(JSON.stringify(student)),
+      );
+      expect(await login({ ...input, portal: 'student' })).toEqual(student);
+      sdk.auth.currentUser = sdk.user;
+      expect(await restoreStaffSession()).toEqual(student);
+    },
+  );
+  it.each(['admin', 'warden', 'sub_warden', 'security_staff'])(
+    'rejects %s accounts on student sign in',
+    async (role) => {
+      fetchMock.mockResolvedValue(
+        new Response(JSON.stringify({ ...account, role })),
+      );
+      await expect(login({ ...input, portal: 'student' })).rejects.toThrow(
+        'cannot access the student portal',
+      );
+      expect(sdk.signOut).toHaveBeenCalled();
+    },
+  );
+  it.each(['true', null, 1])(
+    'rejects malformed setup state %s',
+    async (setup_required) => {
+      fetchMock.mockResolvedValue(
+        new Response(
+          JSON.stringify({ ...account, role: 'student', setup_required }),
+        ),
+      );
+      await expect(login({ ...input, portal: 'student' })).rejects.toThrow(
+        'cannot access',
+      );
+    },
+  );
+});
+
 describe('safe error messages', () => {
   it.each([
     'auth/invalid-credential',

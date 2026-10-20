@@ -18,6 +18,17 @@ interface ResetState {
   policy: PasswordPolicy | null;
   message: string;
 }
+
+function isStudentReset(pathname: string, search: string) {
+  const continuation = new URLSearchParams(search).get('continueUrl');
+  return (
+    pathname === routePaths.studentResetPassword ||
+    [routePaths.studentLogin, '/student/login'].some(
+      (path) => continuation === `${window.location.origin}${path}`,
+    )
+  );
+}
+
 export default function ResetPasswordPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -25,6 +36,7 @@ export default function ResetPasswordPage() {
     request: parseResetRequest(location.search),
     search: location.search,
     revision: 0,
+    student: isStudentReset(location.pathname, location.search),
   }));
   // A new action URL must discard the previous account, password fields and pending verification.
   if (location.search !== capture.search) {
@@ -34,19 +46,31 @@ export default function ResetPasswordPage() {
         : capture.request,
       search: location.search,
       revision: capture.revision + (location.search ? 1 : 0),
+      student: location.search
+        ? isStudentReset(location.pathname, location.search)
+        : capture.student,
     });
   }
   useEffect(() => {
-    if (location.search) navigate(routePaths.resetPassword, { replace: true });
-  }, [location.search, navigate]);
-  return <ResetFlow key={capture.revision} request={capture.request} />;
+    if (location.search) navigate(location.pathname, { replace: true });
+  }, [location.search, location.pathname, navigate]);
+  return (
+    <ResetFlow
+      key={capture.revision}
+      request={capture.request}
+      student={capture.student}
+    />
+  );
 }
 
 function ResetFlow({
   request,
+  student,
 }: {
   request: ReturnType<typeof parseResetRequest>;
+  student: boolean;
 }) {
+  const loginPath = student ? routePaths.studentLogin : routePaths.login;
   const { signOut } = useAuth();
   const [state, setState] = useState<ResetState>({
     status: request ? 'checking' : 'invalid',
@@ -102,7 +126,7 @@ function ResetFlow({
         </p>
         <Link
           className="ui-button ui-button--primary ui-button--lg auth-submit"
-          to={routePaths.login}
+          to={loginPath}
         >
           Sign in with new password
         </Link>
@@ -145,7 +169,14 @@ function ResetFlow({
               Retry link verification
             </Button>
           )}
-          <Link className="auth-back-link" to={routePaths.forgotPassword}>
+          <Link
+            className="auth-back-link"
+            to={
+              student
+                ? routePaths.studentForgotPassword
+                : routePaths.forgotPassword
+            }
+          >
             Request a new reset link
           </Link>
         </>
@@ -168,7 +199,7 @@ function ResetFlow({
           />
         </>
       ) : null}
-      <Link className="auth-back-link" to={routePaths.login}>
+      <Link className="auth-back-link" to={loginPath}>
         ← Back to sign in
       </Link>
     </section>

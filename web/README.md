@@ -64,8 +64,8 @@ The proposed larger feature structure grows through individual tickets. Issue #3
 
 ## Routes and navigation
 
-- `/` redirects to `/login`.
-- `/login` renders the staff login page, or redirects a restored, backend-verified session to its role's dashboard.
+- `/` redirects to the student login at `/login`. The former `/student/login` URL also redirects there.
+- `/staff/login` renders the staff login page, or redirects a restored, backend-verified session to its role's dashboard.
 - `/forgot-password` requests a Firebase reset email and displays a generic confirmation with resend controls.
 - `/reset-password?mode=resetPassword&oobCode=...` verifies a Firebase reset link before displaying the new-password form.
 - `/dashboard` redirects to `/dashboard/admin`.
@@ -104,7 +104,7 @@ Use the same Firebase project as the backend (its current documentation identifi
 
 Sign-in uses Firebase email/password authentication, then sends its ID token in the `Authorization: Bearer` header to **GET `/api/v1/me`**. The response must match the Firebase UID, be active and have role `admin` or `warden`. Other roles (including `sub_warden`) have no implemented dashboard and are denied. Failed verification clears Firebase sign-in state. No passwords or tokens are logged or manually copied into browser storage; Firebase manages its session credentials.
 
-Unchecked “Keep me signed in” selects Firebase session persistence (the tab/window session); checked selects local persistence across browser restarts. This is not a 30-day backend expiry guarantee. See [Firebase persistence documentation](https://firebase.google.com/docs/auth/web/auth-state-persistence). Returning to `/login` rechecks a saved user against the backend before redirecting. API requests time out after 15 seconds.
+Unchecked “Keep me signed in” selects Firebase session persistence (the tab/window session); checked selects local persistence across browser restarts. This is not a 30-day backend expiry guarantee. See [Firebase persistence documentation](https://firebase.google.com/docs/auth/web/auth-state-persistence). Returning to `/staff/login` rechecks a saved user against the backend before redirecting. API requests time out after 15 seconds.
 
 For local development, set `VITE_API_BASE_URL` to your running backend (commonly `http://127.0.0.1:18080` in the backend documentation). Vite forwards `/backend-api/api/v1/me` to that backend, avoiding a browser cross-origin request. The backend base must not already end in `/api/v1`. Production and `vite preview` call the configured backend URL directly and require an allowed-origin CORS policy or a deployment reverse proxy. Vite's development proxy is not deployed with the static build.
 
@@ -118,7 +118,7 @@ Automated tests use mocked Firebase and fetch; they do not contact a live Fireba
 2. Sign in as Admin and Warden; confirm the matching dashboard URL.
 3. Try incorrect credentials, inactive accounts, and an unsupported role; confirm no dashboard redirect and a safe error.
 4. Verify the button disables during submission and allows retry after failure.
-5. Verify checked/unchecked persistence across reload and tab/browser closure, returning through `/login`.
+5. Verify checked/unchecked persistence across reload and tab/browser closure, returning through `/staff/login`.
 6. Open Forgot password and return to login; issue #14 implements recovery and reset operations separately from login.
 
 ## Password recovery and reset — issue #14
@@ -152,7 +152,7 @@ Use a dedicated test mailbox/account you control. Automated tests mock Firebase 
 5. Reopen the used link and test an invalid/expired link; confirm a new-link recovery option.
 6. Check desktop/mobile layouts, keyboard focus and direct reset-link navigation. Refreshing a cleaned link should show an invalid-link recovery screen.
 
-Record real Firebase delivery/policy/session results, peer review and passing CI before closing issue #14. First-login activation and authenticated password changes remain separate tickets. 7. Check desktop, 375px and 320px widths, keyboard focus, and direct `/login` refresh.
+Record real Firebase delivery/policy/session results, peer review and passing CI before closing issue #14. First-login activation and authenticated password changes remain separate tickets. 7. Check desktop, 375px and 320px widths, keyboard focus, and direct `/staff/login` refresh.
 
 Firebase public configuration, a running backend/database and live test credentials are required for these integration checks. Dashboard content remains placeholder content, while frontend access guards and backend authorization enforce their separate responsibilities.
 
@@ -160,7 +160,7 @@ Firebase public configuration, a running backend/database and live test credenti
 
 `features/auth/components/AuthProvider.tsx` owns shared authentication state; `features/auth/hooks/useAuth.ts` exposes it to feature and layout components. The provider observes Firebase ID-token/session changes and verifies the current user through `/api/v1/me`. Account roles come from the current backend response, not Firebase claims or a browser-stored role. `ProtectedRoute`, `PublicOnlyRoute` and `RoleGuard` live in `app/router/`, with role-to-dashboard mapping in `config/roles.ts`.
 
-Protected content is hidden until the account is verified for the current pathname. Verification runs on direct load, route changes, token/session notifications, window focus and returning to a visible tab. Stale responses cannot restore access after sign-out or a newer verification. Wrong-role URLs redirect to the user's permitted dashboard; authenticated `/login` visits do the same. `/dashboard` resolves to the permitted dashboard. Navigation and the header brand also use that role.
+Protected content is hidden until the account is verified for the current pathname. Verification runs on direct load, route changes, token/session notifications, window focus and returning to a visible tab. Stale responses cannot restore access after sign-out or a newer verification. Wrong-role URLs redirect to the user's permitted dashboard; authenticated `/staff/login` visits do the same. `/dashboard` resolves to the permitted dashboard. Navigation and the header brand also use that role.
 
 Expired/rejected sessions, inactive accounts and unsupported roles are denied. Temporary network/backend failures hide protected content and show Retry verification and Sign out actions. Restored Firebase credentials are preserved for transient failures so retries can recover; permanent rejection clears the Firebase session. Sign-out hides dashboard content immediately, clears the Firebase session and returns to login. Failed sign-out keeps protected content hidden and offers another attempt. Firebase notifications also handle sign-out from another tab when local persistence is used.
 
