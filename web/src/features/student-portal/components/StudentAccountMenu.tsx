@@ -47,7 +47,7 @@ export default function StudentAccountMenu({
     const panel = popup.current!;
     function place() {
       const anchor = trigger.current!.getBoundingClientRect();
-      const width = Math.min(280, window.innerWidth - 24);
+      const width = Math.min(240, window.innerWidth - 24);
       const above = anchor.top - 20;
       const below = window.innerHeight - anchor.bottom - 20;
       const height = Math.min(
