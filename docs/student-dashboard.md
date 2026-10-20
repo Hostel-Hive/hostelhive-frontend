@@ -14,6 +14,9 @@ Student pages use separate routes:
   and backend pagination. See [attendance history](student-attendance-history.md).
 - `/student/leaves`, `/student/leaves/new`, `/student/leaves/:leaveID`: owned leave
   requests, submission and decision tracking. See [student leave](student-leave-requests.md).
+- `/student/late-access-requests`, `/student/late-access-requests/new`,
+  `/student/late-access-requests/:lateAccessID`: early-exit and late-entry permission
+  requests. See [student access requests](student-late-access-requests.md).
 
 The sidebar highlights the current hostel page. The bottom account menu contains
 My profile and Sign out; on mobile it remains available below the navigation.
