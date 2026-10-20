@@ -10,6 +10,8 @@ Student pages use separate routes:
 - `/student/profile`: personal, contact, guardian and photo details.
 - `/student/accommodation`: the current block, room and bed.
 - `/student/qr`: on-demand private QR display and download.
+- `/student/announcements`, `/student/announcements/:announcementID`: published
+  hostel notices with a read-only feed/detail. See [announcements](announcements.md).
 - `/student/complaints`, `/student/complaints/new`,
   `/student/complaints/:complaintID`: owned complaints, submission, responses and notes.
   See [student complaints](student-complaints.md).
