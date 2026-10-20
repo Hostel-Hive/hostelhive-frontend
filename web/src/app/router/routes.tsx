@@ -116,6 +116,9 @@ export default function AppRoutes() {
             [routePaths.ownLeaves, 'leaves'],
             [routePaths.ownLeaveNew, 'leave-new'],
             [`${routePaths.ownLeaves}/:leaveID`, 'leave-detail'],
+            [routePaths.ownLateAccess, 'access'],
+            [routePaths.ownLateAccessNew, 'access-new'],
+            [`${routePaths.ownLateAccess}/:lateAccessID`, 'access-detail'],
           ] as const
         ).map(([path, view]) => (
           <Route

@@ -9,6 +9,8 @@ export const routePaths = {
   ownStudentAttendance: '/student/attendance',
   ownLeaves: '/student/leaves',
   ownLeaveNew: '/student/leaves/new',
+  ownLateAccess: '/student/late-access-requests',
+  ownLateAccessNew: '/student/late-access-requests/new',
   studentSetup: '/student/setup',
   studentForgotPassword: '/student/forgot-password',
   studentResetPassword: '/student/reset-password',

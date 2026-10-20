@@ -76,7 +76,7 @@ const timestamp = (value: unknown): value is string =>
     value,
   ) &&
   Number.isFinite(Date.parse(value));
-function validLateAccess(value: unknown): value is LateAccessRequest {
+export function validLateAccess(value: unknown): value is LateAccessRequest {
   if (!value || typeof value !== 'object') return false;
   const row = value as LateAccessRequest;
   return (
