@@ -8,6 +8,9 @@
 
 ### Added
 
+- Student-owned complaint submission, status/category filters, paginated details/history,
+  notes, version-conflict review and identical uncertain-write retries (issue #60).
+
 - Admin student registration by university email through the invitation API, including normalized profile/guardian details, safe request replay, delivery/setup status refresh and a separate existing-account profile workflow (issue #104).
 
 - Admin/Warden complaint tracking with category/status/student/date filters, chronological history, student-visible notes, confirmed resolution/reopening, version checks and idempotent recovery after uncertain writes (issue #43).
