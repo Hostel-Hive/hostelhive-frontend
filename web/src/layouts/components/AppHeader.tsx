@@ -4,6 +4,7 @@ import MobileSidebar from './MobileSidebar';
 import useAuth from '../../features/auth/hooks/useAuth';
 import { dashboardForRole } from '../../config/roles';
 import Button from '../../shared/components/ui/Button';
+import NotificationBadge from '../../features/notifications/components/NotificationBadge';
 
 export default function AppHeader() {
   const { account, signOut } = useAuth();
@@ -18,6 +19,7 @@ export default function AppHeader() {
       </Link>
       <span className="app-header__description">Staff workspace</span>
       <div className="app-header__actions">
+        <NotificationBadge />
         <Button variant="secondary" onClick={() => void signOut()}>
           Sign out
         </Button>

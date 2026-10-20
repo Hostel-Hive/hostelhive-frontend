@@ -20,6 +20,8 @@ import OwnComplaintForm from '../components/OwnComplaintForm';
 import OwnComplaintDetail from '../components/OwnComplaintDetail';
 import AnnouncementList from '../../announcements/components/AnnouncementList';
 import AnnouncementDetail from '../../announcements/components/AnnouncementDetail';
+import NotificationsPage from '../../notifications/pages/NotificationsPage';
+import NotificationBadge from '../../notifications/components/NotificationBadge';
 import type { AnnouncementError } from '../../announcements/api/announcements.api';
 import OwnLeaveList from '../components/OwnLeaveList';
 import OwnLeaveForm from '../components/OwnLeaveForm';
@@ -55,6 +57,7 @@ export type StudentView =
   | 'qr'
   | 'attendance'
   | 'announcements'
+  | 'notifications'
   | 'announcement-detail'
   | 'complaints'
   | 'complaint-new'
@@ -77,6 +80,7 @@ export default function StudentHomePage({
     qr: 'My QR code',
     attendance: 'Attendance',
     announcements: 'Announcements',
+    notifications: 'Notifications',
     'announcement-detail': 'Announcement',
     complaints: 'Complaints',
     'complaint-new': 'New complaint',
@@ -154,6 +158,7 @@ export default function StudentHomePage({
           Hostel<span className="brand__accent">Hive</span>
         </Link>
         <span className="portal-workspace">Student portal</span>
+        <NotificationBadge />
       </header>
       <div className="portal-body">
         <aside className="portal-sidebar">
@@ -168,6 +173,7 @@ export default function StudentHomePage({
             <NavLink to={routePaths.ownStudentQR}>My QR code</NavLink>
             <NavLink to={routePaths.ownStudentAttendance}>Attendance</NavLink>
             <NavLink to={routePaths.ownAnnouncements}>Announcements</NavLink>
+            <NavLink to={routePaths.ownNotifications}>Notifications</NavLink>
             <NavLink to={routePaths.ownComplaints}>Complaints</NavLink>
             <NavLink to={routePaths.ownLeaves}>Leave requests</NavLink>
             <NavLink to={routePaths.ownLateAccess}>Access requests</NavLink>
@@ -202,6 +208,7 @@ export default function StudentHomePage({
                     qr: 'Your student identification code for the hostel scanner.',
                     attendance: 'Your recorded hostel entries and exits.',
                     announcements: 'Published hostel notices for all students.',
+                    notifications: 'Your updates and unread notifications.',
                     'announcement-detail':
                       'Read the published hostel announcement.',
                     complaints: 'Report concerns and track staff responses.',
@@ -227,6 +234,7 @@ export default function StudentHomePage({
             {![
               'attendance',
               'announcements',
+              'notifications',
               'announcement-detail',
               'complaints',
               'complaint-new',
@@ -364,6 +372,7 @@ export default function StudentHomePage({
                 </>
               )}
               <div className="portal-page-content">
+                {view === 'notifications' && <NotificationsPage embedded />}
                 {view === 'announcements' && (
                   <AnnouncementList
                     key={uid}
