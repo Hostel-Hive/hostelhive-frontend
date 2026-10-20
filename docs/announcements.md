@@ -59,7 +59,8 @@ do not prove comprehension, email delivery or phone receipt.
 Summary errors have independent retry and do not hide readable content. Session,
 setup or permission loss clears private content via the existing access flow. Student
 components never request staff summary endpoints. Opening a publication never
-marks notifications read; owned inbox/read handling belongs to #63.
+marks notifications read. The owned inbox in [ticket #66](notifications.md) marks
+one notification read when the user explicitly opens it there.
 
 ## Live acceptance to record
 

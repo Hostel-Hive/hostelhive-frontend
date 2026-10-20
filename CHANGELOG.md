@@ -8,6 +8,9 @@
 
 ### Added
 
+- Owned student/staff notification inboxes, unread filtering and badges,
+  deliberate mark-read, source navigation and safe recovery (issue #66).
+
 - Admin/Warden announcement review/publication, safe replay, staff delivery summaries
   and read-only student feeds/details (issue #62).
 

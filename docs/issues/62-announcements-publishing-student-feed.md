@@ -25,7 +25,8 @@ Admin/Warden can publish, read and view delivery summaries. Students can read on
 Backend authorization remains authoritative. Sub-Warden/Security have no announcement
 permissions. Frontend changes only; reuse the shared authenticated request helper.
 No targeting, priority selection, drafts on the server, scheduling, edit, delete,
-unpublish or notification mark-read calls are introduced. Inbox work belongs to #63.
+unpublish or notification mark-read calls are introduced by this ticket. Owned inbox
+and mark-read handling is implemented separately in [#66](66-owned-notification-inbox-unread-tracking.md).
 
 ## Acceptance criteria
 
