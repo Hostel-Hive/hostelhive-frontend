@@ -197,6 +197,12 @@ export default function OwnComplaintForm({
           ? 'Notes and staff responses are visible in your complaint history.'
           : 'Describe a maintenance or disciplinary concern for hostel staff to review.'}
       </p>
+      {!row && (
+        <p className="portal-caption">
+          Submit your complaint first. You can then attach up to three evidence
+          images on its details page.
+        </p>
+      )}
       {row && (
         <p>
           Current status: {row.status.replace('_', ' ')} · Version {row.version}

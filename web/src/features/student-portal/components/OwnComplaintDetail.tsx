@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import Button from '../../../shared/components/ui/Button';
 import { routePaths } from '../../../app/router/routePaths';
@@ -18,6 +18,9 @@ import { statusLabel } from '../../complaints/api/complaints.api';
 import ComplaintDate from '../../complaints/components/ComplaintDate';
 import OwnComplaintForm from './OwnComplaintForm';
 import type { OwnComplaintProps } from './OwnComplaintList';
+import ComplaintEvidence from '../../complaints/components/ComplaintEvidence';
+import { EvidenceError } from '../../complaints/api/complaint-images.api';
+import { StudentPortalError } from '../api/student-portal.api';
 
 const labels = {
   created: 'Complaint submitted',
@@ -52,6 +55,39 @@ function Detail({
   }>();
   const [noteOpen, setNoteOpen] = useState(false);
   const [notice, setNotice] = useState('');
+  const [evidenceLocked, setEvidenceLocked] = useState(false);
+  const evidenceDenied = useCallback(
+    (error: EvidenceError) => {
+      if (
+        error.kind === 'session' ||
+        error.kind === 'forbidden' ||
+        error.kind === 'setup'
+      )
+        onAccessError(new StudentPortalError(error.kind, error.message));
+    },
+    [onAccessError],
+  );
+  const reviewEvidence = useCallback(
+    async (signal: AbortSignal) => {
+      try {
+        const row = await getOwnComplaint(id, uid, studentID, signal);
+        const history = await getOwnComplaintHistory(
+          row,
+          uid,
+          studentID,
+          signal,
+        );
+        if (!signal.aborted) setResult({ query, data: { row, history } });
+      } catch (reason) {
+        const error = ownComplaintError(reason);
+        throw new EvidenceError(
+          error.kind === 'ineligible' ? 'conflict' : error.kind,
+          error.message,
+        );
+      }
+    },
+    [id, uid, studentID, query],
+  );
   const summary = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const controller = new AbortController();
@@ -149,13 +185,17 @@ function Detail({
                 <Button
                   size="sm"
                   variant="secondary"
-                  disabled={noteOpen}
+                  disabled={noteOpen || evidenceLocked}
                   onClick={() => reload()}
                 >
                   Refresh complaint
                 </Button>
                 {!noteOpen && data.row.status !== 'resolved' && (
-                  <Button size="sm" onClick={() => setNoteOpen(true)}>
+                  <Button
+                    size="sm"
+                    disabled={evidenceLocked}
+                    onClick={() => setNoteOpen(true)}
+                  >
                     Add note
                   </Button>
                 )}
@@ -205,7 +245,7 @@ function Detail({
                 <Button
                   size="sm"
                   variant="secondary"
-                  disabled={noteOpen || !data.history.offset}
+                  disabled={noteOpen || evidenceLocked || !data.history.offset}
                   onClick={() => reload(Math.max(0, data.history.offset - 20))}
                 >
                   Previous history
@@ -219,6 +259,7 @@ function Detail({
                   variant="secondary"
                   disabled={
                     noteOpen ||
+                    evidenceLocked ||
                     !data.history.has_more ||
                     data.history.offset > Number.MAX_SAFE_INTEGER - 40
                   }
@@ -231,6 +272,22 @@ function Detail({
           )}
         </div>
       </section>
+      {data && (
+        <ComplaintEvidence
+          key={`${uid}:${id}`}
+          row={data.row}
+          uid={uid}
+          editable
+          disabled={noteOpen}
+          onDenied={evidenceDenied}
+          onLockChange={setEvidenceLocked}
+          onReview={reviewEvidence}
+          onChanged={(message) => {
+            setNotice(message);
+            reload();
+          }}
+        />
+      )}
       {data && noteOpen && (
         <OwnComplaintForm
           uid={uid}
