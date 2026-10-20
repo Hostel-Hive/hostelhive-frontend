@@ -17,6 +17,14 @@ import { requestPasswordReset } from '../api/password.api';
 import type { StudentAccount, StaffAccount } from '../auth.types';
 import { getOwnProfile } from '../../student-portal/api/student-portal.api';
 import { ownStudentProfile } from '../../../test/fixtures/ownStudentProfile';
+import { getOwnAttendance } from '../../student-portal/api/own-attendance.api';
+import { ownHistoryPage } from '../../../test/fixtures/ownAttendance';
+vi.mock('../../student-portal/api/own-attendance.api', async (original) => ({
+  ...(await original<
+    typeof import('../../student-portal/api/own-attendance.api')
+  >()),
+  getOwnAttendance: vi.fn(),
+}));
 vi.mock('../../student-portal/api/student-portal.api', async (original) => ({
   ...(await original<
     typeof import('../../student-portal/api/student-portal.api')
@@ -48,6 +56,7 @@ const student: StudentAccount = {
 beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(getOwnProfile).mockResolvedValue(ownStudentProfile);
+  vi.mocked(getOwnAttendance).mockResolvedValue(ownHistoryPage());
   vi.mocked(restoreStaffSession).mockResolvedValue(null);
   vi.mocked(subscribeStaffSession).mockImplementation((change) => {
     let active = true;
@@ -76,6 +85,7 @@ it('navigates between separate student pages and highlights only the current rou
     ['My profile', '/student/profile', 'My profile'],
     ['Accommodation', '/student/accommodation', 'Accommodation'],
     ['My QR code', '/student/qr', 'My QR code'],
+    ['Attendance', '/student/attendance', 'Attendance'],
     ['Overview', '/student', 'Welcome to HostelHive.'],
   ]) {
     if (path === '/student/profile') {
@@ -109,6 +119,7 @@ it.each([
   ['/student/profile', 'My profile'],
   ['/student/accommodation', 'Accommodation'],
   ['/student/qr', 'My QR code'],
+  ['/student/attendance', 'Attendance'],
 ])('supports direct entry to %s', async (path, title) => {
   vi.mocked(restoreStaffSession).mockResolvedValue(student);
   open(path);
@@ -263,14 +274,31 @@ it.each(['admin', 'warden'] as const)(
   async (role) => {
     const staff: StaffAccount = { ...student, role };
     vi.mocked(restoreStaffSession).mockResolvedValue(staff);
-    open('/student');
+    open('/student/attendance');
     await screen.findByRole('heading', {
       name: role === 'admin' ? 'Admin dashboard' : 'Warden dashboard',
       level: 1,
     });
     expect(window.location.pathname).toBe(`/dashboard/${role}`);
+    expect(getOwnAttendance).not.toHaveBeenCalled();
   },
 );
+it('requires student authentication for direct attendance entry', async () => {
+  open('/student/attendance');
+  await screen.findByRole('button', { name: 'Sign in' });
+  expect(window.location.pathname).toBe('/login');
+  expect(getOwnAttendance).not.toHaveBeenCalled();
+});
+it('keeps attendance history behind required student setup', async () => {
+  vi.mocked(restoreStaffSession).mockResolvedValue({
+    ...student,
+    setup_required: true,
+  });
+  open('/student/attendance');
+  await screen.findByRole('button', { name: 'Verify account setup' });
+  expect(window.location.pathname).toBe('/student/setup');
+  expect(getOwnAttendance).not.toHaveBeenCalled();
+});
 it('prevents a student from rendering staff inventory', async () => {
   vi.mocked(restoreStaffSession).mockResolvedValue(student);
   open('/dashboard/inventory');

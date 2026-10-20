@@ -20,6 +20,12 @@ import {
 } from '../api/student-portal.api';
 import { ownStudentProfile as profile } from '../../../test/fixtures/ownStudentProfile';
 import type { AuthContextValue } from '../../auth/auth.context';
+import { getOwnAttendance } from '../api/own-attendance.api';
+import { ownHistoryPage } from '../../../test/fixtures/ownAttendance';
+vi.mock('../api/own-attendance.api', async (original) => ({
+  ...(await original<typeof import('../api/own-attendance.api')>()),
+  getOwnAttendance: vi.fn(),
+}));
 vi.mock('../../auth/hooks/useAuth', () => ({ default: vi.fn() }));
 vi.mock('../api/student-portal.api', async (original) => ({
   ...(await original<typeof import('../api/student-portal.api')>()),
@@ -48,6 +54,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(useAuth).mockReturnValue(auth);
   vi.mocked(getOwnProfile).mockResolvedValue(profile);
+  vi.mocked(getOwnAttendance).mockResolvedValue(ownHistoryPage());
   vi.mocked(getOwnPhoto).mockResolvedValue(
     new Blob(['photo'], { type: 'image/png' }),
   );
@@ -69,6 +76,45 @@ afterEach(() => {
 function renderPage(view: StudentView = 'overview') {
   return render(<StudentHomePage view={view} />, { wrapper: MemoryRouter });
 }
+it('loads owned attendance on its page and marks the sidebar route active', async () => {
+  render(<StudentHomePage view="attendance" />, {
+    wrapper: ({ children }) => (
+      <MemoryRouter initialEntries={['/student/attendance']}>
+        {children}
+      </MemoryRouter>
+    ),
+  });
+  await screen.findByRole('table');
+  expect(screen.getByRole('link', { name: 'Attendance' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(getOwnAttendance).toHaveBeenCalledWith(
+    'student-uid',
+    expect.any(AbortSignal),
+    { from: '', to: '', direction: '' },
+    0,
+  );
+  expect(getOwnQR).not.toHaveBeenCalled();
+  expect(getOwnPhoto).not.toHaveBeenCalled();
+});
+it('clears private portal content when attendance access is denied', async () => {
+  vi.mocked(getOwnAttendance).mockRejectedValueOnce(
+    new StudentPortalError('forbidden', 'Access denied'),
+  );
+  renderPage('attendance');
+  await screen.findByRole('heading', {
+    name: 'Student access needs verification',
+  });
+  expect(
+    screen.queryByRole('region', { name: 'Attendance and movement history' }),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Verify account access' }),
+  );
+  expect(auth.retry).toHaveBeenCalled();
+});
 async function ready(page: StudentView = 'qr') {
   const view = renderPage(page);
   await screen.findByRole('button', { name: /^Refresh(?: dashboard)?$/ });
