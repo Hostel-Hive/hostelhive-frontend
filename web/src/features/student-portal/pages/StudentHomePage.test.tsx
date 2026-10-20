@@ -71,7 +71,7 @@ function renderPage(view: StudentView = 'overview') {
 }
 async function ready(page: StudentView = 'qr') {
   const view = renderPage(page);
-  await screen.findByRole('button', { name: 'Refresh dashboard' });
+  await screen.findByRole('button', { name: /^Refresh(?: dashboard)?$/ });
   return view;
 }
 it('loads the owned profile and guardian details on the profile page', async () => {

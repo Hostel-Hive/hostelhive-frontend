@@ -4,12 +4,18 @@ After student sign-in at `/login`, `/student` displays the authenticated student
 profile, guardian contact details, current accommodation and last recorded presence.
 The dashboard uses the existing HostelHive fonts, colours and compact dashboard
 typography, with page navigation that wraps above the content on narrow screens.
-Sidebar items open separate routes, with the current route highlighted:
+Student pages use separate routes:
 
 - `/student`: overview, recorded presence and links to student pages.
 - `/student/profile`: personal, contact, guardian and photo details.
 - `/student/accommodation`: the current block, room and bed.
 - `/student/qr`: on-demand private QR display and download.
+
+The sidebar highlights the current hostel page. The bottom account menu contains
+My profile and Sign out; on mobile it remains available below the navigation.
+On desktop, the sidebar stays below the sticky header while content scrolls;
+short viewports allow scrolling inside the sidebar to reach all account controls.
+See [ticket #53](issues/53-student-account-menu-navigation.md).
 
 Direct links and browser history use the same protected student route guard.
 

@@ -78,7 +78,12 @@ it('navigates between separate student pages and highlights only the current rou
     ['My QR code', '/student/qr', 'My QR code'],
     ['Overview', '/student', 'Welcome to HostelHive.'],
   ]) {
-    await user.click(screen.getByRole('link', { name: label }));
+    if (path === '/student/profile') {
+      await user.click(
+        screen.getByRole('button', { name: /^Account menu for/ }),
+      );
+      await user.click(screen.getByRole('menuitem', { name: 'My profile' }));
+    } else await user.click(screen.getByRole('link', { name: label }));
     const heading = await screen.findByRole('heading', {
       name: title,
       level: 1,
@@ -86,12 +91,13 @@ it('navigates between separate student pages and highlights only the current rou
     expect(window.location.pathname).toBe(path);
     expect(window.location.hash).toBe('');
     expect(heading).toHaveFocus();
-    expect(screen.getByRole('link', { name: label })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+    if (path !== '/student/profile')
+      expect(screen.getByRole('link', { name: label })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
     expect(document.querySelectorAll('nav [aria-current="page"]')).toHaveLength(
-      1,
+      path === '/student/profile' ? 0 : 1,
     );
     if (path === '/student/profile')
       expect(
@@ -155,7 +161,8 @@ it('signs students in with persistence, opens their landing page and signs out t
     portal: 'student',
   });
   expect(window.location.pathname).toBe('/student');
-  await user.click(screen.getByRole('button', { name: 'Sign out' }));
+  await user.click(screen.getByRole('button', { name: /^Account menu for/ }));
+  await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
   await screen.findByRole('button', { name: 'Sign in' });
   expect(window.location.pathname).toBe('/login');
 });
