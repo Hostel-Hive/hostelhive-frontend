@@ -10,6 +10,9 @@ Student pages use separate routes:
 - `/student/profile`: personal, contact, guardian and photo details.
 - `/student/accommodation`: the current block, room and bed.
 - `/student/qr`: on-demand private QR display and download.
+- `/student/complaints`, `/student/complaints/new`,
+  `/student/complaints/:complaintID`: owned complaints, submission, responses and notes.
+  See [student complaints](student-complaints.md).
 - `/student/attendance`: owned recorded entry/exit history, date/direction filters
   and backend pagination. See [attendance history](student-attendance-history.md).
 - `/student/leaves`, `/student/leaves/new`, `/student/leaves/:leaveID`: owned leave

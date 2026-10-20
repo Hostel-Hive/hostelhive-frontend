@@ -465,6 +465,20 @@
 .portal-leave-prose {
   white-space: pre-wrap;
 }
+.portal-complaint-history {
+  padding-left: 24px;
+}
+.portal-complaint-history li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+  overflow-wrap: anywhere;
+}
+.portal-complaint-warning {
+  padding: 16px;
+  margin-top: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
 .portal-leave-full {
   grid-column: 1 / -1;
 }
@@ -483,13 +497,18 @@
   background: #fffbeb;
   color: #92400e;
 }
-.portal-leave-badge--approved {
+.portal-leave-badge--approved,
+.portal-leave-badge--resolved {
   background: #ecfdf5;
   color: #047857;
 }
 .portal-leave-badge--rejected {
   background: #fef2f2;
   color: #b91c1c;
+}
+.portal-leave-badge--in_progress {
+  background: var(--cyan-50);
+  color: var(--cyan-700);
 }
 .portal-leave-dialog {
   width: min(480px, calc(100vw - 32px));
