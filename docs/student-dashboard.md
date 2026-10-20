@@ -10,6 +10,8 @@ Student pages use separate routes:
 - `/student/profile`: personal, contact, guardian and photo details.
 - `/student/accommodation`: the current block, room and bed.
 - `/student/qr`: on-demand private QR display and download.
+- `/student/attendance`: owned recorded entry/exit history, date/direction filters
+  and backend pagination. See [attendance history](student-attendance-history.md).
 
 The sidebar highlights the current hostel page. The bottom account menu contains
 My profile and Sign out; on mobile it remains available below the navigation.
@@ -54,7 +56,7 @@ No backend or database files are changed by this frontend work.
   have separate states. Access denial from photo/QR reads clears the private
   profile cards and offers account verification/sign-in. A new setup requirement
   is handled by the existing session verification and setup guard.
-- Student self-edit, photo upload, allocation changes, attendance history and
+- Student self-edit, photo upload, allocation changes and
   request submission screens are outside this change.
 
 ## Verification
