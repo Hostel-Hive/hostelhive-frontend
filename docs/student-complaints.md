@@ -25,7 +25,8 @@ Firebase Bearer transport with no-store, timeout, cancellation and UID checks.
 Descriptions/notes require 1–2000 Unicode characters; unsupported control characters
 are rejected. The UI uses plain text, never HTML, and does not expose actor UUIDs.
 Resolved complaints cannot receive new notes. Only staff can change or reopen status.
-Image history entries are labeled, but evidence browsing/uploads remain ticket #61.
+Image history entries are labeled. Ticket #61 adds private evidence viewing,
+student upload/removal, previews and recovery; see [complaint evidence](complaint-evidence.md).
 Timestamps currently follow the existing portal's explicit device-timezone display.
 
 ## Recovery
