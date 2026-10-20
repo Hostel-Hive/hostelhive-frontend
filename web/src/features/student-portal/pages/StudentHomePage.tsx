@@ -13,6 +13,7 @@ import type { StudentPortalError } from '../api/student-portal.api';
 import type { OwnStudentProfile } from '../student-portal.types';
 import OwnStudentPhoto from '../components/OwnStudentPhoto';
 import OwnStudentQR from '../components/OwnStudentQR';
+import StudentAccountMenu from '../components/StudentAccountMenu';
 import '../../../styles/student-portal.css';
 
 const shown = (text: string) => text || 'Not provided';
@@ -101,9 +102,6 @@ export default function StudentHomePage({
           Hostel<span className="brand__accent">Hive</span>
         </Link>
         <span className="portal-workspace">Student portal</span>
-        <Button size="sm" variant="secondary" onClick={() => void signOut()}>
-          Sign out
-        </Button>
       </header>
       <div className="portal-body">
         <aside className="portal-sidebar">
@@ -112,13 +110,17 @@ export default function StudentHomePage({
             <NavLink end to={routePaths.studentHome}>
               Overview
             </NavLink>
-            <NavLink to={routePaths.ownStudentProfile}>My profile</NavLink>
             <NavLink to={routePaths.ownStudentAccommodation}>
               Accommodation
             </NavLink>
             <NavLink to={routePaths.ownStudentQR}>My QR code</NavLink>
           </nav>
-          <p className="portal-account">{account?.email}</p>
+          <StudentAccountMenu
+            key={uid}
+            name={data?.full_name}
+            email={account?.email ?? ''}
+            signOut={signOut}
+          />
         </aside>
         <main id="student-content" className="portal-main" tabIndex={-1}>
           <div className="portal-page-heading">
@@ -134,7 +136,15 @@ export default function StudentHomePage({
                 )}
               </h1>
               <p className="portal-muted">
-                Your profile, accommodation and hostel access in one place.
+                {
+                  {
+                    overview:
+                      'Your profile, accommodation and hostel access in one place.',
+                    profile: 'Your personal and guardian details.',
+                    accommodation: 'Your current hostel block, room and bed.',
+                    qr: 'Your student identification code for the hostel scanner.',
+                  }[view]
+                }
               </p>
             </div>
             <Button
@@ -143,7 +153,11 @@ export default function StudentHomePage({
               onClick={refresh}
               disabled={loading || Boolean(error && isAccessError(error))}
             >
-              {loading ? 'Refreshing…' : 'Refresh dashboard'}
+              {loading
+                ? 'Refreshing…'
+                : view === 'overview'
+                  ? 'Refresh dashboard'
+                  : 'Refresh'}
             </Button>
           </div>
           {loading && (
