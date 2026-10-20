@@ -9,7 +9,7 @@ import {
   portalError,
   isAccessError,
 } from '../api/student-portal.api';
-import type { StudentPortalError } from '../api/student-portal.api';
+import { StudentPortalError } from '../api/student-portal.api';
 import type { OwnStudentProfile } from '../student-portal.types';
 import OwnStudentPhoto from '../components/OwnStudentPhoto';
 import OwnStudentQR from '../components/OwnStudentQR';
@@ -18,6 +18,9 @@ import OwnAttendanceHistory from '../components/OwnAttendanceHistory';
 import OwnComplaintList from '../components/OwnComplaintList';
 import OwnComplaintForm from '../components/OwnComplaintForm';
 import OwnComplaintDetail from '../components/OwnComplaintDetail';
+import AnnouncementList from '../../announcements/components/AnnouncementList';
+import AnnouncementDetail from '../../announcements/components/AnnouncementDetail';
+import type { AnnouncementError } from '../../announcements/api/announcements.api';
 import OwnLeaveList from '../components/OwnLeaveList';
 import OwnLeaveForm from '../components/OwnLeaveForm';
 import OwnLeaveDetail from '../components/OwnLeaveDetail';
@@ -51,6 +54,8 @@ export type StudentView =
   | 'accommodation'
   | 'qr'
   | 'attendance'
+  | 'announcements'
+  | 'announcement-detail'
   | 'complaints'
   | 'complaint-new'
   | 'complaint-detail'
@@ -71,6 +76,8 @@ export default function StudentHomePage({
     accommodation: 'Accommodation',
     qr: 'My QR code',
     attendance: 'Attendance',
+    announcements: 'Announcements',
+    'announcement-detail': 'Announcement',
     complaints: 'Complaints',
     'complaint-new': 'New complaint',
     'complaint-detail': 'Complaint details',
@@ -120,6 +127,17 @@ export default function StudentHomePage({
     },
     [uid],
   );
+  const invalidateAnnouncement = useCallback(
+    (error: AnnouncementError) => {
+      if (
+        error.kind === 'session' ||
+        error.kind === 'setup' ||
+        error.kind === 'forbidden'
+      )
+        invalidate(new StudentPortalError(error.kind, error.message));
+    },
+    [invalidate],
+  );
   const current =
     result?.uid === uid && result.attempt === attempt ? result : undefined;
   const data = current?.data;
@@ -149,6 +167,7 @@ export default function StudentHomePage({
             </NavLink>
             <NavLink to={routePaths.ownStudentQR}>My QR code</NavLink>
             <NavLink to={routePaths.ownStudentAttendance}>Attendance</NavLink>
+            <NavLink to={routePaths.ownAnnouncements}>Announcements</NavLink>
             <NavLink to={routePaths.ownComplaints}>Complaints</NavLink>
             <NavLink to={routePaths.ownLeaves}>Leave requests</NavLink>
             <NavLink to={routePaths.ownLateAccess}>Access requests</NavLink>
@@ -182,6 +201,9 @@ export default function StudentHomePage({
                     accommodation: 'Your current hostel block, room and bed.',
                     qr: 'Your student identification code for the hostel scanner.',
                     attendance: 'Your recorded hostel entries and exits.',
+                    announcements: 'Published hostel notices for all students.',
+                    'announcement-detail':
+                      'Read the published hostel announcement.',
                     complaints: 'Report concerns and track staff responses.',
                     'complaint-new':
                       'Submit a maintenance or disciplinary concern.',
@@ -204,6 +226,8 @@ export default function StudentHomePage({
             </div>
             {![
               'attendance',
+              'announcements',
+              'announcement-detail',
               'complaints',
               'complaint-new',
               'complaint-detail',
@@ -340,6 +364,22 @@ export default function StudentHomePage({
                 </>
               )}
               <div className="portal-page-content">
+                {view === 'announcements' && (
+                  <AnnouncementList
+                    key={uid}
+                    uid={uid}
+                    basePath={routePaths.ownAnnouncements}
+                    onAccessError={invalidateAnnouncement}
+                  />
+                )}
+                {view === 'announcement-detail' && (
+                  <AnnouncementDetail
+                    key={uid}
+                    uid={uid}
+                    basePath={routePaths.ownAnnouncements}
+                    onAccessError={invalidateAnnouncement}
+                  />
+                )}
                 {view === 'complaints' && (
                   <OwnComplaintList
                     key={uid + ':' + data.student_id}

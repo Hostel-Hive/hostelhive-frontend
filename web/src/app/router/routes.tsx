@@ -24,6 +24,10 @@ const StudentHomePage = lazy(
   () => import('../../features/student-portal/pages/StudentHomePage'),
 );
 
+const AnnouncementsPage = lazy(
+  () => import('../../features/announcements/pages/AnnouncementsPage'),
+);
+
 const StudentImportPage = lazy(
   () => import('../../features/students/pages/StudentImportPage'),
 );
@@ -113,6 +117,11 @@ export default function AppRoutes() {
             [routePaths.ownStudentAccommodation, 'accommodation'],
             [routePaths.ownStudentQR, 'qr'],
             [routePaths.ownStudentAttendance, 'attendance'],
+            [routePaths.ownAnnouncements, 'announcements'],
+            [
+              `${routePaths.ownAnnouncements}/:announcementID`,
+              'announcement-detail',
+            ],
             [routePaths.ownComplaints, 'complaints'],
             [routePaths.ownComplaintNew, 'complaint-new'],
             [`${routePaths.ownComplaints}/:complaintID`, 'complaint-detail'],
@@ -146,6 +155,25 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          {(['list', 'new', 'detail'] as const).map((view) => (
+            <Route
+              key={view}
+              path={
+                view === 'list'
+                  ? 'announcements'
+                  : view === 'new'
+                    ? 'announcements/new'
+                    : 'announcements/:announcementID'
+              }
+              element={
+                <Suspense
+                  fallback={<p role="status">Loading announcements...</p>}
+                >
+                  <AnnouncementsPage view={view} />
+                </Suspense>
+              }
+            />
+          ))}
           <Route
             path="complaints"
             element={
