@@ -403,6 +403,7 @@
   font-weight: 600;
 }
 .portal-leave-status-filter select,
+.portal-leave-form select,
 .portal-leave-form input,
 .portal-leave-form textarea {
   min-width: 0;
@@ -417,12 +418,14 @@
   font-weight: 400;
 }
 .portal-leave-status-filter select:focus-visible,
+.portal-leave-form select:focus-visible,
 .portal-leave-form input:focus-visible,
 .portal-leave-form textarea:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }
 .portal-leave-form input:disabled,
+.portal-leave-form select:disabled,
 .portal-leave-form textarea:disabled {
   background: var(--ink-100);
 }
@@ -464,6 +467,9 @@
 }
 .portal-leave-full {
   grid-column: 1 / -1;
+}
+.portal-access-use {
+  margin-top: 24px;
 }
 .portal-leave-badge {
   display: inline-block;
