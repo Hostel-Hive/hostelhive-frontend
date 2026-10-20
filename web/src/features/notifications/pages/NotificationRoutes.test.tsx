@@ -72,9 +72,10 @@ it.each(['admin', 'warden', 'student'] as const)(
     expect(
       await screen.findByRole('heading', { name: row.title }),
     ).toBeVisible();
-    expect(
-      screen.getByRole('link', { name: 'Notifications' }),
-    ).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Notifications' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     expect(
       screen.getByRole('link', { name: 'Notifications, 1 unread' }),
     ).toHaveAttribute('href', `${base}/notifications`);
