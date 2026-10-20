@@ -19,6 +19,18 @@ import { getOwnProfile } from '../../student-portal/api/student-portal.api';
 import { ownStudentProfile } from '../../../test/fixtures/ownStudentProfile';
 import { getOwnAttendance } from '../../student-portal/api/own-attendance.api';
 import { ownHistoryPage } from '../../../test/fixtures/ownAttendance';
+import {
+  listOwnLeaves,
+  getOwnLeave,
+} from '../../student-portal/api/own-leave.api';
+import { ownLeaveFixture, ownLeavePage } from '../../../test/fixtures/ownLeave';
+vi.mock('../../student-portal/api/own-leave.api', async (original) => ({
+  ...(await original<
+    typeof import('../../student-portal/api/own-leave.api')
+  >()),
+  listOwnLeaves: vi.fn(),
+  getOwnLeave: vi.fn(),
+}));
 vi.mock('../../student-portal/api/own-attendance.api', async (original) => ({
   ...(await original<
     typeof import('../../student-portal/api/own-attendance.api')
@@ -57,6 +69,8 @@ beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(getOwnProfile).mockResolvedValue(ownStudentProfile);
   vi.mocked(getOwnAttendance).mockResolvedValue(ownHistoryPage());
+  vi.mocked(listOwnLeaves).mockResolvedValue(ownLeavePage());
+  vi.mocked(getOwnLeave).mockResolvedValue(ownLeaveFixture);
   vi.mocked(restoreStaffSession).mockResolvedValue(null);
   vi.mocked(subscribeStaffSession).mockImplementation((change) => {
     let active = true;
@@ -86,6 +100,7 @@ it('navigates between separate student pages and highlights only the current rou
     ['Accommodation', '/student/accommodation', 'Accommodation'],
     ['My QR code', '/student/qr', 'My QR code'],
     ['Attendance', '/student/attendance', 'Attendance'],
+    ['Leave requests', '/student/leaves', 'Leave requests'],
     ['Overview', '/student', 'Welcome to HostelHive.'],
   ]) {
     if (path === '/student/profile') {
@@ -120,6 +135,9 @@ it.each([
   ['/student/accommodation', 'Accommodation'],
   ['/student/qr', 'My QR code'],
   ['/student/attendance', 'Attendance'],
+  ['/student/leaves', 'Leave requests'],
+  ['/student/leaves/new', 'New leave request'],
+  [`/student/leaves/${ownLeaveFixture.leave_id}`, 'Leave request'],
 ])('supports direct entry to %s', async (path, title) => {
   vi.mocked(restoreStaffSession).mockResolvedValue(student);
   open(path);
@@ -274,13 +292,14 @@ it.each(['admin', 'warden'] as const)(
   async (role) => {
     const staff: StaffAccount = { ...student, role };
     vi.mocked(restoreStaffSession).mockResolvedValue(staff);
-    open('/student/attendance');
+    open('/student/leaves');
     await screen.findByRole('heading', {
       name: role === 'admin' ? 'Admin dashboard' : 'Warden dashboard',
       level: 1,
     });
     expect(window.location.pathname).toBe(`/dashboard/${role}`);
     expect(getOwnAttendance).not.toHaveBeenCalled();
+    expect(listOwnLeaves).not.toHaveBeenCalled();
   },
 );
 it('requires student authentication for direct attendance entry', async () => {
@@ -288,6 +307,22 @@ it('requires student authentication for direct attendance entry', async () => {
   await screen.findByRole('button', { name: 'Sign in' });
   expect(window.location.pathname).toBe('/login');
   expect(getOwnAttendance).not.toHaveBeenCalled();
+});
+it('requires student authentication for direct leave entry', async () => {
+  open('/student/leaves/new');
+  await screen.findByRole('button', { name: 'Sign in' });
+  expect(window.location.pathname).toBe('/login');
+  expect(listOwnLeaves).not.toHaveBeenCalled();
+});
+it('keeps student leave requests behind required setup', async () => {
+  vi.mocked(restoreStaffSession).mockResolvedValue({
+    ...student,
+    setup_required: true,
+  });
+  open('/student/leaves');
+  await screen.findByRole('button', { name: 'Verify account setup' });
+  expect(window.location.pathname).toBe('/student/setup');
+  expect(listOwnLeaves).not.toHaveBeenCalled();
 });
 it('keeps attendance history behind required student setup', async () => {
   vi.mocked(restoreStaffSession).mockResolvedValue({
