@@ -70,7 +70,7 @@ const timestamp = (value: unknown): value is string =>
     value,
   ) &&
   Number.isFinite(Date.parse(value));
-function validLeave(value: unknown): value is LeaveRequest {
+export function validLeave(value: unknown): value is LeaveRequest {
   if (!value || typeof value !== 'object') return false;
   const row = value as LeaveRequest;
   return (

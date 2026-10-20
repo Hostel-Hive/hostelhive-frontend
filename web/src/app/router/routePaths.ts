@@ -7,6 +7,8 @@ export const routePaths = {
   ownStudentAccommodation: '/student/accommodation',
   ownStudentQR: '/student/qr',
   ownStudentAttendance: '/student/attendance',
+  ownLeaves: '/student/leaves',
+  ownLeaveNew: '/student/leaves/new',
   studentSetup: '/student/setup',
   studentForgotPassword: '/student/forgot-password',
   studentResetPassword: '/student/reset-password',

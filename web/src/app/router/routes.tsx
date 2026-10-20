@@ -113,6 +113,9 @@ export default function AppRoutes() {
             [routePaths.ownStudentAccommodation, 'accommodation'],
             [routePaths.ownStudentQR, 'qr'],
             [routePaths.ownStudentAttendance, 'attendance'],
+            [routePaths.ownLeaves, 'leaves'],
+            [routePaths.ownLeaveNew, 'leave-new'],
+            [`${routePaths.ownLeaves}/:leaveID`, 'leave-detail'],
           ] as const
         ).map(([path, view]) => (
           <Route

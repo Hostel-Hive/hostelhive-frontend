@@ -15,6 +15,9 @@ import OwnStudentPhoto from '../components/OwnStudentPhoto';
 import OwnStudentQR from '../components/OwnStudentQR';
 import StudentAccountMenu from '../components/StudentAccountMenu';
 import OwnAttendanceHistory from '../components/OwnAttendanceHistory';
+import OwnLeaveList from '../components/OwnLeaveList';
+import OwnLeaveForm from '../components/OwnLeaveForm';
+import OwnLeaveDetail from '../components/OwnLeaveDetail';
 import '../../../styles/student-portal.css';
 
 const shown = (text: string) => text || 'Not provided';
@@ -37,7 +40,14 @@ function Details({ items }: { items: [string, string][] }) {
 }
 
 export type StudentView =
-  'overview' | 'profile' | 'accommodation' | 'qr' | 'attendance';
+  | 'overview'
+  | 'profile'
+  | 'accommodation'
+  | 'qr'
+  | 'attendance'
+  | 'leaves'
+  | 'leave-new'
+  | 'leave-detail';
 export default function StudentHomePage({
   view = 'overview',
 }: {
@@ -49,6 +59,9 @@ export default function StudentHomePage({
     accommodation: 'Accommodation',
     qr: 'My QR code',
     attendance: 'Attendance',
+    leaves: 'Leave requests',
+    'leave-new': 'New leave request',
+    'leave-detail': 'Leave request',
   }[view];
   const { account, signOut, retry: verifySession } = useAuth();
   const uid = account?.firebase_uid ?? '';
@@ -118,6 +131,7 @@ export default function StudentHomePage({
             </NavLink>
             <NavLink to={routePaths.ownStudentQR}>My QR code</NavLink>
             <NavLink to={routePaths.ownStudentAttendance}>Attendance</NavLink>
+            <NavLink to={routePaths.ownLeaves}>Leave requests</NavLink>
           </nav>
           <StudentAccountMenu
             key={uid}
@@ -148,11 +162,18 @@ export default function StudentHomePage({
                     accommodation: 'Your current hostel block, room and bed.',
                     qr: 'Your student identification code for the hostel scanner.',
                     attendance: 'Your recorded hostel entries and exits.',
+                    leaves: 'Request leave and follow your approval status.',
+                    'leave-new':
+                      'Submit your planned time away for staff review.',
+                    'leave-detail':
+                      'Your leave dates, reason and recorded decision.',
                   }[view]
                 }
               </p>
             </div>
-            {view !== 'attendance' && (
+            {!['attendance', 'leaves', 'leave-new', 'leave-detail'].includes(
+              view,
+            ) && (
               <Button
                 size="sm"
                 variant="secondary"
@@ -279,6 +300,30 @@ export default function StudentHomePage({
                 </>
               )}
               <div className="portal-page-content">
+                {view === 'leaves' && (
+                  <OwnLeaveList
+                    key={uid + ':' + data.student_id}
+                    uid={uid}
+                    studentID={data.student_id}
+                    onAccessError={invalidate}
+                  />
+                )}
+                {view === 'leave-new' && (
+                  <OwnLeaveForm
+                    key={uid + ':' + data.student_id}
+                    uid={uid}
+                    studentID={data.student_id}
+                    onAccessError={invalidate}
+                  />
+                )}
+                {view === 'leave-detail' && (
+                  <OwnLeaveDetail
+                    key={uid + ':' + data.student_id}
+                    uid={uid}
+                    studentID={data.student_id}
+                    onAccessError={invalidate}
+                  />
+                )}
                 {view === 'attendance' && (
                   <OwnAttendanceHistory
                     key={uid + ':' + attempt}
