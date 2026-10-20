@@ -1,3 +1,4 @@
+import { listComplaintImages } from '../../complaints/api/complaint-images.api';
 import {
   act,
   fireEvent,
@@ -38,8 +39,15 @@ const props = {
   studentID: row.student_id,
   onAccessError: vi.fn(),
 };
+vi.mock('../../complaints/api/complaint-images.api', async (original) => ({
+  ...(await original<
+    typeof import('../../complaints/api/complaint-images.api')
+  >()),
+  listComplaintImages: vi.fn(),
+}));
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(listComplaintImages).mockResolvedValue({ items: [], version: 1 });
   vi.mocked(listOwnComplaints).mockResolvedValue(complaintPage([row]));
   vi.mocked(getOwnComplaint).mockResolvedValue(row);
   vi.mocked(getOwnComplaintHistory).mockResolvedValue(

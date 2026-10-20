@@ -8,6 +8,12 @@
 
 ### Added
 
+- Admin/Warden announcement review/publication, safe replay, staff delivery summaries
+  and read-only student feeds/details (issue #62).
+
+- Private complaint evidence gallery for students/staff, validated student upload/removal,
+  local previews, confirmation, stable image retries and conflict recovery (issue #61).
+
 - Student-owned complaint submission, status/category filters, paginated details/history,
   notes, version-conflict review and identical uncertain-write retries (issue #60).
 

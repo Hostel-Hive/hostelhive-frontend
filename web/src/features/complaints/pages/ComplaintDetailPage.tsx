@@ -9,6 +9,8 @@ import {
   listComplaintUpdates,
   statusLabel,
   type ComplaintError,
+  ComplaintError as ComplaintRequestError,
+  complaintError,
 } from '../api/complaints.api';
 import type {
   Complaint,
@@ -19,6 +21,8 @@ import useComplaintRequest from '../hooks/useComplaintRequest';
 import ComplaintRequestState from '../components/ComplaintRequestState';
 import ComplaintDate from '../components/ComplaintDate';
 import ComplaintActionDialog from '../components/ComplaintActionDialog';
+import ComplaintEvidence from '../components/ComplaintEvidence';
+import { EvidenceError } from '../api/complaint-images.api';
 type Snapshot = { row: Complaint; history: ComplaintPage<ComplaintUpdate> };
 const actionLabels = {
   created: 'Complaint submitted',
@@ -44,6 +48,7 @@ function ComplaintDetailContent({ id, uid }: { id: string; uid: string }) {
   const [offset, setOffset] = useState(0);
   const [editor, setEditor] = useState<'note' | 'status'>();
   const [notice, setNotice] = useState('');
+  const [evidenceLocked, setEvidenceLocked] = useState(false);
   const title = useRef<HTMLHeadingElement>(null);
   const key = `${uid}:${id}:${offset}`;
   const load = useCallback(
@@ -65,6 +70,34 @@ function ComplaintDetailContent({ id, uid }: { id: string; uid: string }) {
   const current = override?.key === key ? override : undefined;
   const error = current?.error ?? request.error;
   const data = !error ? (current?.data ?? request.data) : undefined;
+  const evidenceDenied = useCallback(
+    (failure: EvidenceError) => {
+      setEditor(undefined);
+      setOverride({
+        key,
+        error: new ComplaintRequestError(
+          failure.kind === 'setup' ? 'forbidden' : failure.kind,
+          failure.message,
+        ),
+      });
+    },
+    [key],
+  );
+  const reviewEvidence = useCallback(
+    async (signal: AbortSignal) => {
+      try {
+        const [row, history] = await Promise.all([
+          getComplaint(id, uid, signal),
+          listComplaintUpdates(id, uid, signal, offset),
+        ]);
+        if (!signal.aborted) setOverride({ key, data: { row, history } });
+      } catch (reason) {
+        const failure = complaintError(reason);
+        throw new EvidenceError(failure.kind, failure.message);
+      }
+    },
+    [id, uid, offset, key],
+  );
   let back: string = routePaths.complaints;
   try {
     const q = complaintFilters(params);
@@ -104,10 +137,26 @@ function ComplaintDetailContent({ id, uid }: { id: string; uid: string }) {
               {statusLabel(data.row.status)}
             </span>
             <span>Version {data.row.version}</span>
-            <Button variant="secondary" onClick={refresh}>
+            <Button
+              variant="secondary"
+              disabled={evidenceLocked}
+              onClick={refresh}
+            >
               Refresh complaint
             </Button>
           </div>
+          <ComplaintEvidence
+            row={data.row}
+            uid={uid}
+            disabled={Boolean(editor)}
+            onDenied={evidenceDenied}
+            onLockChange={setEvidenceLocked}
+            onReview={reviewEvidence}
+            onChanged={(message) => {
+              setNotice(message);
+              refresh();
+            }}
+          />
           <div className="complaint-card">
             <h2>Complaint</h2>
             <dl className="complaint-details">

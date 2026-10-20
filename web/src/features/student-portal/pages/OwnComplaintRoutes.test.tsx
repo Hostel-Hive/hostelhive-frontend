@@ -1,3 +1,4 @@
+import { listComplaintImages } from '../../complaints/api/complaint-images.api';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import App from '../../../app/App';
@@ -44,8 +45,15 @@ const paths = [
   '/student/complaints/new',
   `/student/complaints/${row.complaint_id}`,
 ];
+vi.mock('../../complaints/api/complaint-images.api', async (original) => ({
+  ...(await original<
+    typeof import('../../complaints/api/complaint-images.api')
+  >()),
+  listComplaintImages: vi.fn(),
+}));
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(listComplaintImages).mockResolvedValue({ items: [], version: 1 });
   vi.mocked(restoreStaffSession).mockResolvedValue(account);
   vi.mocked(subscribeStaffSession).mockImplementation((change) => {
     let active = true;
