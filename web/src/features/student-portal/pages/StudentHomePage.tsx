@@ -14,6 +14,7 @@ import type { OwnStudentProfile } from '../student-portal.types';
 import OwnStudentPhoto from '../components/OwnStudentPhoto';
 import OwnStudentQR from '../components/OwnStudentQR';
 import StudentAccountMenu from '../components/StudentAccountMenu';
+import OwnAttendanceHistory from '../components/OwnAttendanceHistory';
 import '../../../styles/student-portal.css';
 
 const shown = (text: string) => text || 'Not provided';
@@ -35,7 +36,8 @@ function Details({ items }: { items: [string, string][] }) {
   );
 }
 
-export type StudentView = 'overview' | 'profile' | 'accommodation' | 'qr';
+export type StudentView =
+  'overview' | 'profile' | 'accommodation' | 'qr' | 'attendance';
 export default function StudentHomePage({
   view = 'overview',
 }: {
@@ -46,6 +48,7 @@ export default function StudentHomePage({
     profile: 'My profile',
     accommodation: 'Accommodation',
     qr: 'My QR code',
+    attendance: 'Attendance',
   }[view];
   const { account, signOut, retry: verifySession } = useAuth();
   const uid = account?.firebase_uid ?? '';
@@ -114,6 +117,7 @@ export default function StudentHomePage({
               Accommodation
             </NavLink>
             <NavLink to={routePaths.ownStudentQR}>My QR code</NavLink>
+            <NavLink to={routePaths.ownStudentAttendance}>Attendance</NavLink>
           </nav>
           <StudentAccountMenu
             key={uid}
@@ -143,22 +147,25 @@ export default function StudentHomePage({
                     profile: 'Your personal and guardian details.',
                     accommodation: 'Your current hostel block, room and bed.',
                     qr: 'Your student identification code for the hostel scanner.',
+                    attendance: 'Your recorded hostel entries and exits.',
                   }[view]
                 }
               </p>
             </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={refresh}
-              disabled={loading || Boolean(error && isAccessError(error))}
-            >
-              {loading
-                ? 'Refreshing…'
-                : view === 'overview'
-                  ? 'Refresh dashboard'
-                  : 'Refresh'}
-            </Button>
+            {view !== 'attendance' && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={refresh}
+                disabled={loading || Boolean(error && isAccessError(error))}
+              >
+                {loading
+                  ? 'Refreshing…'
+                  : view === 'overview'
+                    ? 'Refresh dashboard'
+                    : 'Refresh'}
+              </Button>
+            )}
           </div>
           {loading && (
             <div className="portal-card" role="status">
@@ -272,6 +279,13 @@ export default function StudentHomePage({
                 </>
               )}
               <div className="portal-page-content">
+                {view === 'attendance' && (
+                  <OwnAttendanceHistory
+                    key={uid + ':' + attempt}
+                    uid={uid}
+                    onAccessError={invalidate}
+                  />
+                )}
                 {(view === 'profile' || view === 'accommodation') && (
                   <div className="portal-stack">
                     {view === 'profile' && (

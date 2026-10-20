@@ -29,9 +29,18 @@ export function isAccessError(error: StudentPortalError) {
   return ['session', 'forbidden', 'setup'].includes(error.kind);
 }
 
-async function ownResponse(path: string, uid: string, signal: AbortSignal) {
+export async function ownResponse(
+  path: string,
+  uid: string,
+  signal: AbortSignal,
+) {
   try {
     const response = await authorizedRequest(path, uid, signal);
+    if (response.status === 400)
+      throw new StudentPortalError(
+        'unavailable',
+        'The request was rejected. Check your filters and try again.',
+      );
     if (response.status === 401)
       throw new StudentPortalError(
         'session',

@@ -112,6 +112,7 @@ export default function AppRoutes() {
             [routePaths.ownStudentProfile, 'profile'],
             [routePaths.ownStudentAccommodation, 'accommodation'],
             [routePaths.ownStudentQR, 'qr'],
+            [routePaths.ownStudentAttendance, 'attendance'],
           ] as const
         ).map(([path, view]) => (
           <Route
