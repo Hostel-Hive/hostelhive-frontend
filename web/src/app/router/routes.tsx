@@ -27,6 +27,9 @@ const StudentHomePage = lazy(
 const AnnouncementsPage = lazy(
   () => import('../../features/announcements/pages/AnnouncementsPage'),
 );
+const NotificationsPage = lazy(
+  () => import('../../features/notifications/pages/NotificationsPage'),
+);
 
 const StudentImportPage = lazy(
   () => import('../../features/students/pages/StudentImportPage'),
@@ -118,6 +121,7 @@ export default function AppRoutes() {
             [routePaths.ownStudentQR, 'qr'],
             [routePaths.ownStudentAttendance, 'attendance'],
             [routePaths.ownAnnouncements, 'announcements'],
+            [routePaths.ownNotifications, 'notifications'],
             [
               `${routePaths.ownAnnouncements}/:announcementID`,
               'announcement-detail',
@@ -155,6 +159,14 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          <Route
+            path="notifications"
+            element={
+              <Suspense fallback={<p role="status">Loading inbox...</p>}>
+                <NotificationsPage />
+              </Suspense>
+            }
+          />
           {(['list', 'new', 'detail'] as const).map((view) => (
             <Route
               key={view}

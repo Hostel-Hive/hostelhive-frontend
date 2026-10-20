@@ -8,6 +8,8 @@ export const routePaths = {
   ownStudentQR: '/student/qr',
   ownStudentAttendance: '/student/attendance',
   ownAnnouncements: '/student/announcements',
+  ownNotifications: '/student/notifications',
+  notifications: '/dashboard/notifications',
   announcements: '/dashboard/announcements',
   ownComplaints: '/student/complaints',
   ownComplaintNew: '/student/complaints/new',

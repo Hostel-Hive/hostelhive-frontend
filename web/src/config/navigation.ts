@@ -12,5 +12,6 @@ export const dashboardNavigation = [
   { label: 'Leave requests', path: routePaths.leaves, role: 'all' },
   { label: 'Access requests', path: routePaths.lateAccess, role: 'all' },
   { label: 'Announcements', path: routePaths.announcements, role: 'all' },
+  { label: 'Notifications', path: routePaths.notifications, role: 'all' },
   { label: 'Complaints', path: routePaths.complaints, role: 'all' },
 ] as const;
