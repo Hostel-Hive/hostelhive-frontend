@@ -24,6 +24,21 @@ import {
   getOwnLeave,
 } from '../../student-portal/api/own-leave.api';
 import { ownLeaveFixture, ownLeavePage } from '../../../test/fixtures/ownLeave';
+import {
+  listOwnLateAccess,
+  getOwnLateAccess,
+} from '../../student-portal/api/own-late-access.api';
+import {
+  ownLateAccessFixture,
+  ownLateAccessPage,
+} from '../../../test/fixtures/ownLateAccess';
+vi.mock('../../student-portal/api/own-late-access.api', async (original) => ({
+  ...(await original<
+    typeof import('../../student-portal/api/own-late-access.api')
+  >()),
+  listOwnLateAccess: vi.fn(),
+  getOwnLateAccess: vi.fn(),
+}));
 vi.mock('../../student-portal/api/own-leave.api', async (original) => ({
   ...(await original<
     typeof import('../../student-portal/api/own-leave.api')
@@ -71,6 +86,8 @@ beforeEach(() => {
   vi.mocked(getOwnAttendance).mockResolvedValue(ownHistoryPage());
   vi.mocked(listOwnLeaves).mockResolvedValue(ownLeavePage());
   vi.mocked(getOwnLeave).mockResolvedValue(ownLeaveFixture);
+  vi.mocked(listOwnLateAccess).mockResolvedValue(ownLateAccessPage());
+  vi.mocked(getOwnLateAccess).mockResolvedValue(ownLateAccessFixture);
   vi.mocked(restoreStaffSession).mockResolvedValue(null);
   vi.mocked(subscribeStaffSession).mockImplementation((change) => {
     let active = true;
@@ -101,6 +118,7 @@ it('navigates between separate student pages and highlights only the current rou
     ['My QR code', '/student/qr', 'My QR code'],
     ['Attendance', '/student/attendance', 'Attendance'],
     ['Leave requests', '/student/leaves', 'Leave requests'],
+    ['Access requests', '/student/late-access-requests', 'Access requests'],
     ['Overview', '/student', 'Welcome to HostelHive.'],
   ]) {
     if (path === '/student/profile') {
@@ -138,6 +156,12 @@ it.each([
   ['/student/leaves', 'Leave requests'],
   ['/student/leaves/new', 'New leave request'],
   [`/student/leaves/${ownLeaveFixture.leave_id}`, 'Leave request'],
+  ['/student/late-access-requests', 'Access requests'],
+  ['/student/late-access-requests/new', 'New access request'],
+  [
+    `/student/late-access-requests/${ownLateAccessFixture.late_access_id}`,
+    'Access request',
+  ],
 ])('supports direct entry to %s', async (path, title) => {
   vi.mocked(restoreStaffSession).mockResolvedValue(student);
   open(path);
@@ -292,7 +316,7 @@ it.each(['admin', 'warden'] as const)(
   async (role) => {
     const staff: StaffAccount = { ...student, role };
     vi.mocked(restoreStaffSession).mockResolvedValue(staff);
-    open('/student/leaves');
+    open('/student/late-access-requests');
     await screen.findByRole('heading', {
       name: role === 'admin' ? 'Admin dashboard' : 'Warden dashboard',
       level: 1,
@@ -300,6 +324,7 @@ it.each(['admin', 'warden'] as const)(
     expect(window.location.pathname).toBe(`/dashboard/${role}`);
     expect(getOwnAttendance).not.toHaveBeenCalled();
     expect(listOwnLeaves).not.toHaveBeenCalled();
+    expect(listOwnLateAccess).not.toHaveBeenCalled();
   },
 );
 it('requires student authentication for direct attendance entry', async () => {
@@ -313,6 +338,22 @@ it('requires student authentication for direct leave entry', async () => {
   await screen.findByRole('button', { name: 'Sign in' });
   expect(window.location.pathname).toBe('/login');
   expect(listOwnLeaves).not.toHaveBeenCalled();
+});
+it('requires student authentication for direct access request entry', async () => {
+  open('/student/late-access-requests/new');
+  await screen.findByRole('button', { name: 'Sign in' });
+  expect(window.location.pathname).toBe('/login');
+  expect(listOwnLateAccess).not.toHaveBeenCalled();
+});
+it('keeps access requests behind required student setup', async () => {
+  vi.mocked(restoreStaffSession).mockResolvedValue({
+    ...student,
+    setup_required: true,
+  });
+  open('/student/late-access-requests');
+  await screen.findByRole('button', { name: 'Verify account setup' });
+  expect(window.location.pathname).toBe('/student/setup');
+  expect(listOwnLateAccess).not.toHaveBeenCalled();
 });
 it('keeps student leave requests behind required setup', async () => {
   vi.mocked(restoreStaffSession).mockResolvedValue({
