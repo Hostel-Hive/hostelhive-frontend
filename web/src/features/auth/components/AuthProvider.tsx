@@ -36,7 +36,12 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       if (operation.current) return;
       const current = ++generation.current;
       setState((previous) => ({
-        status: 'checking',
+        status:
+          preservePage &&
+          previous.verifiedPath === pathname &&
+          previous.status === 'anonymous'
+            ? 'anonymous'
+            : 'checking',
         // Focus can return from a native file chooser. Preserve the verified
         // identity and page during this background check, so local selections
         // survive without flicker. All failures clear the identity.

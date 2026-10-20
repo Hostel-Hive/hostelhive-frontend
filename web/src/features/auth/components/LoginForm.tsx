@@ -5,11 +5,11 @@ import { routePaths } from '../../../app/router/routePaths';
 import { loginErrorMessage } from '../api/auth.api';
 import useAuth from '../hooks/useAuth';
 import { validateLogin } from '../auth.schema';
-import type { StaffAccount } from '../auth.types';
+import { homeForAccount } from '../../../config/roles';
 import Button from '../../../shared/components/ui/Button';
 import Input from '../../../shared/components/ui/Input';
 
-export default function LoginForm() {
+export default function LoginForm({ student = false }: { student?: boolean }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +38,12 @@ export default function LoginForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy.current || checking || authBusy) return;
-    const input = { email, password, rememberMe };
+    const input = {
+      email,
+      password,
+      rememberMe,
+      ...(student ? { portal: 'student' as const } : {}),
+    };
     const nextErrors = validateLogin(input);
     setErrors(nextErrors);
     setError('');
@@ -49,16 +54,11 @@ export default function LoginForm() {
     busy.current = true;
     setSubmitting(true);
     try {
-      const account: StaffAccount = await signIn(input);
+      const account = await signIn(input);
       if (!mounted.current) return;
       setPassword('');
       setShowPassword(false);
-      navigate(
-        account.role === 'admin'
-          ? routePaths.adminDashboard
-          : routePaths.wardenDashboard,
-        { replace: true },
-      );
+      navigate(homeForAccount(account), { replace: true });
     } catch (reason) {
       if (!mounted.current) return;
       setError(loginErrorMessage(reason));
@@ -123,7 +123,15 @@ export default function LoginForm() {
       <div className="auth-field">
         <div className="auth-field-heading">
           <label htmlFor="login-password">Password</label>
-          <Link to={routePaths.forgotPassword}>Forgot password?</Link>
+          <Link
+            to={
+              student
+                ? routePaths.studentForgotPassword
+                : routePaths.forgotPassword
+            }
+          >
+            Forgot password?
+          </Link>
         </div>
         <div className="auth-password-wrapper">
           <Input

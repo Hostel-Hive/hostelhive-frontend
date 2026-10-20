@@ -32,6 +32,12 @@ beforeEach(() => {
   sdk.confirm.mockResolvedValue(undefined);
 });
 describe('password recovery SDK integration', () => {
+  it('sets a student login continue URL for student recovery', async () => {
+    await requestPasswordReset(' student@example.com ', true);
+    expect(sdk.send).toHaveBeenCalledWith(sdk.auth, 'student@example.com', {
+      url: `${window.location.origin}/login`,
+    });
+  });
   it('sends a trimmed email through the configured Firebase app', async () => {
     await requestPasswordReset(' staff@example.com ');
     expect(sdk.send).toHaveBeenCalledWith(sdk.auth, 'staff@example.com');

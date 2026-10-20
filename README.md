@@ -32,7 +32,7 @@ Issue #37 adds **Inventory** to the staff navigation. Admin and Warden accounts 
 
 Issue #14 implements password recovery at `/forgot-password` and the Firebase password-reset action handler at `/reset-password`. It uses the project's Firebase password policy, institution-neutral copy, shared controls and the existing authentication layout. See the web README for email-template action URL setup and live verification.
 
-Issue #7 adds the shared authentication layout and login flow at `/login`; `/` now opens login. Firebase credentials are exchanged directly with Firebase, and the backend `/api/v1/me` response determines whether an active Admin or Warden can enter their dashboard. Issue #11 protects dashboard routes, verifies restored sessions and adds role-filtered navigation and sign-out. See the web README for public Firebase configuration and live verification.
+Issue #7 adds the shared authentication layout and staff login flow, now at `/staff/login`; `/` opens the student login at `/login`. Firebase credentials are exchanged directly with Firebase, and the backend `/api/v1/me` response determines whether an active Admin or Warden can enter their dashboard. Issue #11 protects dashboard routes, verifies restored sessions and adds role-filtered navigation and sign-out. See the web README for public Firebase configuration and live verification.
 
 Create a repository issue and add it to the existing HostelHive project with Phase = Development. Branch from `develop` using `feature/<issue-number>-<slug>` or `fix/<issue-number>-<slug>`. Reference the issue in commits and open a PR against `develop`. Require one peer approval and passing checks. Release into `main` through an approved PR.
 
@@ -51,3 +51,10 @@ Use strict TypeScript, ESLint recommended JavaScript/TypeScript and React Hooks 
 CI runs on pushes to all branches and PRs into `develop`/`main`. Coverage is uploaded as `web-coverage` in the Actions run. Open its HTML `index.html` to inspect results. A measured coverage badge can be added when a coverage publishing service is configured.
 
 Deployment, API integration and end-to-end tests belong to subsequent tickets. There is no staging or production URL yet. The first ticket still needs peer review, a passing remote CI run and the course-required staging smoke test before its complete Definition of Done is satisfied.
+
+## Student portal entry
+
+Student login is available at `/login`; staff use `/staff/login`. The homepage
+opens student login, and `/student/login` redirects to `/login`.
+See [student login setup and verification](docs/student-login.md) for backend
+requirements, setup completion, portal boundaries and live acceptance checks.

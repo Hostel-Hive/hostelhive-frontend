@@ -5,6 +5,7 @@ import {
   verifyPasswordResetCode,
 } from 'firebase/auth';
 import { configuredAuth } from './auth.api';
+import { routePaths } from '../../../app/router/routePaths';
 
 export class PasswordFlowError extends Error {
   constructor(
@@ -58,11 +59,17 @@ export function isInvalidResetLink(error: unknown) {
     ].includes(String(errorCode(error)))
   );
 }
-export async function requestPasswordReset(email: string) {
+export async function requestPasswordReset(email: string, student = false) {
   const auth = resetAuth();
   try {
     // The email template's custom action URL supplies the reset handler.
-    await sendPasswordResetEmail(auth, email.trim());
+    if (student) {
+      await sendPasswordResetEmail(auth, email.trim(), {
+        url: `${window.location.origin}${routePaths.studentLogin}`,
+      });
+    } else {
+      await sendPasswordResetEmail(auth, email.trim());
+    }
   } catch (error) {
     // Identical confirmation whether or not an account exists.
     if (

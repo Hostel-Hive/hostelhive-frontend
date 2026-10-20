@@ -1,6 +1,11 @@
 export const routePaths = {
   home: '/',
-  login: '/login',
+  login: '/staff/login',
+  studentLogin: '/login',
+  studentHome: '/student',
+  studentSetup: '/student/setup',
+  studentForgotPassword: '/student/forgot-password',
+  studentResetPassword: '/student/reset-password',
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password',
   dashboard: '/dashboard',

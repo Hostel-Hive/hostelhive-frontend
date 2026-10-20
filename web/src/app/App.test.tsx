@@ -68,7 +68,7 @@ describe('protected dashboard access', () => {
       expect(
         await screen.findByRole('heading', { name: 'Sign in to HostelHive.' }),
       ).toBeVisible();
-      expect(window.location.pathname).toBe('/login');
+      expect(window.location.pathname).toBe('/staff/login');
       expect(
         screen.queryByRole('navigation', { name: 'Primary navigation' }),
       ).not.toBeInTheDocument();
@@ -132,7 +132,7 @@ describe('protected dashboard access', () => {
     'routes %s away from login to their own dashboard',
     async (role) => {
       vi.mocked(restoreStaffSession).mockResolvedValue({ ...admin, role });
-      renderAt('/login');
+      renderAt('/staff/login');
       await expectDashboard(role);
     },
   );
@@ -211,7 +211,7 @@ describe('protected dashboard access', () => {
     await act(async () => {
       finish(admin);
     });
-    expect(window.location.pathname).toBe('/login');
+    expect(window.location.pathname).toBe('/staff/login');
     // Simulate back navigation to a protected URL.
     await act(async () => {
       window.history.pushState({}, '', '/dashboard/admin');
@@ -220,7 +220,7 @@ describe('protected dashboard access', () => {
     expect(
       await screen.findByRole('heading', { name: 'Sign in to HostelHive.' }),
     ).toBeVisible();
-    expect(window.location.pathname).toBe('/login');
+    expect(window.location.pathname).toBe('/staff/login');
     // Re-enter a verified account to exercise the visible sign-out control.
     vi.mocked(restoreStaffSession).mockResolvedValue(admin);
     await act(async () => {

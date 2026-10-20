@@ -57,7 +57,9 @@ function renderAt(path: string) {
       <Routes>
         <Route path="/forgot-password" element={<PasswordRecoveryPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/login" element={<h1>Sign-in destination</h1>} />
+        <Route path="/student/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/login" element={<h1>Student sign-in destination</h1>} />
+        <Route path="/staff/login" element={<h1>Sign-in destination</h1>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -78,6 +80,27 @@ async function fillPasswords(
   await user.type(screen.getByLabelText('Confirm new password'), confirmation);
 }
 describe('password recovery screens', () => {
+  it.each([
+    '/student/reset-password?mode=resetPassword&oobCode=test-code',
+    `/reset-password?mode=resetPassword&oobCode=test-code&continueUrl=${encodeURIComponent(`${window.location.origin}/login`)}`,
+    `/reset-password?mode=resetPassword&oobCode=test-code&continueUrl=${encodeURIComponent(`${window.location.origin}/student/login`)}`,
+  ])(
+    'returns student reset flow to the student login after clearing action parameters: %s',
+    async (path) => {
+      renderAt(path);
+      await screen.findByLabelText('New password', { exact: true });
+      expect(screen.getByTestId('url').textContent).not.toContain('oobCode');
+      const user = userEvent.setup();
+      await fillPasswords(user);
+      await user.click(screen.getByRole('button', { name: 'Update password' }));
+      await user.click(
+        await screen.findByRole('link', { name: 'Sign in with new password' }),
+      );
+      expect(
+        screen.getByRole('heading', { name: 'Student sign-in destination' }),
+      ).toBeVisible();
+    },
+  );
   it('validates email, focuses invalid input and confirms requests generically', async () => {
     const user = userEvent.setup();
     renderAt('/forgot-password');
