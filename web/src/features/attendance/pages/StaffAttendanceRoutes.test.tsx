@@ -2,6 +2,10 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import App from '../../../app/App';
 import {
+  getOverviewBlocks,
+  getOverviewCount,
+} from '../../dashboard/api/admin-overview.api';
+import {
   restoreStaffSession,
   subscribeStaffSession,
 } from '../../auth/api/auth.api';
@@ -23,6 +27,13 @@ vi.mock('../../auth/api/auth.api', async (original) => ({
   ...(await original<typeof import('../../auth/api/auth.api')>()),
   restoreStaffSession: vi.fn(),
   subscribeStaffSession: vi.fn(),
+}));
+vi.mock('../../dashboard/api/admin-overview.api', async (original) => ({
+  ...(await original<
+    typeof import('../../dashboard/api/admin-overview.api')
+  >()),
+  getOverviewBlocks: vi.fn(),
+  getOverviewCount: vi.fn(),
 }));
 vi.mock('../../student-portal/api/student-portal.api', async (original) => ({
   ...(await original<
@@ -61,12 +72,18 @@ beforeEach(() => {
   vi.mocked(listPresence).mockResolvedValue(page([row]));
   vi.mocked(listIncidents).mockResolvedValue(page([incident]));
   vi.mocked(getIncident).mockResolvedValue(incident);
+  vi.mocked(getOverviewCount).mockResolvedValue(0);
+  vi.mocked(getOverviewBlocks).mockResolvedValue({
+    items: [],
+    total: 0,
+    offset: 0,
+  });
 });
 function at(path: string) {
   window.history.replaceState({}, '', path);
   return render(<App />);
 }
-it.each(['admin', 'warden'] as const)(
+it.each(['warden'] as const)(
   'replaces %s placeholders with backend attendance data',
   async (role) => {
     vi.mocked(restoreStaffSession).mockResolvedValue({ ...account, role });
@@ -74,7 +91,7 @@ it.each(['admin', 'warden'] as const)(
     expect(await screen.findByText(row.full_name)).toBeVisible();
     expect(
       screen.getByRole('heading', {
-        name: role === 'admin' ? 'Admin dashboard' : 'Warden dashboard',
+        name: 'Warden dashboard',
       }),
     ).toBeVisible();
     expect(screen.getByRole('link', { name: 'Attendance' })).toHaveAttribute(
@@ -83,6 +100,24 @@ it.each(['admin', 'warden'] as const)(
     );
   },
 );
+it('separates the Admin overview from the detailed attendance dashboard', async () => {
+  at('/dashboard/admin');
+  expect(
+    await screen.findByRole('heading', { name: 'Admin dashboard' }),
+  ).toBeVisible();
+  expect(
+    await screen.findByRole('article', { name: 'Active students' }),
+  ).toBeVisible();
+  expect(await screen.findByText('Staff / Overview')).toBeVisible();
+  expect(screen.queryByText(row.full_name)).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('button', { name: 'Refresh attendance' }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole('link', { name: 'Open attendance dashboard' }),
+  ).toHaveAttribute('href', '/dashboard/attendance');
+  expect(listPresence).not.toHaveBeenCalled();
+});
 it.each(['admin', 'warden'] as const)(
   'allows %s staff incident list and direct detail routes',
   async (role) => {
