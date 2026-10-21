@@ -41,6 +41,9 @@ const StudentImportPage = lazy(
 const InventoryPage = lazy(
   () => import('../../features/inventory/pages/InventoryPage'),
 );
+const UserManagementPage = lazy(
+  () => import('../../features/users/pages/UserManagementPage'),
+);
 const LeaveListPage = lazy(
   () => import('../../features/leave/pages/LeaveListPage'),
 );
@@ -278,6 +281,16 @@ export default function AppRoutes() {
           />
           <Route path="students/:studentID" element={<StudentProfilePage />} />
           <Route element={<RoleGuard role="admin" />}>
+            <Route
+              path="users"
+              element={
+                <Suspense
+                  fallback={<p role="status">Loading user management…</p>}
+                >
+                  <UserManagementPage />
+                </Suspense>
+              }
+            />
             <Route
               path="students/import"
               element={
