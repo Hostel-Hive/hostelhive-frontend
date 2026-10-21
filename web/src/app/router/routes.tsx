@@ -31,6 +31,9 @@ const AnnouncementsPage = lazy(
 const NotificationsPage = lazy(
   () => import('../../features/notifications/pages/NotificationsPage'),
 );
+const ReportsPage = lazy(
+  () => import('../../features/reports/pages/ReportsPage'),
+);
 
 const StudentImportPage = lazy(
   () => import('../../features/students/pages/StudentImportPage'),
@@ -160,6 +163,19 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          {(['attendance', 'daily', 'leaves', 'complaints'] as const).map(
+            (kind) => (
+              <Route
+                key={kind}
+                path={kind === 'attendance' ? 'reports' : `reports/${kind}`}
+                element={
+                  <Suspense fallback={<p role="status">Loading reports...</p>}>
+                    <ReportsPage kind={kind} />
+                  </Suspense>
+                }
+              />
+            ),
+          )}
           <Route path="attendance" element={<StaffAttendancePage />} />
           <Route
             path="attendance/incidents"
