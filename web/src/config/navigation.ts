@@ -9,6 +9,7 @@ export const dashboardNavigation = [
   },
   { label: 'Students', path: routePaths.students, role: 'all' },
   { label: 'Inventory', path: routePaths.inventory, role: 'all' },
+  { label: 'Attendance', path: routePaths.attendance, role: 'all' },
   { label: 'Leave requests', path: routePaths.leaves, role: 'all' },
   { label: 'Access requests', path: routePaths.lateAccess, role: 'all' },
   { label: 'Announcements', path: routePaths.announcements, role: 'all' },
