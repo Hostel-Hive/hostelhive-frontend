@@ -8,6 +8,10 @@
 
 ### Added
 
+- Admin-only user account listing, role changes and activation/deactivation with
+  confirmation dialogs, supported pagination, backend conflict explanations,
+  uncertain-result recovery and private-data cleanup (issue #79).
+
 - Dedicated Warden operations overview with pending-work metrics, recent recorded
   incidents, per-block accommodation, permitted shortcuts and shared overview
   loading/access recovery, separated from detailed/live attendance (issue #77).
