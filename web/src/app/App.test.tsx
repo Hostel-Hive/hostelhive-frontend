@@ -84,7 +84,15 @@ describe('protected dashboard access', () => {
       const nav = within(
         screen.getByRole('navigation', { name: 'Primary navigation' }),
       );
-      expect(nav.getAllByRole('link')).toHaveLength(10);
+      expect(nav.getAllByRole('link')).toHaveLength(role === 'admin' ? 11 : 10);
+      if (role === 'admin')
+        expect(
+          nav.getByRole('link', { name: 'User management' }),
+        ).toHaveAttribute('href', '/dashboard/users');
+      else
+        expect(
+          nav.queryByRole('link', { name: 'User management' }),
+        ).not.toBeInTheDocument();
       expect(nav.getByRole('link', { name: 'Announcements' })).toHaveAttribute(
         'href',
         '/dashboard/announcements',
