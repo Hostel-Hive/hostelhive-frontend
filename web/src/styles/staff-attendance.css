@@ -16,6 +16,16 @@
 .staff-attendance h3 {
   font-size: var(--text-base);
 }
+.staff-attendance-live {
+  padding: 16px;
+  margin: 16px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--cyan-100);
+}
+.staff-attendance-live .staff-attendance-toolbar {
+  margin-top: 0;
+}
 .staff-attendance-toolbar {
   display: flex;
   flex-wrap: wrap;

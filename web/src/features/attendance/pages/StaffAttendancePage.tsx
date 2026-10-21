@@ -17,6 +17,7 @@ import {
 } from '../api/staff-attendance.api';
 import type { IncidentFilters } from '../api/staff-attendance.api';
 import useStaffAttendanceRead from '../hooks/useStaffAttendanceRead';
+import LiveAttendance from '../components/LiveAttendance';
 import '../../../styles/staff-attendance.css';
 
 type View = 'dashboard' | 'incidents' | 'incident';
@@ -184,6 +185,8 @@ function Pages({
   );
 }
 function PresenceDashboard({ uid, denied }: Reader) {
+  const [revision, setRevision] = useState(0);
+  const liveUpdate = useCallback(() => setRevision((n) => n + 1), []);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [applied, setApplied] = useState({ query: '', status: '' });
@@ -203,6 +206,7 @@ function PresenceDashboard({ uid, denied }: Reader) {
     `${uid}:${JSON.stringify(applied)}:${offset}`,
     load,
     denied,
+    revision,
   );
   const region = useRef<HTMLDivElement>(null);
   const focus = useRef(false);
@@ -246,6 +250,8 @@ function PresenceDashboard({ uid, denied }: Reader) {
           Refresh attendance
         </Button>
       </div>
+      <LiveAttendance uid={uid} onUpdate={liveUpdate} denied={denied} />
+      {request.refreshing && <p role="status">Updating attendance records…</p>}
       <form className="staff-attendance-filters" onSubmit={apply}>
         <label>
           Search name or Student ID

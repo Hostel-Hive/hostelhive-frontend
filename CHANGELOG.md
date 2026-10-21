@@ -8,6 +8,10 @@
 
 ### Added
 
+- Opt-in live Admin/Warden attendance updates using authorized Firebase grants,
+  version-triggered REST refresh, connection/freshness indicators, grant renewal
+  and visibility/account cleanup while preserving filters, rows and focus (issue #73).
+
 - Admin/Warden attendance movement/daily, leave and complaint reports with backend
   filters, summaries, pagination, timezone metadata and authenticated PDF/XLSX
   downloads with export-limit recovery and private file cleanup (issue #71).
