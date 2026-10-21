@@ -8,6 +8,10 @@
 
 ### Added
 
+- Dedicated Admin overview with backend student/presence and pending-work counts,
+  per-block accommodation, filtered management links, independent retry and
+  private-data cleanup, separated from detailed/live attendance (issue #75).
+
 - Opt-in live Admin/Warden attendance updates using authorized Firebase grants,
   version-triggered REST refresh, connection/freshness indicators, grant renewal
   and visibility/account cleanup while preserving filters, rows and focus (issue #73).
