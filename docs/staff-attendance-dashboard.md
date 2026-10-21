@@ -1,13 +1,15 @@
 # Staff attendance dashboard and incidents
 
-Ticket #69 replaces Admin/Warden dashboard placeholders with backend presence
-counts and a paginated student list. The same view is also available at
-`/dashboard/attendance`; Attendance in the sidebar remains active on incident pages.
+Ticket #69 introduced backend presence counts and a paginated student list on the
+staff dashboards. Since ticket #75, the Admin entry is a dedicated overview with
+a compact attendance snapshot. The full presence view remains available at
+`/dashboard/attendance` and on the Warden dashboard; Attendance in the sidebar
+remains active on incident pages.
 
 ## Routes and permissions
 
-- `/dashboard/admin`, `/dashboard/warden`: existing role-specific entry pages,
-  now showing the shared attendance dashboard.
+- `/dashboard/admin`: Admin overview; see `admin-overview-dashboard.md`.
+- `/dashboard/warden`: existing Warden entry showing the shared attendance dashboard.
 - `/dashboard/attendance`: dedicated presence dashboard.
 - `/dashboard/attendance/incidents`: incident list, optionally preselected using
   `?student_id=<profile UUID>` from the presence list.
