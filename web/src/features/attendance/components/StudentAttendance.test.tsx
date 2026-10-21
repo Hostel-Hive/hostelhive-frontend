@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, expect, it, vi } from 'vitest';
 import StudentAttendance from './StudentAttendance';
 import {
@@ -37,6 +38,27 @@ async function load() {
     screen.getByRole('button', { name: 'Load attendance' }),
   );
 }
+it('links a recorded incident to the staff detail screen', async () => {
+  const id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  vi.mocked(getStudentScans).mockResolvedValue(
+    scanPage([
+      { ...scanFixture, incident_id: id, access_result: 'unapproved' },
+    ]),
+  );
+  render(
+    <MemoryRouter>
+      <StudentAttendance
+        studentID={studentFixture.student_id}
+        uid="staff-uid"
+      />
+    </MemoryRouter>,
+  );
+  await load();
+  expect(await screen.findByRole('link', { name: id })).toHaveAttribute(
+    'href',
+    `/dashboard/attendance/incidents/${id}`,
+  );
+});
 it('waits for explicit read-only retrieval and displays authoritative presence plus legacy assessments', async () => {
   show();
   expect(getStudentPresence).not.toHaveBeenCalled();
