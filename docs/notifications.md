@@ -39,8 +39,9 @@ arbitrary remote links from data are never used.
    the underlying announcement/request.
 3. Use **View related …** to visit the current complaint, leave, access request or
    announcement. Existing detail screens handle a missing or inaccessible source.
-   Attendance incident notifications show an explicit unavailable-screen message;
-   no fabricated incident URL or unrelated student is selected.
+   Admin/Warden attendance notifications now open the incident detail screen added
+   in [ticket #69](staff-attendance-dashboard.md). Students have no staff incident
+   route; no unrelated student is selected.
 4. Confirmed read changes refresh the inbox from page 1 and re-fetch unread counts.
    In unread-only mode, the opened event can remain in its detail panel while it
    disappears from the unread list. The count is never optimistically decremented.

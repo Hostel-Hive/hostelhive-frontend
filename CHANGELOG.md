@@ -8,6 +8,10 @@
 
 ### Added
 
+- Admin/Warden attendance dashboards, searched/status-filtered presence lists,
+  incident lists/details with recorded policy snapshots and incident navigation
+  from notifications and student scan history (issue #69).
+
 - Owned student/staff notification inboxes, unread filtering and badges,
   deliberate mark-read, source navigation and safe recovery (issue #66).
 
