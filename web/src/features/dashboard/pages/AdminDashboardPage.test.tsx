@@ -90,6 +90,9 @@ function card(label: string) {
 it('shows a distinct Admin overview with six backend metrics and a compact presence snapshot', async () => {
   await open();
   expect(screen.getByText('Staff / Overview')).toBeVisible();
+  expect(
+    screen.queryByRole('region', { name: 'Recent attendance incidents' }),
+  ).not.toBeInTheDocument();
   expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
   for (const [label, value] of [
     ['Active students', '10'],
