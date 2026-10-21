@@ -10,7 +10,7 @@ export class AuthorizedRequestError extends Error {
   }
 }
 export interface AuthorizedInput {
-  method: 'POST' | 'PUT' | 'DELETE';
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: BodyInit;
   contentType?: string;
 }

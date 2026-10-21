@@ -1,0 +1,87 @@
+.users-page {
+  max-width: 1440px;
+}
+.account-panel {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--color-surface, #fff);
+  border: 1px solid #dfdeeb;
+  border-radius: 1rem;
+}
+.accounts-table-wrap {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+.accounts-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.accounts-table-wrap caption {
+  text-align: left;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+.accounts-table-wrap th,
+.accounts-table-wrap td {
+  padding: 1rem;
+  border-bottom: 1px solid #dfdeeb;
+  vertical-align: top;
+}
+.accounts-table-wrap tbody th {
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  min-width: 13rem;
+}
+.accounts-table-wrap small,
+.account-name {
+  display: block;
+}
+.account-name {
+  font-weight: 600;
+}
+.account-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.account-pagination {
+  margin-top: 1.5rem;
+}
+.account-dialog {
+  width: min(36rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  box-sizing: border-box;
+  border: 1px solid #dfdeeb;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  color: #171039;
+}
+.account-dialog::backdrop {
+  background: rgb(23 16 57 / 45%);
+}
+.account-dialog p {
+  overflow-wrap: anywhere;
+}
+.account-dialog select {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  font: inherit;
+  border: 1px solid #dfdeeb;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: inherit;
+}
+@media (max-width: 600px) {
+  .account-panel {
+    padding: 1rem;
+  }
+  .accounts-table-wrap th,
+  .accounts-table-wrap td {
+    padding: 0.75rem;
+  }
+}

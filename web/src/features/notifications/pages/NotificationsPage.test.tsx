@@ -374,10 +374,9 @@ it('has an embedded student layout with one page heading supplied by the portal'
     await screen.findByRole('heading', { name: 'Your inbox' }),
   ).toBeVisible();
   expect(
-    within(screen.getByRole('region', { name: 'Inbox results' })).getByRole(
-      'heading',
-      { name: row.title },
-    ),
+    await within(
+      screen.getByRole('region', { name: 'Inbox results' }),
+    ).findByRole('heading', { name: row.title }),
   ).toBeVisible();
   expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
 });
