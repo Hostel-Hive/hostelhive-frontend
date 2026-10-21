@@ -1,4 +1,4 @@
-import StaffAttendancePage from '../../attendance/pages/StaffAttendancePage';
+import StaffOverview from '../components/StaffOverview';
 export default function WardenDashboardPage() {
-  return <StaffAttendancePage title="Warden dashboard" />;
+  return <StaffOverview role="warden" />;
 }
