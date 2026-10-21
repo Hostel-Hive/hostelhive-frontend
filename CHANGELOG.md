@@ -8,6 +8,10 @@
 
 ### Added
 
+- Dedicated Warden operations overview with pending-work metrics, recent recorded
+  incidents, per-block accommodation, permitted shortcuts and shared overview
+  loading/access recovery, separated from detailed/live attendance (issue #77).
+
 - Dedicated Admin overview with backend student/presence and pending-work counts,
   per-block accommodation, filtered management links, independent retry and
   private-data cleanup, separated from detailed/live attendance (issue #75).
