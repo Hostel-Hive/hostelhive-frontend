@@ -41,7 +41,11 @@ beforeEach(() => {
   vi.mocked(getStaff).mockResolvedValue(staffProfile);
   vi.mocked(listStaff).mockResolvedValue(staffPage());
 });
-it.each(['/dashboard/staff', `/dashboard/staff/${staffProfile.user_id}`])(
+it.each([
+  '/dashboard/staff',
+  '/dashboard/staff/new',
+  `/dashboard/staff/${staffProfile.user_id}`,
+])(
   'renders guarded staff route %s with the active parent navigation link',
   async (path) => {
     window.history.replaceState({}, '', path);
@@ -49,7 +53,11 @@ it.each(['/dashboard/staff', `/dashboard/staff/${staffProfile.user_id}`])(
     expect(
       await screen.findByRole('heading', {
         name:
-          path === '/dashboard/staff' ? 'Staff management' : 'Staff profile',
+          path === '/dashboard/staff'
+            ? 'Staff management'
+            : path.endsWith('/new')
+              ? 'Add staff member'
+              : 'Staff profile',
       }),
     ).toBeVisible();
     expect(
@@ -59,23 +67,24 @@ it.each(['/dashboard/staff', `/dashboard/staff/${staffProfile.user_id}`])(
     ).toHaveAttribute('aria-current', 'page');
   },
 );
-it.each(['/dashboard/staff', `/dashboard/staff/${staffProfile.user_id}`])(
-  'denies Warden access to %s without exposing staff data',
-  async (path) => {
-    vi.mocked(restoreStaffSession).mockResolvedValue({
-      user_id: 'warden-id',
-      firebase_uid: 'warden-uid',
-      email: 'warden@example.edu',
-      role: 'warden',
-      is_active: true,
-    });
-    window.history.replaceState({}, '', path);
-    render(<App />);
-    await screen.findByRole('heading', { name: 'Warden overview' });
-    expect(
-      screen.queryByRole('link', { name: 'Staff management' }),
-    ).not.toBeInTheDocument();
-    expect(getStaff).not.toHaveBeenCalled();
-    expect(listStaff).not.toHaveBeenCalled();
-  },
-);
+it.each([
+  '/dashboard/staff',
+  '/dashboard/staff/new',
+  `/dashboard/staff/${staffProfile.user_id}`,
+])('denies Warden access to %s without exposing staff data', async (path) => {
+  vi.mocked(restoreStaffSession).mockResolvedValue({
+    user_id: 'warden-id',
+    firebase_uid: 'warden-uid',
+    email: 'warden@example.edu',
+    role: 'warden',
+    is_active: true,
+  });
+  window.history.replaceState({}, '', path);
+  render(<App />);
+  await screen.findByRole('heading', { name: 'Warden overview' });
+  expect(
+    screen.queryByRole('link', { name: 'Staff management' }),
+  ).not.toBeInTheDocument();
+  expect(getStaff).not.toHaveBeenCalled();
+  expect(listStaff).not.toHaveBeenCalled();
+});

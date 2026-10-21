@@ -2,6 +2,8 @@
 
 Ticket: #79. Route: `/dashboard/users`.
 
+Staff-role account rows also link to the separate [#83 staff profile setup workflow](admin-staff-creation.md). That workflow can create a missing profile without creating another login account.
+
 ## Access and navigation
 
 Sign in through `/staff/login` with an active Admin account and select **User management**.

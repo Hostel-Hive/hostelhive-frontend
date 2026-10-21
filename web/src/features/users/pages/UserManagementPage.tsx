@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { routePaths } from '../../../app/router/routePaths';
 import useAuth from '../../auth/hooks/useAuth';
 import Button from '../../../shared/components/ui/Button';
 import AccountDialog from '../components/AccountDialog';
@@ -214,6 +215,18 @@ function Workspace({ uid }: { uid: string }) {
                             <td>{user.is_active ? 'Active' : 'Inactive'}</td>
                             <td>
                               <div className="account-actions">
+                                {user.role !== 'student' && (
+                                  <Link
+                                    to={routePaths.staffNew}
+                                    state={{
+                                      staffAccount: user,
+                                      staffActor: uid,
+                                    }}
+                                    aria-label={`Set up staff profile for ${user.email}`}
+                                  >
+                                    Set up staff profile
+                                  </Link>
+                                )}
                                 <Button
                                   variant="secondary"
                                   size="sm"

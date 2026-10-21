@@ -47,6 +47,9 @@ const UserManagementPage = lazy(
 const StaffManagementPage = lazy(
   () => import('../../features/staff/pages/StaffManagementPage'),
 );
+const StaffCreationPage = lazy(
+  () => import('../../features/staff/pages/StaffCreationPage'),
+);
 const LeaveListPage = lazy(
   () => import('../../features/leave/pages/LeaveListPage'),
 );
@@ -284,6 +287,16 @@ export default function AppRoutes() {
           />
           <Route path="students/:studentID" element={<StudentProfilePage />} />
           <Route element={<RoleGuard role="admin" />}>
+            <Route
+              path="staff/new"
+              element={
+                <Suspense
+                  fallback={<p role="status">Loading staff creation…</p>}
+                >
+                  <StaffCreationPage />
+                </Suspense>
+              }
+            />
             {['staff', 'staff/:userID'].map((path) => (
               <Route
                 key={path}

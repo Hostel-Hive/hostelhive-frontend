@@ -13,6 +13,7 @@ export interface AuthorizedInput {
   method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: BodyInit;
   contentType?: string;
+  idempotencyKey?: string;
 }
 export async function authorizedRequest(
   path: string,
@@ -58,6 +59,9 @@ export async function authorizedRequest(
     headers: {
       Authorization: `Bearer ${token}`,
       ...(input?.contentType ? { 'Content-Type': input.contentType } : {}),
+      ...(input?.idempotencyKey
+        ? { 'Idempotency-Key': input.idempotencyKey }
+        : {}),
     },
     ...(input
       ? {

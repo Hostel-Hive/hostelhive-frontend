@@ -45,7 +45,7 @@ function Workspace({ uid }: { uid: string }) {
     error?: string;
     denied?: boolean;
   }>();
-  const [editor, setEditor] = useState<string>();
+  const [editor, setEditor] = useState<{ key: string; userID: string }>();
   const [denial, setDenial] = useState('');
   const [notice, setNotice] = useState('');
   const [checking, setChecking] = useState(false);
@@ -56,6 +56,12 @@ function Workspace({ uid }: { uid: string }) {
   const denied = denial || (current?.denied ? current.error : '');
   const profile = denied ? undefined : current?.profile;
   const page = denied ? undefined : current?.page;
+  const editingProfile =
+    editor?.key === key && !denied
+      ? [profile, ...(page?.staff ?? [])].find(
+          (row) => row?.user_id === editor.userID && row.role !== 'student',
+        )
+      : undefined;
   const back = `${routePaths.staff}${offset ? `?offset=${offset}` : ''}`;
   useEffect(() => {
     mounted.current = true;
@@ -127,6 +133,11 @@ function Workspace({ uid }: { uid: string }) {
         in <Link to={routePaths.users}>User management</Link>.
       </p>
       {userID && <Link to={back}>Back to staff directory</Link>}
+      {!userID && !denied && (
+        <Link className="button-link" to={routePaths.staffNew}>
+          Add staff member
+        </Link>
+      )}
       {denied ? (
         <div className="staff-panel">
           <p role="alert">{denied}</p>
@@ -215,7 +226,11 @@ function Workspace({ uid }: { uid: string }) {
                   User management before updating the profile.
                 </p>
               ) : (
-                <Button onClick={() => setEditor(key)}>Edit profile</Button>
+                <Button
+                  onClick={() => setEditor({ key, userID: profile.user_id })}
+                >
+                  Edit profile
+                </Button>
               )}
             </>
           ) : (
@@ -242,6 +257,7 @@ function Workspace({ uid }: { uid: string }) {
                           <th scope="col">Designation</th>
                           <th scope="col">Account role</th>
                           <th scope="col">Account access</th>
+                          <th scope="col">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -258,6 +274,21 @@ function Workspace({ uid }: { uid: string }) {
                             <td>{row.designation || 'Not provided'}</td>
                             <td>{roleLabels[row.role]}</td>
                             <td>{row.is_active ? 'Active' : 'Inactive'}</td>
+                            <td>
+                              {row.role === 'student' ? (
+                                <span>Review role in User management</span>
+                              ) : (
+                                <Button
+                                  variant="secondary"
+                                  aria-label={`Edit profile for ${row.full_name || row.email}`}
+                                  onClick={() =>
+                                    setEditor({ key, userID: row.user_id })
+                                  }
+                                >
+                                  Edit profile
+                                </Button>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -297,11 +328,11 @@ function Workspace({ uid }: { uid: string }) {
           )}
         </div>
       )}
-      {editor === key && profile && (
+      {editingProfile && (
         <StaffEditor
-          key={`${uid}:${profile.user_id}`}
+          key={`${uid}:${editingProfile.user_id}`}
           uid={uid}
-          profile={profile}
+          profile={editingProfile}
           onClose={() => setEditor(undefined)}
           onRefresh={refresh}
           onDenied={(message) => {
@@ -311,7 +342,19 @@ function Workspace({ uid }: { uid: string }) {
           }}
           onSaved={(saved) => {
             setEditor(undefined);
-            setResult({ key, profile: saved });
+            setResult(
+              page
+                ? {
+                    key,
+                    page: {
+                      ...page,
+                      staff: page.staff.map((row) =>
+                        row.user_id === saved.user_id ? saved : row,
+                      ),
+                    },
+                  }
+                : { key, profile: saved },
+            );
             setNotice('Staff profile saved and confirmed.');
           }}
         />

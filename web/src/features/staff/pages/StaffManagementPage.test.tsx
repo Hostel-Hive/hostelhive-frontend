@@ -125,6 +125,47 @@ it('shows a real directory with backend account roles and access', async () => {
   expect(screen.getByText('Active', { exact: true })).toBeVisible();
   expect(list).toHaveBeenCalledWith('admin-uid', expect.any(AbortSignal), 0);
 });
+it('edits the selected directory row and keeps pagination and other rows', async () => {
+  const other = {
+    ...profile,
+    staff_id: '60000000-0000-4000-8000-000000000002',
+    user_id: '70000000-0000-4000-8000-000000000002',
+    full_name: 'Another Warden',
+  };
+  list.mockResolvedValue(page([other, profile], 20));
+  const { router } = mount('/dashboard/staff?offset=20');
+  fireEvent.click(
+    await screen.findByRole('button', {
+      name: `Edit profile for ${profile.full_name}`,
+    }),
+  );
+  expect(screen.getByLabelText('Full name')).toHaveValue(profile.full_name);
+  changeName('Updated Warden');
+  fireEvent.click(screen.getByText('Save changes'));
+  await screen.findByText('Staff profile saved and confirmed.');
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Updated Warden' })).toHaveAttribute(
+    'href',
+    `${detailURL}?offset=20`,
+  );
+  expect(screen.getByRole('link', { name: other.full_name })).toBeVisible();
+  expect(router.state.location.search).toBe('?offset=20');
+  expect(save).toHaveBeenCalledWith(
+    profile,
+    { full_name: 'Updated Warden', designation: profile.designation },
+    'admin-uid',
+    expect.any(AbortSignal),
+  );
+});
+it('does not offer directory editing for a historical student-role profile', async () => {
+  list.mockResolvedValue(page([{ ...profile, role: 'student' }]));
+  mount();
+  await screen.findByRole('link', { name: profile.full_name });
+  expect(
+    screen.queryByRole('button', { name: /Edit profile/ }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByText('Review role in User management')).toBeVisible();
+});
 it.each(['warden', 'student'] as const)(
   'denies %s without reading profiles',
   (role) => {

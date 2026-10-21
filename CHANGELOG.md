@@ -4,9 +4,15 @@
 
 ### Fixed
 
+- Made staff profile editing directly accessible from each eligible directory row, preserving pagination and displaying confirmed saved details.
+
 - Stabilized asynchronous UI checks for lazy routes on Windows and under coverage, with bounded waits and explicit React act-environment setup for imported Vitest hooks. Assertions and coverage gates are unchanged.
 
 ### Added
+
+- Admin staff account/profile creation and missing-profile setup for existing
+  accounts, with password visibility, stable provisioning keys, credential-free
+  session recovery, partial-completion checks and protected navigation (issue #83).
 
 - Admin-only staff profile directory, account-ID detail screens and name/designation
   editing with supported pagination, unsaved-change protection, uncertain-save
