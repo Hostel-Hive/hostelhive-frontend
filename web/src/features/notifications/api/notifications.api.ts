@@ -243,6 +243,8 @@ export function notificationSource(
     case 'announcement':
       return `${base}/announcements/${row.announcement_id}`;
     case 'attendance':
-      return undefined;
+      return role === 'student'
+        ? undefined
+        : `/dashboard/attendance/incidents/${row.attendance_incident_id}`;
   }
 }

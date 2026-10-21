@@ -87,7 +87,15 @@ describe('student directory and profiles', () => {
         'staff-uid',
         expect.any(AbortSignal),
       );
-      expect(screen.queryByText('Attendance')).not.toBeInTheDocument();
+      expect(
+        within(screen.getByRole('table')).queryByRole('columnheader', {
+          name: 'Attendance',
+        }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Attendance' })).toHaveAttribute(
+        'href',
+        '/dashboard/attendance',
+      );
     },
   );
   it('redirects signed-out access without fetching private records', async () => {

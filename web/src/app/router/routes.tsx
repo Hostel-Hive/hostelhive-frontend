@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import AdminDashboardPage from '../../features/dashboard/pages/AdminDashboardPage';
 import WardenDashboardPage from '../../features/dashboard/pages/WardenDashboardPage';
+import StaffAttendancePage from '../../features/attendance/pages/StaffAttendancePage';
 import StudentDirectoryPage from '../../features/students/pages/StudentDirectoryPage';
 import StudentProfilePage from '../../features/students/pages/StudentProfilePage';
 import StudentFormPage from '../../features/students/pages/StudentFormPage';
@@ -159,6 +160,15 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          <Route path="attendance" element={<StaffAttendancePage />} />
+          <Route
+            path="attendance/incidents"
+            element={<StaffAttendancePage view="incidents" />}
+          />
+          <Route
+            path="attendance/incidents/:incidentID"
+            element={<StaffAttendancePage view="incident" />}
+          />
           <Route
             path="notifications"
             element={

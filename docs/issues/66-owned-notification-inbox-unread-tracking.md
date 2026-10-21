@@ -43,6 +43,9 @@ This local issue description does not create or update a GitHub issue.
 
 Branch: `feature/66-owned-notification-inbox-unread-tracking`.
 
+Follow-up #69 adds the staff attendance incident screen and connects staff inbox
+source links to it. The original #66 boundary describes its own scope.
+
 Verification: all 1352 tests pass across 68 files, including 82 new notification
 tests across four files. The focused run
 including existing app and student-portal checks passes all 122 tests.

@@ -10,6 +10,8 @@ export const routePaths = {
   ownAnnouncements: '/student/announcements',
   ownNotifications: '/student/notifications',
   notifications: '/dashboard/notifications',
+  attendance: '/dashboard/attendance',
+  attendanceIncidents: '/dashboard/attendance/incidents',
   announcements: '/dashboard/announcements',
   ownComplaints: '/student/complaints',
   ownComplaintNew: '/student/complaints/new',

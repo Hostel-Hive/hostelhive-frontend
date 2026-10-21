@@ -268,7 +268,7 @@ it('handles a removed notification without a blind retry', async () => {
     screen.queryByRole('button', { name: 'Retry marking as read' }),
   ).toBeNull();
 });
-it('explains attendance incidents whose detail UI is not implemented', async () => {
+it('links staff notifications to the attendance incident detail screen', async () => {
   const incident = {
     ...readNotification,
     source_type: 'attendance' as const,
@@ -282,11 +282,11 @@ it('explains attendance incidents whose detail UI is not implemented', async () 
   await screen.findByText(row.title);
   fireEvent.click(openRow());
   expect(
-    screen.getByText(
-      'Attendance incident details are not available in this portal yet.',
-    ),
-  ).toBeVisible();
-  expect(screen.queryByRole('link', { name: /View related/ })).toBeNull();
+    screen.getByRole('link', { name: 'View related attendance' }),
+  ).toHaveAttribute(
+    'href',
+    `/dashboard/attendance/incidents/${row.complaint_id}`,
+  );
   expect(markNotificationRead).not.toHaveBeenCalled();
 });
 it.each(['session', 'setup', 'forbidden'] as const)(

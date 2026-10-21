@@ -251,7 +251,11 @@ it.each(['student', 'admin', 'warden'] as const)(
         },
         role,
       ),
-    ).toBeUndefined();
+    ).toBe(
+      role === 'student'
+        ? undefined
+        : `/dashboard/attendance/incidents/${row.complaint_id}`,
+    );
   },
 );
 it.each([
