@@ -84,11 +84,16 @@ function at(path: string) {
   return render(<App />);
 }
 it.each(['warden'] as const)(
-  'replaces %s placeholders with backend attendance data',
+  'shows a dedicated %s operations overview instead of the attendance list',
   async (role) => {
     vi.mocked(restoreStaffSession).mockResolvedValue({ ...account, role });
     at(`/dashboard/${role}`);
-    expect(await screen.findByText(row.full_name)).toBeVisible();
+    expect(await screen.findByText('Staff / Operations')).toBeVisible();
+    expect(screen.queryByText(row.full_name)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Enable live updates' }),
+    ).not.toBeInTheDocument();
+    expect(listPresence).not.toHaveBeenCalled();
     expect(
       screen.getByRole('heading', {
         name: 'Warden dashboard',

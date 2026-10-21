@@ -2,11 +2,11 @@
 
 ## Use
 
-Open `/dashboard/attendance` as Admin/Warden, or open the Warden dashboard, and
-choose **Enable live updates**. Since ticket #75, the Admin overview links to
-Attendance instead of embedding the full presence/live controls. Manual refresh
-remains available. Incident views and historical reports remain deliberate reads;
-this feed covers the current presence dashboard.
+Open `/dashboard/attendance` as Admin/Warden and choose **Enable live updates**.
+Since tickets #75/#77, both role overviews link to Attendance instead of embedding
+the full presence/live controls. Manual refresh remains available. Incident views
+and historical reports remain deliberate reads; this feed covers the current
+presence dashboard.
 
 The feed carries aggregate counts and a revision, with no names, profile IDs,
 contacts, credentials or scan history. The frontend uses its version as a signal

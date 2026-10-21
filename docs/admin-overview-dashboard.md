@@ -67,8 +67,9 @@ that no blocks exist anywhere.
 Automated checks cover scope/filter mapping, backend totals, safe error mapping,
 zero/loading/error states, independent retries, refresh, block pagination,
 navigation URLs, focus, access denial, UID/role changes and ignored late results.
-The attendance route regression now asserts a distinct Admin overview while
-preserving the existing Warden attendance dashboard behavior.
+The attendance route regression asserts a distinct Admin overview. Ticket #77
+adds a Warden operations overview and extracts shared presentation while preserving
+the Admin behavior, ordering and permissions.
 
 Live authenticated browser acceptance, narrow-screen/screen-reader walkthrough
 and peer review remain pending. Mocked totals are test fixtures, not evidence
