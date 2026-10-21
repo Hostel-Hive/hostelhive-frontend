@@ -8,6 +8,10 @@
 
 ### Added
 
+- Admin-only staff profile directory, account-ID detail screens and name/designation
+  editing with supported pagination, unsaved-change protection, uncertain-save
+  verification, access recovery and private request cleanup (issue #81).
+
 - Admin-only user account listing, role changes and activation/deactivation with
   confirmation dialogs, supported pagination, backend conflict explanations,
   uncertain-result recovery and private-data cleanup (issue #79).
