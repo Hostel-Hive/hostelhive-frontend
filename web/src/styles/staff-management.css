@@ -1,0 +1,100 @@
+.staff-page {
+  max-width: 1440px;
+}
+.staff-panel {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid #dfdeeb;
+  border-radius: 1rem;
+  background: #fff;
+}
+.staff-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.staff-table-wrap {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+.staff-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.staff-table-wrap caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.staff-table-wrap th,
+.staff-table-wrap td {
+  padding: 1rem;
+  vertical-align: top;
+  border-bottom: 1px solid #dfdeeb;
+}
+.staff-table-wrap tbody th {
+  font-weight: 400;
+  min-width: 13rem;
+  overflow-wrap: anywhere;
+}
+.staff-table-wrap small {
+  display: block;
+  margin-top: 0.5rem;
+}
+.staff-pagination {
+  margin-top: 1.5rem;
+}
+.staff-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+.staff-details dt {
+  font-size: 0.875rem;
+  color: #585274;
+}
+.staff-details dd {
+  margin: 0.5rem 0 0;
+  overflow-wrap: anywhere;
+}
+.staff-editor {
+  width: min(38rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 1.5rem;
+  border: 1px solid #dfdeeb;
+  border-radius: 1rem;
+  color: #171039;
+}
+.staff-editor::backdrop {
+  background: rgb(23 16 57 / 45%);
+}
+.staff-editor p {
+  overflow-wrap: anywhere;
+}
+.staff-field {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.staff-review {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #eaf9ff;
+  border-radius: 0.5rem;
+}
+@media (max-width: 600px) {
+  .staff-panel {
+    padding: 1rem;
+  }
+  .staff-details {
+    grid-template-columns: 1fr;
+  }
+  .staff-table-wrap th,
+  .staff-table-wrap td {
+    padding: 0.75rem;
+  }
+}

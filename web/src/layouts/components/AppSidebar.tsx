@@ -25,7 +25,7 @@ export default function AppSidebar({
             <li key={item.path}>
               <NavLink
                 to={item.path}
-                end={item.role !== 'all'}
+                end={'end' in item ? item.end : item.role !== 'all'}
                 onClick={onNavigate}
                 className={({ isActive }) =>
                   isActive ? 'nav-link nav-link--active' : 'nav-link'

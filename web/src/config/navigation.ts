@@ -4,6 +4,12 @@ export const dashboardNavigation = [
   { label: 'Admin dashboard', path: routePaths.adminDashboard, role: 'admin' },
   { label: 'User management', path: routePaths.users, role: 'admin' },
   {
+    label: 'Staff management',
+    path: routePaths.staff,
+    role: 'admin',
+    end: false,
+  },
+  {
     label: 'Warden dashboard',
     path: routePaths.wardenDashboard,
     role: 'warden',
