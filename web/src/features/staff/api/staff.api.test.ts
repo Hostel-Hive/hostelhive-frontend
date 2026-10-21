@@ -7,6 +7,7 @@ import {
   listStaff,
   getStaff,
   saveStaff,
+  createStaffProfile,
   validStaff,
   staffOffset,
   normalizeStaff,
@@ -238,4 +239,38 @@ it('identifies access failures without treating other errors as access denial', 
     false,
   );
   expect(staffAccessError(null)).toBe(false);
+});
+it('creates a missing profile addressed by confirmed account ID', async () => {
+  request.mockResolvedValue(response({ ...profile, ...details }));
+  expect(
+    await createStaffProfile(profile.user_id, details, 'admin', signal),
+  ).toEqual({ ...profile, ...details });
+  expect(request).toHaveBeenCalledWith(
+    `/api/v1/staff/${profile.user_id}`,
+    'admin',
+    signal,
+    {
+      method: 'PUT',
+      contentType: 'application/json',
+      body: JSON.stringify(details),
+    },
+  );
+});
+it('rejects invalid creation input and unconfirmed profiles', async () => {
+  await expect(
+    createStaffProfile('bad', details, 'admin', signal),
+  ).rejects.toMatchObject({ kind: 'invalid' });
+  await expect(
+    createStaffProfile(
+      profile.user_id,
+      { ...details, full_name: '' },
+      'admin',
+      signal,
+    ),
+  ).rejects.toMatchObject({ kind: 'invalid' });
+  expect(request).not.toHaveBeenCalled();
+  request.mockResolvedValue(response(profile));
+  await expect(
+    createStaffProfile(profile.user_id, details, 'admin', signal),
+  ).rejects.toMatchObject({ kind: 'unavailable' });
 });

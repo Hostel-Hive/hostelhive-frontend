@@ -86,7 +86,39 @@
   background: #eaf9ff;
   border-radius: 0.5rem;
 }
+.staff-account-choices {
+  list-style: none;
+  padding: 0;
+}
+.staff-account-choices li {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid #dfdeeb;
+  overflow-wrap: anywhere;
+}
+.staff-password {
+  display: flex;
+  gap: 0.5rem;
+}
+.staff-password input {
+  min-width: 0;
+  flex: 1;
+}
+.staff-panel select {
+  font: inherit;
+  padding: 0.75rem;
+  border: 1px solid #dfdeeb;
+  border-radius: 0.5rem;
+  color: inherit;
+  background: #fff;
+}
 @media (max-width: 600px) {
+  .staff-account-choices li {
+    flex-wrap: wrap;
+  }
   .staff-panel {
     padding: 1rem;
   }

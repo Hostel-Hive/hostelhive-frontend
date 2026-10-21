@@ -2,6 +2,8 @@
 
 Ticket #81 adds **Staff management** to the Admin staff workspace.
 
+The directory now links to the separate [#83 staff creation workflow](admin-staff-creation.md) for new accounts and missing profiles. The editing behavior below remains scoped to existing profiles.
+
 ## Routes and permissions
 
 - Directory: `/dashboard/staff`.
@@ -34,6 +36,8 @@ The directory supports pagination only, with a fixed page size of 20 and backend
 The interface edits existing profiles only. It does not create staff accounts or profiles, delete records, change roles/access, or call the staff self-service API.
 
 ## Editing and recovery
+
+Admin can select **Edit profile** directly in a staff directory row or on the profile detail screen. Both entry points use the same protected editor and existing backend update API. Saving from the directory updates the confirmed row while retaining the current page and other profiles.
 
 - Editing opens an accessible native modal and focuses full name. Cancellation restores the invoking control or page heading. Native modal behavior confines keyboard focus.
 - Dirty drafts require explicit discard before closing or client-side navigation. Browser unload also warns while dirty, pending or uncertain. Cancel/Escape and duplicate submissions are disabled while a request is pending.

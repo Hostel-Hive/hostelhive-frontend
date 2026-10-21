@@ -238,3 +238,26 @@ export async function saveStaff(
     throw unavailable();
   return value;
 }
+export async function createStaffProfile(
+  userID: string,
+  details: StaffDetails,
+  uid: string,
+  signal: AbortSignal,
+): Promise<StaffProfile> {
+  const normalized = normalizeStaff(details);
+  if (!staffUUID(userID) || Object.keys(validateStaff(details)).length)
+    throw new StaffError(
+      'invalid',
+      'Check the full name and designation before creating the profile.',
+    );
+  const value = await request(`/${userID}`, uid, signal, normalized);
+  if (
+    !validStaff(value) ||
+    value.user_id !== userID ||
+    value.role === 'student' ||
+    value.full_name !== normalized.full_name ||
+    value.designation !== normalized.designation
+  )
+    throw unavailable();
+  return value;
+}
