@@ -8,6 +8,10 @@
 
 ### Added
 
+- Admin/Warden attendance movement/daily, leave and complaint reports with backend
+  filters, summaries, pagination, timezone metadata and authenticated PDF/XLSX
+  downloads with export-limit recovery and private file cleanup (issue #71).
+
 - Admin/Warden attendance dashboards, searched/status-filtered presence lists,
   incident lists/details with recorded policy snapshots and incident navigation
   from notifications and student scan history (issue #69).
