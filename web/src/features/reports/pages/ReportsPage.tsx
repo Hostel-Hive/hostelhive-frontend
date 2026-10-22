@@ -52,7 +52,10 @@ function Workspace({ uid, kind }: { uid: string; kind: ReportKind }) {
       <h1 tabIndex={-1} ref={heading}>
         Reports
       </h1>
-      <nav className="report-toolbar" aria-label="Report navigation">
+      <p className="page-description">
+        Review historical records and export reports for a selected period.
+      </p>
+      <nav className="report-navigation" aria-label="Report navigation">
         {(Object.keys(reportTitles) as ReportKind[]).map((item) => (
           <Link
             key={item}
@@ -237,7 +240,7 @@ function ReportBrowser({
   return (
     <section className="report-card" aria-labelledby="report-type-title">
       <h2 id="report-type-title">{reportTitles[kind]}</h2>
-      <p>
+      <p className="report-description">
         {attendance
           ? 'Dates select recorded movement time in the backend hostel timezone. Ignored scan attempts are excluded.'
           : kind === 'leaves'
@@ -333,24 +336,26 @@ function ReportBrowser({
               </select>
             </label>
           )}
-          <Button type="submit" size="sm" disabled={pending}>
-            Run report
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={pending}
-            onClick={() => {
-              setDraft(emptyReportFilters);
-              setApplied(null);
-              setOffset(0);
-              setValidation('');
-              setFile(undefined);
-              setExportFailure(undefined);
-            }}
-          >
-            Clear filters
-          </Button>
+          <div className="report-filter-actions">
+            <Button type="submit" size="sm" disabled={pending}>
+              Run report
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={pending}
+              onClick={() => {
+                setDraft(emptyReportFilters);
+                setApplied(null);
+                setOffset(0);
+                setValidation('');
+                setFile(undefined);
+                setExportFailure(undefined);
+              }}
+            >
+              Clear filters
+            </Button>
+          </div>
         </fieldset>
       </form>
       <p className="report-caption">
@@ -360,7 +365,7 @@ function ReportBrowser({
         to apply them.
       </p>
       {validation && <p role="alert">{validation}</p>}
-      <div className="report-toolbar">
+      <div className="report-toolbar report-export-toolbar">
         <Button
           size="sm"
           variant="secondary"
@@ -371,16 +376,44 @@ function ReportBrowser({
         </Button>
         <Button
           size="sm"
+          variant="secondary"
           disabled={!current?.data || pending || exportBusy}
           onClick={() => void prepare('pdf')}
         >
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5" />
+          </svg>
           Download PDF
         </Button>
         <Button
           size="sm"
+          variant="secondary"
           disabled={!current?.data || pending || exportBusy}
           onClick={() => void prepare('xlsx')}
         >
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5" />
+          </svg>
           Download Excel
         </Button>
         {exportBusy && (
@@ -389,13 +422,21 @@ function ReportBrowser({
           </Button>
         )}
       </div>
-      <p className="report-caption">
-        Exports use the applied filters and include every matching row, not just
-        this page. Excel supports up to 5,000 rows; PDF up to 1,000 rows with
-        document-size/page limits. Exports are generated from a new backend
-        snapshot and can differ from the displayed report. Narrow filters if an
-        export is too large.
-      </p>
+      {!current?.data && !pending && (
+        <p className="report-caption">
+          Run a report to enable PDF and Excel downloads.
+        </p>
+      )}
+      <details className="report-export-help">
+        <summary>Export limits and data scope</summary>
+        <p className="report-caption">
+          Exports use the applied filters and include every matching row, not
+          just this page. Excel supports up to 5,000 rows; PDF up to 1,000 rows
+          with document-size/page limits. Exports are generated from a new
+          backend snapshot and can differ from the displayed report. Narrow
+          filters if an export is too large.
+        </p>
+      </details>
       {exportBusy && <p role="status">Preparing private report download…</p>}
       {exportFailure && (
         <div>
@@ -419,7 +460,21 @@ function ReportBrowser({
         aria-busy={pending}
       >
         {!applied ? (
-          <p>Choose a date range and run a report.</p>
+          <div className="report-empty-state">
+            <svg
+              aria-hidden="true"
+              width="44"
+              height="44"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M14 3H5v18h14V8l-5-5ZM14 3v5h5M8 12h8M8 16h5" />
+            </svg>
+            <h3>No report generated yet</h3>
+            <p>Choose a date range and run a report.</p>
+          </div>
         ) : pending ? (
           <p role="status">Loading report…</p>
         ) : current?.error ? (
@@ -441,7 +496,10 @@ function ReportBrowser({
                   ` Category: ${applied.category || 'All categories'}.`}
               </p>
               <ReportResults page={current.data} />
-              <nav className="report-toolbar" aria-label="Report pages">
+              <nav
+                className="report-toolbar report-pagination"
+                aria-label="Report pages"
+              >
                 <Button
                   size="sm"
                   variant="secondary"
