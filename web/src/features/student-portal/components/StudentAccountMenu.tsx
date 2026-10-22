@@ -3,15 +3,20 @@ import type { KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { routePaths } from '../../../app/router/routePaths';
+import '../../../styles/account-menu.css';
 
 export default function StudentAccountMenu({
   name,
   email,
   signOut,
+  roleLabel = 'Student',
+  profilePath = routePaths.ownStudentProfile,
 }: {
   name?: string;
   email: string;
   signOut: () => Promise<void>;
+  roleLabel?: string;
+  profilePath?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -22,7 +27,7 @@ export default function StudentAccountMenu({
   const busy = useRef(false);
   const mounted = useRef(false);
   const menuId = useId();
-  const displayName = name?.trim() || 'Student account';
+  const displayName = name?.trim() || `${roleLabel} account`;
   const initials = name
     ?.trim()
     .split(/\s+/)
@@ -144,7 +149,9 @@ export default function StudentAccountMenu({
           if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
             event.preventDefault();
             initialItem.current =
-              event.key === 'ArrowUp' || event.key === 'End' ? 1 : 0;
+              profilePath && (event.key === 'ArrowUp' || event.key === 'End')
+                ? 1
+                : 0;
             setOpen(true);
           }
         }}
@@ -192,30 +199,34 @@ export default function StudentAccountMenu({
             <div className="portal-account-summary">
               <strong>{displayName}</strong>
               <span>{email}</span>
-              <span className="portal-account-role">Student</span>
+              <span className="portal-account-role">{roleLabel}</span>
             </div>
-            <div id={menuId} role="menu" aria-label="Student account">
-              <Link
-                role="menuitem"
-                tabIndex={-1}
-                to={routePaths.ownStudentProfile}
-                onClick={() => close()}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  aria-hidden="true"
+            <div id={menuId} role="menu" aria-label={`${roleLabel} account`}>
+              {profilePath && (
+                <Link
+                  role="menuitem"
+                  tabIndex={-1}
+                  to={profilePath}
+                  onClick={() => close()}
                 >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
-                </svg>
-                My profile
-              </Link>
-              <div className="portal-account-divider" role="separator" />
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+                  </svg>
+                  My profile
+                </Link>
+              )}
+              {profilePath && (
+                <div className="portal-account-divider" role="separator" />
+              )}
               <button
                 type="button"
                 role="menuitem"
