@@ -74,18 +74,28 @@ function Workspace({
             ? 'Attendance incidents'
             : 'Attendance incident'}
       </h1>
-      <nav
-        className="staff-attendance-toolbar"
-        aria-label="Attendance navigation"
-      >
-        <Link to={routePaths.attendance}>Presence dashboard</Link>
-        <Link to={routePaths.attendanceIncidents}>Attendance incidents</Link>
-      </nav>
       <p className="page-description">
         Read-only scanner records. Recorded presence is the last accepted
         movement, not a guarantee of physical location. UNKNOWN does not mean
         outside.
       </p>
+      <nav
+        className="staff-attendance-navigation"
+        aria-label="Attendance navigation"
+      >
+        <Link
+          to={routePaths.attendance}
+          aria-current={view === 'dashboard' ? 'page' : undefined}
+        >
+          Presence dashboard
+        </Link>
+        <Link
+          to={routePaths.attendanceIncidents}
+          aria-current={view !== 'dashboard' ? 'page' : undefined}
+        >
+          Attendance incidents
+        </Link>
+      </nav>
       {error ? (
         <section className="staff-attendance-card">
           <p role="alert">{error.message}</p>
@@ -163,7 +173,10 @@ function Pages({
   onPage: (n: number) => void;
 }) {
   return (
-    <nav className="staff-attendance-toolbar" aria-label="Attendance pages">
+    <nav
+      className="staff-attendance-toolbar staff-attendance-pagination"
+      aria-label="Attendance pages"
+    >
       <Button
         size="sm"
         variant="secondary"
@@ -311,7 +324,7 @@ function PresenceDashboard({ uid, denied }: Reader) {
               aria-label="Backend presence counts"
             >
               {(['total', 'in', 'out', 'unknown'] as const).map((key) => (
-                <div key={key}>
+                <div key={key} className={`staff-summary--${key}`}>
                   <dt>
                     {key === 'total' ? 'Total students' : key.toUpperCase()}
                   </dt>
@@ -325,28 +338,51 @@ function PresenceDashboard({ uid, denied }: Reader) {
                 ` Showing ${offset + 1}–${offset + request.data.list.items.length}.`}
             </p>
             {request.data.list.items.length ? (
-              <div className="staff-attendance-table">
+              <div
+                className="staff-attendance-table"
+                role="region"
+                aria-label="Student presence table"
+                tabIndex={0}
+              >
                 <table>
                   <caption>Last recorded student presence</caption>
                   <thead>
                     <tr>
-                      <th>Student</th>
-                      <th>Recorded status</th>
-                      <th>Last movement</th>
-                      <th>Incidents</th>
+                      <th scope="col">Student</th>
+                      <th scope="col">Recorded status</th>
+                      <th scope="col">Last movement</th>
+                      <th scope="col">Incidents</th>
                     </tr>
                   </thead>
                   <tbody>
                     {request.data.list.items.map((row) => (
                       <tr key={row.student_id}>
-                        <td>
-                          <Link to={`${routePaths.students}/${row.student_id}`}>
-                            {row.full_name}
-                          </Link>
-                          <span className="staff-attendance-caption">
-                            {row.index_no}
-                          </span>
-                        </td>
+                        <th scope="row">
+                          <div className="staff-attendance-identity">
+                            <span
+                              className="staff-attendance-avatar"
+                              aria-hidden="true"
+                            >
+                              {row.full_name
+                                .trim()
+                                .split(/\s+/)
+                                .slice(0, 2)
+                                .map((part) => part[0])
+                                .join('')
+                                .toUpperCase()}
+                            </span>
+                            <div>
+                              <Link
+                                to={`${routePaths.students}/${row.student_id}`}
+                              >
+                                {row.full_name}
+                              </Link>
+                              <span className="staff-attendance-caption">
+                                {row.index_no}
+                              </span>
+                            </div>
+                          </div>
+                        </th>
                         <td>
                           <span
                             className={`staff-presence staff-presence--${row.status.toLowerCase()}`}
@@ -359,6 +395,7 @@ function PresenceDashboard({ uid, denied }: Reader) {
                         </td>
                         <td>
                           <Link
+                            className="staff-attendance-link"
                             to={`${routePaths.attendanceIncidents}?student_id=${row.student_id}`}
                             aria-label={`View incidents for ${row.full_name}`}
                           >
@@ -462,10 +499,14 @@ function IncidentList({
           Refresh incidents
         </Button>
       </div>
-      <form onSubmit={apply} className="staff-attendance-filters">
+      <form
+        onSubmit={apply}
+        className="staff-attendance-filters staff-incident-filters"
+      >
         <label>
           Student profile ID
           <input
+            placeholder="All students (optional UUID)"
             value={draft.studentID}
             onChange={(e) => setDraft({ ...draft, studentID: e.target.value })}
             aria-describedby="incident-filter-help"
@@ -503,24 +544,26 @@ function IncidentList({
             <option value="late_entry">Late entry</option>
           </select>
         </label>
-        <Button type="submit" size="sm" disabled={request.pending}>
-          Apply filters
-        </Button>
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={request.pending}
-          onClick={() => {
-            setDraft(emptyIncidentFilters);
-            setFilters(emptyIncidentFilters);
-            setOffset(0);
-            setValidation('');
-            request.retry();
-            focus.current = true;
-          }}
-        >
-          Clear filters
-        </Button>
+        <div className="staff-incident-filter-actions">
+          <Button type="submit" size="sm" disabled={request.pending}>
+            Apply filters
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={request.pending}
+            onClick={() => {
+              setDraft(emptyIncidentFilters);
+              setFilters(emptyIncidentFilters);
+              setOffset(0);
+              setValidation('');
+              request.retry();
+              focus.current = true;
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
       </form>
       <p id="incident-filter-help" className="staff-attendance-caption">
         Optional profile UUID. Use View incidents in the presence list to select
@@ -538,31 +581,74 @@ function IncidentList({
         <ReadState {...request} retry={refresh} />
         {request.data && (
           <>
-            <p role="status">
-              {request.data.total} incidents.
-              {request.data.items.length > 0 &&
-                ` Showing ${offset + 1}–${offset + request.data.items.length}.`}
-            </p>
+            <div className="staff-incident-results-heading">
+              <p role="status">
+                {request.data.total} incidents.
+                {request.data.items.length > 0 &&
+                  ` Showing ${offset + 1}–${offset + request.data.items.length}.`}
+              </p>
+              <span>Newest first</span>
+            </div>
             {request.data.items.length ? (
               <ul className="staff-incident-list">
                 {request.data.items.map((row) => (
-                  <li key={row.incident_id}>
-                    <h3>
-                      <Link
-                        to={`${routePaths.attendanceIncidents}/${row.incident_id}`}
+                  <li key={row.incident_id} className="staff-incident-card">
+                    <div className="staff-incident-card-heading">
+                      <svg
+                        className="staff-incident-icon"
+                        aria-hidden="true"
+                        width="40"
+                        height="40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       >
-                        {incidentLabel(row.incident_type)}
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                      </svg>
+                      <h3>
+                        <Link
+                          to={`${routePaths.attendanceIncidents}/${row.incident_id}`}
+                        >
+                          {incidentLabel(row.incident_type)}
+                        </Link>
+                      </h3>
+                    </div>
+                    <p className="staff-incident-meta">
+                      <span
+                        className={`staff-presence staff-presence--${row.direction.toLowerCase()}`}
+                      >
+                        {row.direction}
+                      </span>
+                      <Time value={row.occurred_at} />
+                    </p>
+                    <details className="staff-incident-reference">
+                      <summary>Record references</summary>
+                      <p className="staff-attendance-caption">
+                        Student reference: {row.student_id}
+                      </p>
+                      <p className="staff-attendance-caption">
+                        Incident reference: {row.incident_id}
+                      </p>
+                    </details>
+                    <div className="staff-incident-card-actions">
+                      <Link
+                        className="staff-attendance-link"
+                        to={`${routePaths.attendanceIncidents}/${row.incident_id}`}
+                        aria-label={`View incident: ${incidentLabel(row.incident_type)}`}
+                      >
+                        View incident <span aria-hidden="true">↗</span>
                       </Link>
-                    </h3>
-                    <p>
-                      {row.direction} · <Time value={row.occurred_at} />
-                    </p>
-                    <Link to={`${routePaths.students}/${row.student_id}`}>
-                      View student profile
-                    </Link>
-                    <p className="staff-attendance-caption">
-                      Student reference: {row.student_id}
-                    </p>
+                      <Link
+                        className="staff-incident-student-link"
+                        to={`${routePaths.students}/${row.student_id}`}
+                      >
+                        View student profile
+                      </Link>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -634,7 +720,7 @@ function IncidentDetail({ uid, denied, id }: Reader & { id: string }) {
       {row && (
         <>
           <h3>{incidentLabel(row.incident_type)}</h3>
-          <p>
+          <p className="staff-incident-explanation">
             This scanner-recorded movement had no matching permission under the
             policy below. This record does not establish the student’s current
             location or a disciplinary outcome.
@@ -669,7 +755,10 @@ function IncidentDetail({ uid, denied, id }: Reader & { id: string }) {
             from current settings. Scanner and event references identify the
             original recorded movement.
           </p>
-          <Link to={`${routePaths.students}/${row.student_id}`}>
+          <Link
+            className="staff-attendance-link"
+            to={`${routePaths.students}/${row.student_id}`}
+          >
             View student profile
           </Link>
         </>

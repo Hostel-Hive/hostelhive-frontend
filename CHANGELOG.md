@@ -4,6 +4,28 @@
 
 ### Fixed
 
+- Restructured access-request details around movement/time and reason, with a separate decision/permission-use column and expandable record references.
+
+- Matched Access requests to leave-request directory styling with grouped filters, student profile links, compact timezone-aware dates and consistent status/actions/pagination.
+
+- Refined student edit/registration forms with consistent section hierarchy, grouped guardian cards, compact fields and a distinct save/cancel footer.
+
+- Reorganized staff student profiles around personal/guardian details with responsive photo/QR tools, grouped profile actions and consistent upload controls.
+
+- Restructured leave request details into a responsive leave-period/reason panel and decision panel, with compact navigation and expandable record references.
+
+- Aligned leave requests with management directory styling, including grouped filters/actions, student profile links, compact timezone-aware dates, decision badges and pagination.
+
+- Aligned Reports with management navigation, grouped filter/export actions, a clear initial state, expandable export guidance and consistent summary/table/pagination styling.
+
+- Standardized staff attendance navigation, live-update panels, filters, presence summaries/tables and incident list/detail styling with the management workspace.
+
+- Aligned hostel inventory with management directory styling: consistent panel spacing, hierarchy navigation, compact actions, inventory icons, availability counts and right-aligned pagination.
+
+- Standardized student directory heading spacing, grouped creation/import actions, and aligned student identities, status badges, profile links and pagination with staff directories.
+
+- Aligned Staff management with the dashboard directory styles, including grouped toolbar actions, staff avatars, role/access badges and consistent pagination.
+
 - Improved user management with a clear directory toolbar, account avatars, role/access badges, expandable account IDs and consistently styled actions.
 
 - Kept the staff header/sidebar visible during scrolling, with independently scrollable navigation and a bottom account menu reusing the accessible student portal control.

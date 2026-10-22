@@ -128,16 +128,15 @@ function Workspace({ uid }: { uid: string }) {
       <h1 id="staff-title" ref={heading} tabIndex={-1}>
         {userID ? 'Staff profile' : 'Staff management'}
       </h1>
-      <p>
+      <p className="page-description">
         Maintain staff names and designations. Manage account roles and access
-        in <Link to={routePaths.users}>User management</Link>.
+        in{' '}
+        <Link className="staff-management-link" to={routePaths.users}>
+          User management<span aria-hidden="true"> ↗</span>
+        </Link>
+        .
       </p>
       {userID && <Link to={back}>Back to staff directory</Link>}
-      {!userID && !denied && (
-        <Link className="button-link" to={routePaths.staffNew}>
-          Add staff member
-        </Link>
-      )}
       {denied ? (
         <div className="staff-panel">
           <p role="alert">{denied}</p>
@@ -174,9 +173,24 @@ function Workspace({ uid }: { uid: string }) {
         </div>
       ) : (
         <div className="staff-panel" aria-busy={!current}>
-          <Button variant="secondary" onClick={refresh}>
-            {userID ? 'Refresh profile' : 'Refresh staff directory'}
-          </Button>
+          <div className="staff-directory-toolbar">
+            {!userID && (
+              <div>
+                <h2>Staff directory</h2>
+                <p>Maintain staff profiles and review account access.</p>
+              </div>
+            )}
+            <div className="staff-actions">
+              <Button variant="secondary" size="sm" onClick={refresh}>
+                {userID ? 'Refresh profile' : 'Refresh staff directory'}
+              </Button>
+              {!userID && (
+                <Link className="button-link" to={routePaths.staffNew}>
+                  Add staff member
+                </Link>
+              )}
+            </div>
+          </div>
           {notice && <p role="status">{notice}</p>}
           {!current ? (
             <p role="status">
@@ -264,22 +278,52 @@ function Workspace({ uid }: { uid: string }) {
                         {page.staff.map((row) => (
                           <tr key={row.staff_id}>
                             <th scope="row">
-                              <Link
-                                to={`${routePaths.staff}/${row.user_id}${offset ? `?offset=${offset}` : ''}`}
-                              >
-                                {row.full_name || row.email}
-                              </Link>
-                              <small>{row.email}</small>
+                              <div className="staff-identity">
+                                <span
+                                  className="staff-avatar"
+                                  aria-hidden="true"
+                                >
+                                  {(row.full_name || row.email)
+                                    .trim()
+                                    .split(/\s+/)
+                                    .slice(0, 2)
+                                    .map((part) => part[0])
+                                    .join('')
+                                    .toUpperCase()}
+                                </span>
+                                <div>
+                                  <Link
+                                    to={`${routePaths.staff}/${row.user_id}${offset ? `?offset=${offset}` : ''}`}
+                                  >
+                                    {row.full_name || row.email}
+                                  </Link>
+                                  <small>{row.email}</small>
+                                </div>
+                              </div>
                             </th>
                             <td>{row.designation || 'Not provided'}</td>
-                            <td>{roleLabels[row.role]}</td>
-                            <td>{row.is_active ? 'Active' : 'Inactive'}</td>
+                            <td>
+                              <span
+                                className={`staff-role staff-role--${row.role}`}
+                              >
+                                {roleLabels[row.role]}
+                              </span>
+                            </td>
+                            <td>
+                              <span
+                                className={`staff-access ${row.is_active ? 'staff-access--active' : 'staff-access--inactive'}`}
+                              >
+                                <span aria-hidden="true" />
+                                {row.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
                             <td>
                               {row.role === 'student' ? (
                                 <span>Review role in User management</span>
                               ) : (
                                 <Button
                                   variant="secondary"
+                                  size="sm"
                                   aria-label={`Edit profile for ${row.full_name || row.email}`}
                                   onClick={() =>
                                     setEditor({ key, userID: row.user_id })
