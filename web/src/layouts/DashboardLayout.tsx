@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import AppHeader from './components/AppHeader';
 import AppSidebar from './components/AppSidebar';
+import StaffAccountMenu from './components/StaffAccountMenu';
 
 export default function DashboardLayout() {
   return (
@@ -12,7 +13,10 @@ export default function DashboardLayout() {
       <div className="dashboard-body">
         <aside className="desktop-sidebar">
           <p className="sidebar-heading">Workspace</p>
-          <AppSidebar />
+          <div className="staff-sidebar-navigation">
+            <AppSidebar />
+          </div>
+          <StaffAccountMenu />
         </aside>
         <main id="main-content" className="dashboard-content" tabIndex={-1}>
           <Outlet />

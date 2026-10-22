@@ -58,7 +58,9 @@ button:focus-visible {
   transform: translateY(0);
 }
 .app-header {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   gap: var(--space-6);
@@ -89,8 +91,34 @@ button:focus-visible {
   min-height: calc(100dvh - var(--header-height));
 }
 .desktop-sidebar {
+  position: sticky;
+  top: var(--header-height);
+  height: calc(100dvh - var(--header-height));
+  min-height: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding: var(--space-6) var(--space-3);
   background: var(--color-sidebar);
+}
+.staff-sidebar-navigation {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--indigo-600) transparent;
+  padding: 4px;
+  margin: -4px;
+}
+.desktop-sidebar .sidebar-heading {
+  margin-bottom: 0;
+}
+.desktop-sidebar > .portal-account-control {
+  flex-shrink: 0;
+}
+.dashboard-content [tabindex='-1'] {
+  scroll-margin-top: calc(var(--header-height) + 24px);
 }
 .sidebar-heading {
   margin: 0 var(--space-3) var(--space-5);
@@ -130,9 +158,6 @@ button:focus-visible {
 .dashboard-content {
   padding: clamp(20px, 3vw, 36px);
   min-width: 0;
-}
-.dashboard-content section {
-  max-width: 960px;
 }
 .eyebrow {
   margin: 0 0 var(--space-3);
@@ -225,6 +250,12 @@ h2 {
 code,
 pre {
   font-family: var(--font-mono);
+}
+@media (min-width: 768px) {
+  .app-header {
+    height: var(--header-height);
+    padding-block: var(--space-2);
+  }
 }
 @media (max-width: 767px) {
   .app-header {

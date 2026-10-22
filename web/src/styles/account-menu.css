@@ -1,0 +1,120 @@
+.portal-account-control {
+  margin-top: auto;
+  min-width: 0;
+}
+.portal-account-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--indigo-800);
+  color: white;
+  text-align: left;
+}
+.portal-account-trigger:hover {
+  background: var(--indigo-700);
+}
+.portal-account-trigger:focus-visible {
+  outline-color: var(--cyan-400);
+}
+.portal-account-trigger:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+.portal-account-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--cyan-100);
+  color: var(--indigo-900);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.portal-account-text {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  flex: 1;
+}
+.portal-account-text strong,
+.portal-account-text > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.portal-account-text strong {
+  font-size: var(--text-xs);
+}
+.portal-account-text > span {
+  font-size: 0.625rem;
+  color: var(--indigo-200);
+}
+.portal-account-chevron {
+  flex-shrink: 0;
+}
+.portal-account-popup {
+  position: fixed;
+  visibility: hidden;
+  z-index: 100;
+  width: 240px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-menu);
+  overflow-y: auto;
+  font-size: var(--text-sm);
+}
+.portal-account-summary {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  overflow-wrap: anywhere;
+}
+.portal-account-summary > span {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+.portal-account-summary .portal-account-role {
+  color: var(--cyan-700);
+}
+.portal-account-popup [role='menuitem'] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  font: inherit;
+}
+.portal-account-popup [role='menuitem']:hover,
+.portal-account-popup [role='menuitem']:focus-visible {
+  background: var(--ink-100);
+}
+.portal-account-popup [role='menuitem'] svg {
+  flex-shrink: 0;
+}
+.portal-account-divider {
+  margin: 4px 0;
+  border-top: 1px solid var(--color-border);
+}
+.portal-account-popup .portal-account-logout {
+  color: var(--color-danger);
+}
+.portal-account-error {
+  font-size: var(--text-xs);
+  color: white;
+  margin: 12px 8px 0;
+}

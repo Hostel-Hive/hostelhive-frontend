@@ -4,6 +4,16 @@
 
 ### Fixed
 
+- Improved user management with a clear directory toolbar, account avatars, role/access badges, expandable account IDs and consistently styled actions.
+
+- Kept the staff header/sidebar visible during scrolling, with independently scrollable navigation and a bottom account menu reusing the accessible student portal control.
+
+- Improved overview metric hierarchy with contextual icons, prominent counts and separate timestamp/action footers.
+
+- Refined accommodation block cards with responsive columns, clear inventory links, grouped statistics and a distinct availability cell.
+
+- Removed the shared dashboard section width limit that left unused space on wide screens, and refined Admin/Warden overview card density, spacing and shortcut navigation.
+
 - Made staff profile editing directly accessible from each eligible directory row, preserving pagination and displaying confirmed saved details.
 
 - Stabilized asynchronous UI checks for lazy routes on Windows and under coverage, with bounded waits and explicit React act-environment setup for imported Vitest hooks. Assertions and coverage gates are unchanged.

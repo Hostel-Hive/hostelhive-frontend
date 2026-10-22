@@ -160,16 +160,45 @@ function Metric<T>({
 }) {
   return (
     <article className="admin-overview-metric" aria-label={label}>
-      <h3>{label}</h3>
+      <div className="overview-metric-heading">
+        <h3>{label}</h3>
+        <svg
+          className="overview-metric-icon"
+          aria-hidden="true"
+          width="40"
+          height="40"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path
+            d={
+              link === routePaths.students
+                ? 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'
+                : link === routePaths.inventory
+                  ? 'M4 21V3h16v18M2 21h20M9 21v-4h6v4M8 7h1m6 0h1M8 11h1m6 0h1'
+                  : 'M8 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-3M8 2h8v4H8zM8 11h8M8 15h5'
+            }
+          />
+        </svg>
+      </div>
       <strong
         className="admin-overview-number"
         aria-label={value === undefined ? 'Count unavailable' : undefined}
       >
         {value === undefined ? '—' : value.toLocaleString()}
       </strong>
-      <ReadStatus request={request} label={label} />
       {caption && <p className="admin-overview-caption">{caption}</p>}
-      <Link to={link}>{action}</Link>
+      <div className="overview-metric-footer">
+        <ReadStatus request={request} label={label} />
+        <Link to={link}>
+          {action}
+          <span aria-hidden="true"> →</span>
+        </Link>
+      </div>
     </article>
   );
 }
@@ -354,7 +383,7 @@ function Overview({
         <RecentIncidents uid={uid} revision={revision} denied={denied} />
       )}
       <section
-        className="admin-overview-panel"
+        className="admin-overview-panel overview-accommodation"
         aria-labelledby="overview-blocks-title"
       >
         <p className="eyebrow">Accommodation</p>
@@ -374,7 +403,7 @@ function Overview({
           <ReadStatus request={blocks} label="Accommodation" />
           {blocks.data && (
             <>
-              <p>
+              <p className="overview-block-results">
                 {blocks.data.total} hostel blocks.{' '}
                 {blocks.data.items.length > 0 &&
                   `Showing ${offset + 1}–${offset + blocks.data.items.length}.`}
@@ -387,7 +416,25 @@ function Overview({
                         <Link
                           to={`${routePaths.inventory}?${new URLSearchParams({ block_id: block.block_id })}`}
                         >
-                          {block.name}
+                          <svg
+                            className="overview-block-icon"
+                            aria-hidden="true"
+                            width="36"
+                            height="36"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                          >
+                            <path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18M9 21v-4h6v4M9 7h1m4 0h1M9 11h1m4 0h1" />
+                          </svg>
+                          <span>{block.name}</span>
+                          <span
+                            className="overview-block-arrow"
+                            aria-hidden="true"
+                          >
+                            ↗
+                          </span>
                         </Link>
                       </h3>
                       <dl>
@@ -399,7 +446,14 @@ function Overview({
                             ['Available beds', block.available_beds],
                           ] as const
                         ).map(([label, value]) => (
-                          <div key={label}>
+                          <div
+                            key={label}
+                            className={
+                              label === 'Available beds'
+                                ? 'overview-block-available'
+                                : undefined
+                            }
+                          >
                             <dt>{label}</dt>
                             <dd>{value.toLocaleString()}</dd>
                           </div>
@@ -416,7 +470,7 @@ function Overview({
                 </p>
               )}
               <nav
-                className="admin-overview-actions"
+                className="admin-overview-actions overview-block-pagination"
                 aria-label="Accommodation pages"
               >
                 <Button
