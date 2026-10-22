@@ -117,7 +117,7 @@ function Workspace({ uid }: { uid: string }) {
       <h1 id="users-title" ref={heading} tabIndex={-1}>
         User management
       </h1>
-      <p>
+      <p className="page-description">
         Manage account roles and access. Account deactivation is separate from
         student profile archiving.
       </p>
@@ -152,15 +152,21 @@ function Workspace({ uid }: { uid: string }) {
         </div>
       ) : (
         <div className="account-panel" aria-busy={!current}>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setNotice('');
-              refresh();
-            }}
-          >
-            Refresh accounts
-          </Button>
+          <div className="accounts-toolbar">
+            <div>
+              <h2>Account directory</h2>
+              <p>Review account identity, permissions and access.</p>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setNotice('');
+                refresh();
+              }}
+            >
+              Refresh accounts
+            </Button>
+          </div>
           {notice && <p role="status">{notice} Refreshing the account list.</p>}
           {!current ? (
             <p role="status">Loading accounts…</p>
@@ -199,24 +205,65 @@ function Workspace({ uid }: { uid: string }) {
                         {page.users.map((user) => (
                           <tr key={user.user_id}>
                             <th scope="row">
-                              {user.full_name && (
-                                <span className="account-name">
-                                  {user.full_name}
+                              <div className="account-identity">
+                                <span
+                                  className="account-avatar"
+                                  aria-hidden="true"
+                                >
+                                  {(user.full_name || user.email)
+                                    .trim()
+                                    .split(/\s+/)
+                                    .slice(0, 2)
+                                    .map((part) => part[0])
+                                    .join('')
+                                    .toUpperCase()}
                                 </span>
-                              )}
-                              <span>{user.email}</span>
-                              {user.firebase_uid === uid && <span> (you)</span>}
-                              <small>{user.user_id}</small>
-                              {user.designation && (
-                                <small>{user.designation}</small>
-                              )}
+                                <div className="account-identity-text">
+                                  <div className="account-name-line">
+                                    <span className="account-name">
+                                      {user.full_name || user.email}
+                                    </span>
+                                    {user.firebase_uid === uid && (
+                                      <span className="account-self">You</span>
+                                    )}
+                                  </div>
+                                  {user.full_name && (
+                                    <span className="account-email">
+                                      {user.email}
+                                    </span>
+                                  )}
+                                  {user.designation && (
+                                    <small className="account-designation">
+                                      {user.designation}
+                                    </small>
+                                  )}
+                                  <details className="account-reference">
+                                    <summary>Account ID</summary>
+                                    <small>{user.user_id}</small>
+                                  </details>
+                                </div>
+                              </div>
                             </th>
-                            <td>{roleLabels[user.role]}</td>
-                            <td>{user.is_active ? 'Active' : 'Inactive'}</td>
                             <td>
-                              <div className="account-actions">
+                              <span
+                                className={`account-role account-role--${user.role}`}
+                              >
+                                {roleLabels[user.role]}
+                              </span>
+                            </td>
+                            <td>
+                              <span
+                                className={`account-access ${user.is_active ? 'account-access--active' : 'account-access--inactive'}`}
+                              >
+                                <span aria-hidden="true" />
+                                {user.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="account-actions account-row-actions">
                                 {user.role !== 'student' && (
                                   <Link
+                                    className="account-profile-link"
                                     to={routePaths.staffNew}
                                     state={{
                                       staffAccount: user,
@@ -238,6 +285,9 @@ function Workspace({ uid }: { uid: string }) {
                                   Change role
                                 </Button>
                                 <Button
+                                  className={
+                                    user.is_active ? 'account-deactivate' : ''
+                                  }
                                   variant={
                                     user.is_active ? 'danger' : 'secondary'
                                   }
