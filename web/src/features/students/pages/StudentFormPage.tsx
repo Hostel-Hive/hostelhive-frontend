@@ -5,6 +5,7 @@ import useAuth from '../../auth/hooks/useAuth';
 import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
 import StudentProfileForm from '../components/StudentProfileForm';
+import { routePaths } from '../../../app/router/routePaths';
 
 function EditStudent() {
   const { studentID = '' } = useParams();
@@ -31,6 +32,7 @@ export default function StudentFormPage({
 }: {
   creating?: boolean;
 }) {
+  const { studentID } = useParams();
   const [params] = useSearchParams();
   const { account } = useAuth();
   const inviting =
@@ -40,7 +42,18 @@ export default function StudentFormPage({
   const modeLink = new URLSearchParams(filtered);
   if (inviting) modeLink.set('registration', 'existing');
   return (
-    <section className="students-page" aria-labelledby="student-form-title">
+    <section
+      className="students-page student-editor-page"
+      aria-labelledby="student-form-title"
+    >
+      {!creating && studentID && (
+        <Link
+          className="student-editor-back"
+          to={`${routePaths.students}/${studentID}${params.toString() ? `?${params}` : ''}`}
+        >
+          <span aria-hidden="true">← </span>Back to student profile
+        </Link>
+      )}
       <p className="eyebrow">Directory / Students</p>
       <h1 id="student-form-title">
         {creating ? 'Add student' : 'Edit student profile'}

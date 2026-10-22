@@ -240,7 +240,7 @@ export default function StudentProfileForm({
   return (
     <>
       <form
-        className="student-card student-profile-form"
+        className="student-card student-profile-form student-editor-form"
         ref={form}
         noValidate
         onSubmit={(event) => {
@@ -298,7 +298,7 @@ export default function StudentProfileForm({
             </>
           )}
           {student && (
-            <p className="student-form-help">
+            <p className="student-form-help student-login-note">
               Login email: {student.email}. Account identity and login
               credentials are managed separately.
             </p>
@@ -392,7 +392,9 @@ export default function StudentProfileForm({
                 )}
               </div>
               <Button
-                variant="ghost"
+                variant="secondary"
+                size="sm"
+                className="student-remove-guardian"
                 disabled={value.guardians.length === 1}
                 onClick={() => {
                   setValue((current) => ({
@@ -411,6 +413,7 @@ export default function StudentProfileForm({
           ))}
           <Button
             variant="secondary"
+            size="sm"
             disabled={value.guardians.length >= 10}
             onClick={() =>
               setValue((current) => ({
@@ -425,7 +428,7 @@ export default function StudentProfileForm({
             Add guardian
           </Button>
         </fieldset>
-        <div className="student-form-actions">
+        <div className="student-form-actions student-editor-footer">
           <Button
             type="submit"
             disabled={locked || (Boolean(student) && !dirty)}
