@@ -4,6 +4,12 @@
 
 ### Fixed
 
+- Aligned hostel inventory with management directory styling: consistent panel spacing, hierarchy navigation, compact actions, inventory icons, availability counts and right-aligned pagination.
+
+- Standardized student directory heading spacing, grouped creation/import actions, and aligned student identities, status badges, profile links and pagination with staff directories.
+
+- Aligned Staff management with the dashboard directory styles, including grouped toolbar actions, staff avatars, role/access badges and consistent pagination.
+
 - Improved user management with a clear directory toolbar, account avatars, role/access badges, expandable account IDs and consistently styled actions.
 
 - Kept the staff header/sidebar visible during scrolling, with independently scrollable navigation and a bottom account menu reusing the accessible student portal control.
