@@ -99,7 +99,7 @@ export default function OwnComplaintList({
   }
   return (
     <section className="portal-card" aria-labelledby="own-complaint-list-title">
-      <div className="portal-leave-toolbar">
+      <div className="portal-leave-toolbar portal-directory-heading">
         <h2 id="own-complaint-list-title">My complaints</h2>
         <Link
           className="ui-button ui-button--primary ui-button--sm"
@@ -111,7 +111,7 @@ export default function OwnComplaintList({
       <p className="portal-muted">
         Report maintenance or disciplinary concerns and follow staff responses.
       </p>
-      <div className="portal-leave-toolbar">
+      <div className="portal-leave-toolbar portal-directory-filters">
         <label className="portal-leave-status-filter">
           Status
           <select
@@ -199,14 +199,11 @@ export default function OwnComplaintList({
                       >
                         {row.status.replace('_', ' ')}
                       </span>
-                      <h3>
+                      <h3 className="portal-request-link">
                         <Link
                           to={`${routePaths.ownComplaints}/${row.complaint_id}`}
                         >
-                          View complaint{' '}
-                          <span className="portal-caption">
-                            · <ComplaintDate value={row.created_at} />
-                          </span>
+                          View complaint <span aria-hidden="true"> →</span>
                         </Link>
                       </h3>
                       <p>
@@ -216,6 +213,9 @@ export default function OwnComplaintList({
                       </p>
                       <p className="portal-leave-reason-preview">
                         {row.description}
+                      </p>
+                      <p className="portal-request-submitted">
+                        Submitted <ComplaintDate value={row.created_at} />
                       </p>
                     </div>
                   </li>

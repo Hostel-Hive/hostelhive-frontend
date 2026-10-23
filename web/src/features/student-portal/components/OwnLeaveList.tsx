@@ -81,7 +81,7 @@ export default function OwnLeaveList({
   }
   return (
     <section className="portal-card" aria-labelledby="own-leave-list-title">
-      <div className="portal-leave-toolbar">
+      <div className="portal-leave-toolbar portal-directory-heading">
         <h2 id="own-leave-list-title">My leave requests</h2>
         <Link
           className="ui-button ui-button--primary ui-button--sm"
@@ -95,7 +95,7 @@ export default function OwnLeaveList({
         Approval does not record a departure or return; scans record your
         movements.
       </p>
-      <div className="portal-leave-toolbar">
+      <div className="portal-leave-toolbar portal-directory-filters">
         <label className="portal-leave-status-filter">
           Status
           <select
@@ -163,20 +163,30 @@ export default function OwnLeaveList({
                       >
                         {row.status}
                       </span>
-                      <h3>
+                      <h3 className="portal-request-link">
                         <Link to={`${routePaths.ownLeaves}/${row.leave_id}`}>
-                          View request{' '}
-                          <span className="portal-caption">
-                            · <LeaveDate value={row.created_at} />
-                          </span>
+                          View request <span aria-hidden="true"> →</span>
                         </Link>
                       </h3>
-                      <p>
-                        <LeaveDate value={row.starts_at} /> —{' '}
-                        <LeaveDate value={row.ends_at} />
-                      </p>
+                      <dl className="portal-request-dates">
+                        <div>
+                          <dt>Starts</dt>
+                          <dd>
+                            <LeaveDate value={row.starts_at} compact />
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Ends</dt>
+                          <dd>
+                            <LeaveDate value={row.ends_at} compact />
+                          </dd>
+                        </div>
+                      </dl>
                       <p className="portal-leave-reason-preview">
                         {row.reason}
+                      </p>
+                      <p className="portal-request-submitted">
+                        Submitted <LeaveDate value={row.created_at} />
                       </p>
                     </div>
                   </li>

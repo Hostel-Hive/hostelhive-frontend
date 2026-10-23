@@ -305,8 +305,10 @@ it.each(['session', 'forbidden'] as const)(
     expect(
       screen.queryByRole('link', { name: inventoryBlock.name }),
     ).not.toBeInTheDocument();
-    expect(vi.mocked(getPresenceSummary).mock.calls[0][1].aborted).toBe(true);
-    expect(vi.mocked(getOverviewBlocks).mock.calls[0][1].aborted).toBe(true);
+    await waitFor(() => {
+      expect(vi.mocked(getPresenceSummary).mock.calls[0][1].aborted).toBe(true);
+      expect(vi.mocked(getOverviewBlocks).mock.calls[0][1].aborted).toBe(true);
+    });
   },
 );
 it('can verify access and reload, with recovery feedback when verification/sign-out fails', async () => {

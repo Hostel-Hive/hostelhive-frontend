@@ -251,6 +251,27 @@
 .portal-header .notification-badge {
   margin-left: auto;
 }
+.app-header .notification-badge,
+.portal-header .notification-badge {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  gap: 10px;
+  font-weight: 500;
+}
+.app-header .notification-badge:hover,
+.portal-header .notification-badge:hover {
+  background: var(--ink-50);
+  border-color: var(--ink-300);
+}
+.app-header .notification-badge__count,
+.portal-header .notification-badge__count {
+  color: var(--cyan-700);
+  font-size: 11px;
+  min-width: 22px;
+}
 @media (max-width: 760px) {
   .notification-card {
     padding: 16px;

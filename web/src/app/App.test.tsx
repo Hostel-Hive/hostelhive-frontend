@@ -80,6 +80,11 @@ describe('protected dashboard access', () => {
       vi.mocked(restoreStaffSession).mockResolvedValue({ ...admin, role });
       const view = renderAt(`/dashboard/${role}`);
       await expectDashboard(role);
+      expect(
+        within(screen.getByRole('banner')).queryByRole('button', {
+          name: 'Sign out',
+        }),
+      ).not.toBeInTheDocument();
       expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content');
       const nav = within(
         screen.getByRole('navigation', { name: 'Primary navigation' }),
@@ -334,7 +339,8 @@ describe('protected dashboard access', () => {
       notify(true);
     });
     await expectDashboard('admin');
-    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    await user.click(screen.getByRole('button', { name: /^Account menu for/ }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
     expect(
       await screen.findByRole('heading', { name: 'Sign in to HostelHive.' }),
     ).toBeVisible();
@@ -345,7 +351,8 @@ describe('protected dashboard access', () => {
     const user = userEvent.setup();
     renderAt('/dashboard/admin');
     await expectDashboard('admin');
-    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    await user.click(screen.getByRole('button', { name: /^Account menu for/ }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Unable to sign out',
     );

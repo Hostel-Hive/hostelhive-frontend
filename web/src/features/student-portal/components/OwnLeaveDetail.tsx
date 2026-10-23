@@ -43,7 +43,10 @@ export default function OwnLeaveDetail({
   const row = current?.data;
   const error = current?.error;
   return (
-    <section className="portal-card" aria-labelledby="own-leave-detail-title">
+    <section
+      className="portal-card portal-request-detail"
+      aria-labelledby="own-leave-detail-title"
+    >
       <Link to={routePaths.ownLeaves}>Back to my leave requests</Link>
       {location.state?.leaveSubmitted === true && (
         <p role="status">

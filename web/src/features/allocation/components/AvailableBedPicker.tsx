@@ -11,6 +11,7 @@ import type {
   Bed,
   InventoryPage,
 } from '../../inventory/api/inventory.api';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
 export interface BedChoice {
   id: string;
   label: string;
@@ -69,11 +70,26 @@ export default function AvailableBedPicker({
   return (
     <fieldset className="allocation-picker">
       <legend>Choose an available bed</legend>
-      <p>
+      <ol className="allocation-steps" aria-label="Bed selection progress">
+        {['Block', 'Room', 'Bed'].map((label, index) => {
+          const step = room ? 2 : block ? 1 : 0;
+          return (
+            <li
+              key={label}
+              aria-current={index === step ? 'step' : undefined}
+              className={index < step ? 'allocation-step--complete' : ''}
+            >
+              <span aria-hidden="true">{index + 1}</span>
+              {label}
+            </li>
+          );
+        })}
+      </ol>
+      <p className="allocation-location">
         {block ? `Block: ${block.name}` : 'Select a block'}
         {room ? ` · Room: ${room.room_no}` : ''}
       </p>
-      <div className="student-form-actions">
+      <div className="student-form-actions allocation-change-actions">
         {block && (
           <Button
             size="sm"
@@ -140,9 +156,21 @@ export default function AvailableBedPicker({
                         })
                       }
                     >
-                      Select bed {item.bed_no}
+                      <NavigationIcon name="building" />
+                      <span>Select bed {item.bed_no}</span>
+                      <span
+                        className="allocation-option-end"
+                        aria-hidden="true"
+                      >
+                        {chosen?.id === item.bed_id ? '✓' : '→'}
+                      </span>
                     </Button>
-                    <span className="student-id">{item.bed_id}</span>
+                    <span
+                      className="student-id allocation-option-reference"
+                      title={item.bed_id}
+                    >
+                      {item.bed_id}
+                    </span>
                   </li>
                 );
               if ('room_id' in item)
@@ -156,7 +184,14 @@ export default function AvailableBedPicker({
                         setRoom(item);
                       }}
                     >
-                      Room {item.room_no}
+                      <NavigationIcon name="building" />
+                      <span>Room {item.room_no}</span>
+                      <span
+                        className="allocation-option-end"
+                        aria-hidden="true"
+                      >
+                        →
+                      </span>
                     </Button>
                   </li>
                 );
@@ -170,7 +205,11 @@ export default function AvailableBedPicker({
                       setBlock(item);
                     }}
                   >
-                    {item.name}
+                    <NavigationIcon name="building" />
+                    <span>{item.name}</span>
+                    <span className="allocation-option-end" aria-hidden="true">
+                      →
+                    </span>
                   </Button>
                 </li>
               );

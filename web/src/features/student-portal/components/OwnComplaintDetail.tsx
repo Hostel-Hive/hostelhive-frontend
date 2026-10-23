@@ -128,7 +128,7 @@ function Detail({
     setQuery((previous) => ({ offset, attempt: previous.attempt + 1 }));
   }
   return (
-    <div className="portal-stack">
+    <div className="portal-stack portal-complaint-detail">
       <section
         className="portal-card"
         aria-labelledby="own-complaint-detail-title"
@@ -153,9 +153,13 @@ function Detail({
           )}
           {data && (
             <>
-              <p>
-                <strong>{statusLabel(data.row.status)}</strong> · Version{' '}
-                {data.row.version}
+              <p className="portal-complaint-status">
+                <span
+                  className={`portal-leave-badge portal-leave-badge--${data.row.status}`}
+                >
+                  {statusLabel(data.row.status)}
+                </span>{' '}
+                · Version {data.row.version}
               </p>
               <dl className="portal-details">
                 <div>
