@@ -281,7 +281,10 @@ it.each(['session', 'forbidden'] as const)(
     expect(
       screen.queryByRole('article', { name: 'Pending leave requests' }),
     ).not.toBeInTheDocument();
-    expect(vi.mocked(getOverviewBlocks).mock.calls[0][1].aborted).toBe(true);
+    // Request cancellation runs in the unmounted overview's effect cleanup.
+    await waitFor(() =>
+      expect(vi.mocked(getOverviewBlocks).mock.calls[0][1].aborted).toBe(true),
+    );
     fireEvent.click(
       screen.getByRole('button', { name: 'Verify account access' }),
     );
