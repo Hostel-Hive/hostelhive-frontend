@@ -14,7 +14,7 @@ export default function ProtectedRoute({
   const auth = useAuth();
   const { pathname } = useLocation();
   if (
-    auth.verifiedPath !== pathname ||
+    (auth.verifiedPath !== pathname && !auth.account) ||
     (auth.status === 'checking' && !auth.account) ||
     auth.status === 'error'
   )
@@ -36,7 +36,7 @@ export default function ProtectedRoute({
     return <Navigate to={routePaths.studentSetup} replace />;
   return (
     <div
-      key={`${pathname}:${auth.account.firebase_uid}:${auth.account.role}`}
+      key={`${auth.account.firebase_uid}:${auth.account.role}`}
       style={{ display: 'contents' }}
     >
       <Outlet />
