@@ -12,7 +12,6 @@ export default function DashboardLayout() {
       <AppHeader />
       <div className="dashboard-body">
         <aside className="desktop-sidebar">
-          <p className="sidebar-heading">Workspace</p>
           <div className="staff-sidebar-navigation">
             <AppSidebar />
           </div>
