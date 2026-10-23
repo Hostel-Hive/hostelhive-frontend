@@ -54,26 +54,28 @@ export default function AnnouncementList({
   }
   return (
     <section
-      className="announcement-card"
+      className="announcement-card announcement-list-card"
       aria-labelledby="announcement-list-title"
     >
       <div className="announcement-toolbar">
         <h2 id="announcement-list-title">Latest announcements</h2>
-        {staff && (
-          <Link className="button-link" to={`${basePath}/new`}>
-            New announcement
-          </Link>
-        )}
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={request.pending}
-          onClick={() => navigate(0)}
-        >
-          Refresh announcements
-        </Button>
+        <div className="announcement-actions">
+          {staff && (
+            <Link className="button-link" to={`${basePath}/new`}>
+              New announcement
+            </Link>
+          )}
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={request.pending}
+            onClick={() => navigate(0)}
+          >
+            Refresh announcements
+          </Button>
+        </div>
       </div>
-      <p>
+      <p className="announcement-list-description">
         Published notices for all students. Opening an announcement does not
         mark an inbox notification as read.
       </p>
@@ -88,30 +90,61 @@ export default function AnnouncementList({
           <AnnouncementState error={request.error} retry={request.retry} />
         ) : (
           <>
-            <p role="status">
-              {request.data.total} announcement
-              {request.data.total === 1 ? '' : 's'}.
-              {request.data.items.length > 0 &&
-                ` Showing ${request.data.offset + 1}–${request.data.offset + request.data.items.length}.`}
-            </p>
+            <div className="announcement-results-heading">
+              <p role="status">
+                {request.data.total} announcement
+                {request.data.total === 1 ? '' : 's'}.
+                {request.data.items.length > 0 &&
+                  ` Showing ${request.data.offset + 1}–${request.data.offset + request.data.items.length}.`}
+              </p>
+              <span>Newest first</span>
+            </div>
             {request.data.items.length ? (
               <ul className="announcement-feed">
                 {request.data.items.map((row) => (
                   <li key={row.announcement_id}>
-                    <h3>
-                      <Link to={`${basePath}/${row.announcement_id}`}>
-                        {row.title}
-                      </Link>
-                    </h3>
+                    <div className="announcement-notice-heading">
+                      <svg
+                        aria-hidden="true"
+                        className="announcement-notice-icon"
+                        width="40"
+                        height="40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="m4 10 13-5v14L4 14v-4ZM4 14l2 6h3l-2-5M17 9l3-1m-3 7 3 1M2 10v4" />
+                      </svg>
+                      <h3>
+                        <Link to={`${basePath}/${row.announcement_id}`}>
+                          {row.title}
+                        </Link>
+                      </h3>
+                    </div>
                     <p className="announcement-caption">
                       Published <AnnouncementDate value={row.published_at} />
                     </p>
                     <p className="announcement-preview">{row.content}</p>
+                    <div className="announcement-notice-footer">
+                      <span className="announcement-audience">
+                        All students
+                      </span>
+                      <Link
+                        className="announcement-read-link"
+                        to={`${basePath}/${row.announcement_id}`}
+                        aria-label={`Read announcement: ${row.title}`}
+                      >
+                        Read announcement <span aria-hidden="true">↗</span>
+                      </Link>
+                    </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p>
+              <p className="announcement-empty-state">
                 {offset
                   ? 'No announcements on this page. Use Previous or refresh.'
                   : 'No announcements have been published yet.'}
