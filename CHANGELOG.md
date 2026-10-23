@@ -4,6 +4,10 @@
 
 ### Fixed
 
+- Preserved the verified dashboard shell during background navigation session checks to remove the full-page verification flash; initial checks and verification failures still block access.
+
+- Grouped staff sidebar routes by purpose with consistent line icons, compact navigation, clear active states and scrollable mobile navigation.
+
 - Reorganized complaint details into complaint/evidence and staff-action panels, with compact dates, expandable references, clearer image retry states and consistent update history.
 
 - Aligned the staff complaint directory with management pages using grouped responsive filters, student profile links, compact local dates, clear status badges and consistent row actions and pagination.
