@@ -2,8 +2,9 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
+const { signOut } = vi.hoisted(() => ({ signOut: vi.fn() }));
 vi.mock('../../features/auth/hooks/useAuth', () => ({
-  default: () => ({ account: { role: 'admin' } }),
+  default: () => ({ account: { role: 'admin' }, signOut }),
 }));
 import MobileSidebar from './MobileSidebar';
 
@@ -16,6 +17,16 @@ function renderMenu() {
 }
 
 describe('mobile navigation', () => {
+  it('provides sign-out inside the mobile menu', async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    expect(
+      screen.queryByRole('button', { name: 'Sign out' }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Open navigation' }));
+    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    expect(signOut).toHaveBeenCalledTimes(1);
+  });
   it('opens and closes using the keyboard and exposes the expanded state', async () => {
     const user = userEvent.setup();
     renderMenu();
