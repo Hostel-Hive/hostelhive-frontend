@@ -46,7 +46,10 @@ export default function OwnLateAccessDetail({
   const row = current?.data;
   const error = current?.error;
   return (
-    <section className="portal-card" aria-labelledby="own-access-detail-title">
+    <section
+      className="portal-card portal-request-detail"
+      aria-labelledby="own-access-detail-title"
+    >
       <Link to={routePaths.ownLateAccess}>Back to my access requests</Link>
       {location.state?.lateAccessSubmitted === true && (
         <p role="status">

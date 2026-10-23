@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Standardized the student portal for #90 with grouped icon navigation, accessible mobile controls, full-width content, consistent profile/accommodation/QR cards, attendance filters, request forms and details, complaint evidence and shared communication screens.
+
 - Preserved the verified dashboard shell during background navigation session checks to remove the full-page verification flash; initial checks and verification failures still block access.
 
 - Grouped staff sidebar routes by purpose with consistent line icons, compact navigation, clear active states and scrollable mobile navigation.

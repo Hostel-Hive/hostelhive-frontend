@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import StudentNavigation from '../components/StudentNavigation';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
 import { routePaths } from '../../../app/router/routePaths';
 import useAuth from '../../auth/hooks/useAuth';
 import Button from '../../../shared/components/ui/Button';
@@ -162,22 +164,7 @@ export default function StudentHomePage({
       </header>
       <div className="portal-body">
         <aside className="portal-sidebar">
-          <p className="portal-nav-heading">My workspace</p>
-          <nav aria-label="Student navigation">
-            <NavLink end to={routePaths.studentHome}>
-              Overview
-            </NavLink>
-            <NavLink to={routePaths.ownStudentAccommodation}>
-              Accommodation
-            </NavLink>
-            <NavLink to={routePaths.ownStudentQR}>My QR code</NavLink>
-            <NavLink to={routePaths.ownStudentAttendance}>Attendance</NavLink>
-            <NavLink to={routePaths.ownAnnouncements}>Announcements</NavLink>
-            <NavLink to={routePaths.ownNotifications}>Notifications</NavLink>
-            <NavLink to={routePaths.ownComplaints}>Complaints</NavLink>
-            <NavLink to={routePaths.ownLeaves}>Leave requests</NavLink>
-            <NavLink to={routePaths.ownLateAccess}>Access requests</NavLink>
-          </nav>
+          <StudentNavigation key={view} />
           <StudentAccountMenu
             key={uid}
             name={data?.full_name}
@@ -303,6 +290,7 @@ export default function StudentHomePage({
                     aria-label="Hostel summary"
                   >
                     <article className="portal-stat">
+                      <NavigationIcon name="students" />
                       <p>Student ID</p>
                       <strong>{shown(data.index_no)}</strong>
                       <span>
@@ -310,6 +298,7 @@ export default function StudentHomePage({
                       </span>
                     </article>
                     <article className="portal-stat">
+                      <NavigationIcon name="building" />
                       <p>Current accommodation</p>
                       <strong>
                         {data.accommodation
@@ -323,6 +312,7 @@ export default function StudentHomePage({
                       </span>
                     </article>
                     <article className="portal-stat">
+                      <NavigationIcon name="attendance" />
                       <p>Last recorded presence</p>
                       <strong
                         className={`portal-presence portal-presence--${data.presence.status.toLowerCase()}`}
@@ -348,6 +338,7 @@ export default function StudentHomePage({
                       className="portal-card"
                       to={routePaths.ownStudentProfile}
                     >
+                      <NavigationIcon name="profile" />
                       <h2>View profile</h2>
                       <p className="portal-muted">
                         Personal, contact and guardian details.
@@ -357,12 +348,14 @@ export default function StudentHomePage({
                       className="portal-card"
                       to={routePaths.ownStudentAccommodation}
                     >
+                      <NavigationIcon name="building" />
                       <h2>View accommodation</h2>
                       <p className="portal-muted">
                         Your current block, room and bed.
                       </p>
                     </Link>
                     <Link className="portal-card" to={routePaths.ownStudentQR}>
+                      <NavigationIcon name="qr" />
                       <h2>Open QR code</h2>
                       <p className="portal-muted">
                         Show your identification code when needed.
@@ -473,7 +466,7 @@ export default function StudentHomePage({
                     {view === 'profile' && (
                       <section
                         id="my-profile"
-                        className="portal-card"
+                        className="portal-card portal-profile-card"
                         aria-labelledby="own-profile-title"
                       >
                         <p className="portal-kicker">Personal details</p>
@@ -542,7 +535,7 @@ export default function StudentHomePage({
                     {view === 'accommodation' && (
                       <section
                         id="my-accommodation"
-                        className="portal-card"
+                        className="portal-card portal-accommodation-card"
                         aria-labelledby="own-accommodation-title"
                       >
                         <p className="portal-kicker">Your space</p>
@@ -560,10 +553,13 @@ export default function StudentHomePage({
                             ]}
                           />
                         ) : (
-                          <p className="portal-muted">
-                            No bed is currently assigned to you. Contact your
-                            hostel administrator for accommodation details.
-                          </p>
+                          <div className="portal-empty-state">
+                            <NavigationIcon name="building" />
+                            <p className="portal-muted">
+                              No bed is currently assigned to you. Contact your
+                              hostel administrator for accommodation details.
+                            </p>
+                          </div>
                         )}
                       </section>
                     )}

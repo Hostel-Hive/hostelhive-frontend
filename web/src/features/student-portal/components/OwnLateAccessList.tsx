@@ -90,7 +90,7 @@ export default function OwnLateAccessList({
   }
   return (
     <section className="portal-card" aria-labelledby="own-access-list-title">
-      <div className="portal-leave-toolbar">
+      <div className="portal-leave-toolbar portal-directory-heading">
         <h2 id="own-access-list-title">My access requests</h2>
         <Link
           className="ui-button ui-button--primary ui-button--sm"
@@ -103,7 +103,7 @@ export default function OwnLateAccessList({
         Request permission for an early exit or late entry and follow the staff
         decision. Only scans record your actual movements.
       </p>
-      <div className="portal-leave-toolbar">
+      <div className="portal-leave-toolbar portal-directory-filters">
         <label className="portal-leave-status-filter">
           Status
           <select
@@ -173,22 +173,34 @@ export default function OwnLateAccessList({
                       >
                         {row.status}
                       </span>
-                      <h3>
+                      <h3 className="portal-request-link">
                         <Link
                           to={`${routePaths.ownLateAccess}/${row.late_access_id}`}
                         >
-                          View request{' '}
-                          <span className="portal-caption">
-                            · <LeaveDate value={row.created_at} />
-                          </span>
+                          View request <span aria-hidden="true"> →</span>
                         </Link>
                       </h3>
-                      <p>
-                        {row.direction === 'IN' ? 'Late entry' : 'Early exit'} ·{' '}
-                        <LeaveDate value={row.expected_at} />
-                      </p>
+                      <dl className="portal-request-dates">
+                        <div>
+                          <dt>Movement</dt>
+                          <dd>
+                            {row.direction === 'IN'
+                              ? 'Late entry'
+                              : 'Early exit'}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Expected time</dt>
+                          <dd>
+                            <LeaveDate value={row.expected_at} compact />
+                          </dd>
+                        </div>
+                      </dl>
                       <p className="portal-leave-reason-preview">
                         {row.reason}
+                      </p>
+                      <p className="portal-request-submitted">
+                        Submitted <LeaveDate value={row.created_at} />
                       </p>
                     </div>
                   </li>

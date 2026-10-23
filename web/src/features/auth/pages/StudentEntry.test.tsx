@@ -140,7 +140,7 @@ it('navigates between separate student pages and highlights only the current rou
         'page',
       );
     expect(document.querySelectorAll('nav [aria-current="page"]')).toHaveLength(
-      path === '/student/profile' ? 0 : 1,
+      1,
     );
     if (path === '/student/profile')
       expect(

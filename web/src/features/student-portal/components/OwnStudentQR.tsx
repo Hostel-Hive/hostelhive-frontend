@@ -7,6 +7,7 @@ import {
 } from '../api/student-portal.api';
 import type { StudentPortalError } from '../api/student-portal.api';
 import PrivateStudentImage from './PrivateStudentImage';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
 
 export default function OwnStudentQR({
   uid,
@@ -70,13 +71,22 @@ export default function OwnStudentQR({
     }
   }
   return (
-    <section id="my-qr" className="portal-card" aria-labelledby="own-qr-title">
+    <section
+      id="my-qr"
+      className="portal-card portal-qr-card"
+      aria-labelledby="own-qr-title"
+    >
       <p className="portal-kicker">Gate identification</p>
       <h2 id="own-qr-title">My QR code</h2>
       <p className="portal-muted">
         Show your code at the hostel scanner when requested. Loading it does not
         record an entry, exit, or attendance event.
       </p>
+      {!blob && !pending && (
+        <div className="portal-qr-placeholder" aria-hidden="true">
+          <NavigationIcon name="qr" />
+        </div>
+      )}
       <div className="portal-actions">
         <Button
           ref={showButton}
