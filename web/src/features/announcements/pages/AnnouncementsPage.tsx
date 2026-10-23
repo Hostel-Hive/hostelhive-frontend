@@ -53,6 +53,9 @@ function StaffAnnouncements({
             ? 'Announcement'
             : 'Announcements'}
       </h1>
+      <p className="page-description">
+        Publish hostel notices and review announcements shared with students.
+      </p>
       {denied ? (
         <div>
           <p role="alert">{denied.message}</p>

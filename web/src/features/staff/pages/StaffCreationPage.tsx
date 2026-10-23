@@ -381,12 +381,20 @@ function Setup({ uid }: { uid: string }) {
       </section>
     );
   return (
-    <section className="staff-page" aria-labelledby="staff-creation-title">
+    <section
+      className="staff-page staff-creation-page"
+      aria-labelledby="staff-creation-title"
+    >
+      <Link className="staff-creation-back" to={routePaths.staff}>
+        <span aria-hidden="true">← </span>Back to staff directory
+      </Link>
       <p className="eyebrow">Admin / Staff / Add</p>
       <h1 id="staff-creation-title" ref={heading} tabIndex={-1}>
         Add staff member
       </h1>
-      <Link to={routePaths.staff}>Back to staff directory</Link>
+      <p className="page-description">
+        Create a staff account or complete a profile for an existing account.
+      </p>
       {complete ? (
         <div className="staff-panel">
           <h2>
@@ -423,7 +431,7 @@ function Setup({ uid }: { uid: string }) {
       ) : (
         <div className="staff-panel">
           <div
-            className="staff-actions"
+            className="staff-actions staff-creation-modes"
             role="group"
             aria-label="Staff setup type"
           >
@@ -446,7 +454,7 @@ function Setup({ uid }: { uid: string }) {
               </Button>
             ))}
           </div>
-          <p>
+          <p className="staff-creation-note">
             Only Admins can add staff. Sub-warden and Security staff do not yet
             have dedicated web portals.
           </p>
@@ -466,19 +474,68 @@ function Setup({ uid }: { uid: string }) {
             />
           )}
           {account && (
-            <div className="staff-review">
-              <h2>Account confirmed</h2>
-              <p>
-                {account.email} — {roleLabels[account.role]} (
-                {account.is_active ? 'Active' : 'Inactive'})
-              </p>
-              <p>
-                Account ID: {account.user_id}. Profile completion will not
-                create another login account or change its role/access.
-              </p>
-              <Link to={`${routePaths.staff}/${account.user_id}`}>
-                View staff profile if it already exists
-              </Link>
+            <div className="staff-review staff-confirmed-account">
+              <div className="staff-confirmed-heading">
+                <svg
+                  aria-hidden="true"
+                  className="staff-confirmed-icon"
+                  width="36"
+                  height="36"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="m8 12 3 3 5-6" />
+                </svg>
+                <h2>Account confirmed</h2>
+              </div>
+              <div className="staff-confirmed-identity">
+                <span className="staff-avatar" aria-hidden="true">
+                  {(account.full_name || account.email)
+                    .trim()
+                    .split(/\s+/)
+                    .slice(0, 2)
+                    .map((part) => part[0])
+                    .join('')
+                    .toUpperCase()}
+                </span>
+                <div>
+                  <strong>{account.full_name || account.email}</strong>
+                  {account.full_name && (
+                    <span className="staff-choice-email">{account.email}</span>
+                  )}
+                </div>
+                <div className="staff-choice-badges">
+                  <span className={`staff-role staff-role--${account.role}`}>
+                    {roleLabels[account.role]}
+                  </span>
+                  <span
+                    className={`staff-access ${account.is_active ? 'staff-access--active' : 'staff-access--inactive'}`}
+                  >
+                    <span aria-hidden="true" />
+                    {account.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+              <details className="staff-confirmed-reference">
+                <summary>Account reference</summary>
+                <p>Account ID: {account.user_id}</p>
+              </details>
+              <div className="staff-confirmed-footer">
+                <p>
+                  Profile completion will not create another login account or
+                  change its role/access.
+                </p>
+                <Link
+                  className="staff-confirmed-profile-link"
+                  to={`${routePaths.staff}/${account.user_id}`}
+                >
+                  View staff profile if it already exists
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              </div>
             </div>
           )}
           {attempt && !account && (
@@ -490,6 +547,7 @@ function Setup({ uid }: { uid: string }) {
             </p>
           )}
           <form
+            className="staff-creation-form"
             ref={form}
             noValidate
             aria-busy={pending}
@@ -498,6 +556,7 @@ function Setup({ uid }: { uid: string }) {
               void submit();
             }}
           >
+            <h2>Staff profile</h2>
             {(['full_name', 'designation'] as const).map((key) => (
               <div className="staff-field" key={key}>
                 <label htmlFor={`setup-${key}`}>
@@ -531,6 +590,9 @@ function Setup({ uid }: { uid: string }) {
             ))}
             {mode === 'new' && !account && (
               <>
+                <h2 className="staff-creation-account-heading">
+                  Account access
+                </h2>
                 <div className="staff-field">
                   <label htmlFor="setup-email">Email</label>
                   <Input
@@ -577,7 +639,7 @@ function Setup({ uid }: { uid: string }) {
                     ))}
                   </select>
                 </div>
-                <div className="staff-field">
+                <div className="staff-field staff-creation-password">
                   <label htmlFor="setup-password">Initial password</label>
                   <div className="staff-password">
                     <Input
@@ -633,7 +695,7 @@ function Setup({ uid }: { uid: string }) {
                   : 'Creating account, then checking its staff profile…'}
               </p>
             )}
-            <div className="staff-actions">
+            <div className="staff-actions staff-creation-footer">
               <Button
                 type="submit"
                 disabled={
@@ -660,7 +722,7 @@ function Setup({ uid }: { uid: string }) {
               )}
             </div>
           </form>
-          <p>
+          <p className="staff-creation-note staff-creation-existing-help">
             Already have an account? Use{' '}
             <Link to={routePaths.users}>User management</Link> to select an
             existing staff account. Account creation and profile creation are

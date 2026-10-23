@@ -27,15 +27,27 @@ export default function AnnouncementDetail({
   );
   const location = useLocation();
   return (
-    <div className="announcement-stack">
+    <div className="announcement-stack announcement-detail-stack">
+      <Link className="announcement-back" to={basePath}>
+        <span aria-hidden="true">← </span>Back to announcements
+      </Link>
       <article
-        className="announcement-card"
+        className="announcement-card announcement-detail-card"
         aria-labelledby="announcement-detail-title"
       >
-        <Link to={basePath}>Back to announcements</Link>
-        <h2 id="announcement-detail-title">
-          {request.data?.title ?? 'Announcement details'}
-        </h2>
+        <div className="announcement-detail-heading">
+          <div>
+            {request.data && <p className="eyebrow">Published notice</p>}
+            <h2 id="announcement-detail-title">
+              {request.data?.title ?? 'Announcement details'}
+            </h2>
+          </div>
+          {request.data && (
+            <Button size="sm" variant="secondary" onClick={request.retry}>
+              Refresh announcement
+            </Button>
+          )}
+        </div>
         {location.state?.announcementPublished && (
           <p role="status">
             Announcement published. Inbox delivery is processed in the
@@ -46,20 +58,21 @@ export default function AnnouncementDetail({
           <AnnouncementState error={request.error} retry={request.retry} />
         ) : (
           <>
-            <p className="announcement-caption">
-              Published <AnnouncementDate value={request.data.published_at} /> ·
-              All students
-            </p>
-            <div className="announcement-prose">{request.data.content}</div>
-            <div className="announcement-toolbar">
-              <Button size="sm" variant="secondary" onClick={request.retry}>
-                Refresh announcement
-              </Button>
+            <div className="announcement-detail-meta">
+              <p className="announcement-caption">
+                Published <AnnouncementDate value={request.data.published_at} />
+              </p>
+              <span className="announcement-audience">All students</span>
             </div>
-            <p className="announcement-caption">
-              Times use your device timezone. Published announcements cannot be
-              edited or deleted.
-            </p>
+            <div className="announcement-prose announcement-reading-content">
+              {request.data.content}
+            </div>
+            <div className="announcement-detail-footer">
+              <p className="announcement-caption">
+                Times use your device timezone. Published announcements cannot
+                be edited or deleted.
+              </p>
+            </div>
           </>
         )}
       </article>
@@ -88,7 +101,7 @@ function DeliverySummaryCard({ uid, onAccessError }: AnnouncementReaderProps) {
   );
   return (
     <section
-      className="announcement-card"
+      className="announcement-card announcement-delivery-card"
       aria-labelledby="announcement-delivery-title"
     >
       <div className="announcement-toolbar">

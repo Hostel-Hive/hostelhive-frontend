@@ -30,6 +30,9 @@ export default function NotificationsPage({
         <>
           <p className="eyebrow">Communication / Inbox</p>
           <h1>Notifications</h1>
+          <p className="page-description">
+            Updates and notifications for your account.
+          </p>
         </>
       )}
       <Inbox
@@ -197,38 +200,40 @@ function InboxContents({
           Refresh inbox
         </Button>
       </div>
-      <p role="status">
-        {count.count === undefined
-          ? count.error
-            ? 'Unread count unavailable.'
-            : 'Checking unread count…'
-          : `${count.count} unread notifications.`}
-      </p>
-      {count.error && (
-        <Button size="sm" variant="secondary" onClick={count.refresh}>
-          Retry unread count
-        </Button>
-      )}
-      <p>
+      <p className="notification-description">
         Only notifications addressed to your account and within your current
         access appear here. Opening a notification marks it as read; viewing
         this list does not.
       </p>
-      <label className="notification-filter">
-        <input
-          type="checkbox"
-          checked={unread}
-          disabled={pending || busy}
-          onChange={(e) => {
-            setUnread(e.target.checked);
-            setOffset(0);
-            setSelected(undefined);
-            setReadError(undefined);
-            focusResults.current = true;
-          }}
-        />
-        Unread only
-      </label>
+      <div className="notification-controls">
+        <p role="status" className="notification-unread-summary">
+          {count.count === undefined
+            ? count.error
+              ? 'Unread count unavailable.'
+              : 'Checking unread count…'
+            : `${count.count} unread notifications.`}
+        </p>
+        {count.error && (
+          <Button size="sm" variant="secondary" onClick={count.refresh}>
+            Retry unread count
+          </Button>
+        )}
+        <label className="notification-filter">
+          <input
+            type="checkbox"
+            checked={unread}
+            disabled={pending || busy}
+            onChange={(e) => {
+              setUnread(e.target.checked);
+              setOffset(0);
+              setSelected(undefined);
+              setReadError(undefined);
+              focusResults.current = true;
+            }}
+          />
+          Unread only
+        </label>
+      </div>
       {selected && (
         <section
           className="notification-detail"
@@ -272,7 +277,10 @@ function InboxContents({
           )}
           <div className="notification-toolbar">
             {notificationSource(selected, role) ? (
-              <Link to={notificationSource(selected, role)!}>
+              <Link
+                className="notification-source-link"
+                to={notificationSource(selected, role)!}
+              >
                 View related {selected.source_type.replaceAll('_', ' ')}
               </Link>
             ) : (
@@ -320,7 +328,7 @@ function InboxContents({
         ) : (
           current.data && (
             <>
-              <p role="status">
+              <p role="status" className="notification-result-count">
                 {current.data.total} {unread ? 'unread ' : ''}notifications.
                 {current.data.items.length > 0 &&
                   ` Showing ${offset + 1}–${offset + current.data.items.length}.`}
@@ -328,17 +336,42 @@ function InboxContents({
               {current.data.items.length ? (
                 <ul className="notification-list">
                   {current.data.items.map((row) => (
-                    <li key={row.notification_id}>
-                      <div>
-                        <span
-                          className={`notification-state${row.read_at ? '' : ' notification-state--unread'}`}
-                        >
-                          {row.read_at ? 'Read' : 'Unread'}
-                        </span>
-                        <h3>{row.title}</h3>
+                    <li
+                      key={row.notification_id}
+                      className={
+                        row.read_at
+                          ? 'notification-row--read'
+                          : 'notification-row--unread'
+                      }
+                    >
+                      <svg
+                        className="notification-row-icon"
+                        aria-hidden="true"
+                        width="40"
+                        height="40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+                      </svg>
+                      <div className="notification-row-copy">
+                        <div className="notification-row-heading">
+                          <h3>{row.title}</h3>
+                          <span
+                            className={`notification-state${row.read_at ? '' : ' notification-state--unread'}`}
+                          >
+                            {row.read_at ? 'Read' : 'Unread'}
+                          </span>
+                        </div>
                         <p className="notification-caption">
-                          {row.source_type.replaceAll('_', ' ')} ·{' '}
-                          <Timestamp value={row.occurred_at} />
+                          <span className="notification-source-label">
+                            {row.source_type.replaceAll('_', ' ')}
+                          </span>{' '}
+                          · <Timestamp value={row.occurred_at} />
                         </p>
                       </div>
                       <Button
@@ -354,7 +387,7 @@ function InboxContents({
                   ))}
                 </ul>
               ) : (
-                <p>
+                <p className="notification-empty-state">
                   {offset
                     ? 'No notifications on this page. Use Previous or refresh.'
                     : unread
@@ -362,7 +395,10 @@ function InboxContents({
                       : 'Your inbox is empty.'}
                 </p>
               )}
-              <nav className="notification-toolbar" aria-label="Inbox pages">
+              <nav
+                className="notification-toolbar notification-pagination"
+                aria-label="Inbox pages"
+              >
                 <Button
                   size="sm"
                   variant="secondary"

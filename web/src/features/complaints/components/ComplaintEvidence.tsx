@@ -82,7 +82,20 @@ function EvidencePhoto({
           }
         />
       ) : current?.error ? (
-        <div>
+        <div className="evidence-image-state">
+          <svg
+            aria-hidden="true"
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <circle cx="8" cy="8" r="1.5" />
+            <path d="m3 17 5-5 4 4 3-3 6 6" />
+          </svg>
           <p role="alert">{current.error}</p>
           <Button
             size="sm"
@@ -93,7 +106,9 @@ function EvidencePhoto({
           </Button>
         </div>
       ) : (
-        <p role="status">Loading image {index + 1}…</p>
+        <p className="evidence-image-state" role="status">
+          Loading image {index + 1}…
+        </p>
       )}
     </>
   );
@@ -321,11 +336,13 @@ export default function ComplaintEvidence({
         aria-labelledby="complaint-evidence-title"
       >
         <h2 id="complaint-evidence-title">Evidence images</h2>
-        <p>
+        <p className="evidence-guidance">
           Up to three private JPEG or PNG images, each up to 5 MiB, 4096 pixels
           per side and 12 million pixels.
         </p>
-        {!editable && <p>Evidence is read-only for staff.</p>}
+        {!editable && (
+          <p className="evidence-readonly">Evidence is read-only for staff.</p>
+        )}
         {editable && !canEdit && (
           <p>
             Evidence is frozen once staff begin reviewing a complaint. Reopening
@@ -343,7 +360,9 @@ export default function ComplaintEvidence({
           <p role="status">Loading evidence…</p>
         ) : (
           <>
-            <p>{data.items.length}/3 images attached</p>
+            <p className="evidence-count">
+              {data.items.length}/3 images attached
+            </p>
             {data.version !== row.version && (
               <p role="status">
                 The complaint changed. Check the current complaint before
