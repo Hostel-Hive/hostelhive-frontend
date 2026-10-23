@@ -4,6 +4,22 @@
 
 ### Fixed
 
+- Reorganized complaint details into complaint/evidence and staff-action panels, with compact dates, expandable references, clearer image retry states and consistent update history.
+
+- Aligned the staff complaint directory with management pages using grouped responsive filters, student profile links, compact local dates, clear status badges and consistent row actions and pagination.
+
+- Refined the owned notification inbox with a compact count/filter bar, distinct read/unread rows, clear source/timestamp metadata and consistent detail actions and pagination.
+
+- Refined announcement reading and delivery-summary views with clear publication metadata, readable notice content, compact navigation and consistent metric cards.
+
+- Refined announcements with a balanced toolbar, responsive notice cards, clear publication metadata and audience labels, explicit read actions and consistent form/pagination styling.
+
+- Replaced the oversized staff account-confirmation banner with a compact identity card, status badges, expandable reference and clear profile navigation.
+
+- Refined the existing staff-account picker with identity avatars, role/access badges, compact selection actions and consistent pagination.
+
+- Standardized staff creation with grouped account-mode controls, responsive profile/access fields, compact guidance and a separate submission footer.
+
 - Restructured access-request details around movement/time and reason, with a separate decision/permission-use column and expandable record references.
 
 - Matched Access requests to leave-request directory styling with grouped filters, student profile links, compact timezone-aware dates and consistent status/actions/pagination.
