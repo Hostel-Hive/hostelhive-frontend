@@ -851,6 +851,56 @@
 .portal-profile-editor::backdrop {
   background: #18103780;
 }
+.portal-photo-editor {
+  width: min(560px, calc(100% - 32px));
+}
+.portal-photo-editor-preview {
+  margin: 24px 0;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+.portal-photo-editor-preview p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: var(--text-xs);
+}
+.portal-photo-editor .portal-photo img {
+  width: 144px;
+  height: 144px;
+  object-fit: cover;
+  border-radius: 16px;
+}
+.portal-photo-picker {
+  display: grid;
+  gap: 10px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.portal-photo-picker input {
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--ink-50);
+  font: inherit;
+}
+.portal-photo-picker input::file-selector-button {
+  margin-right: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+.portal-photo-editor > .portal-actions {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
 .portal-profile-editor h2 {
   margin: 0 0 12px;
   font-size: 20px;
