@@ -134,7 +134,7 @@ it('clears private rows and stops the feed when a live REST refresh denies acces
   act(() => handlers.invalidate());
   expect(await screen.findByRole('alert')).toHaveTextContent('Access removed');
   expect(screen.queryByText(row.full_name)).not.toBeInTheDocument();
-  expect(stop).toHaveBeenCalledTimes(1);
+  await waitFor(() => expect(stop).toHaveBeenCalledTimes(1));
 });
 it('clears rows on session rejection from the feed and offers account verification', async () => {
   await open();
