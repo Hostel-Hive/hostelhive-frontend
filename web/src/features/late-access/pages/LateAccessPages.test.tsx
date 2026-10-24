@@ -89,6 +89,23 @@ function mount(path = '/dashboard/late-access-requests') {
   return { ...view, router, user: userEvent.setup() };
 }
 const detail = `/dashboard/late-access-requests/${row.late_access_id}`;
+it('shows cancellation history to staff without decision controls', async () => {
+  get.mockResolvedValue({
+    ...row,
+    status: 'cancelled',
+    cancelled_at: '2027-02-21T10:00:00Z',
+    cancelled_by: row.submitted_by,
+  });
+  mount(detail);
+  expect(await screen.findByText('Cancelled by the student')).toBeVisible();
+  expect(screen.getByText('Cancelled at')).toBeVisible();
+  expect(
+    screen.queryByRole('button', { name: 'Approve request' }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('button', { name: 'Reject request' }),
+  ).not.toBeInTheDocument();
+});
 it.each([
   ['IN', 'Late entry (IN)'],
   ['OUT', 'Early exit (OUT)'],

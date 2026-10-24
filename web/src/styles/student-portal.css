@@ -688,6 +688,10 @@
   background: #fef2f2;
   color: #b91c1c;
 }
+.portal-leave-badge--cancelled {
+  background: var(--ink-50);
+  color: var(--color-text-muted);
+}
 .portal-leave-badge--in_progress {
   background: var(--cyan-50);
   color: var(--cyan-700);

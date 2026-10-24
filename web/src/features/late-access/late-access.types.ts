@@ -1,5 +1,6 @@
-export type LateAccessStatus = 'pending' | 'approved' | 'rejected';
-export type LateAccessDecision = Exclude<LateAccessStatus, 'pending'>;
+export type LateAccessStatus =
+  'pending' | 'approved' | 'rejected' | 'cancelled';
+export type LateAccessDecision = 'approved' | 'rejected';
 export interface LateAccessRequest {
   late_access_id: string;
   request_id: string;
@@ -13,6 +14,8 @@ export interface LateAccessRequest {
   decided_at: string | null;
   decided_by: string | null;
   decision_note: string;
+  cancelled_at?: string | null;
+  cancelled_by?: string | null;
   consumed_at?: string;
   consumed_device_id?: string;
   consumed_event_id?: string;

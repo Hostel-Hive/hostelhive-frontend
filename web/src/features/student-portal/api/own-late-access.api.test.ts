@@ -12,6 +12,7 @@ import {
   ownLateAccessError,
   lateAccessAccountError,
   OwnLateAccessError,
+  cancelOwnLateAccess,
 } from './own-late-access.api';
 import type {
   LateAccessDraft,
@@ -43,6 +44,81 @@ const draft: LateAccessDraft = {
   reason: ' Travel delay ',
 };
 beforeEach(() => vi.resetAllMocks());
+const cancelled = {
+  ...row,
+  status: 'cancelled',
+  cancelled_at: '2027-02-21T10:00:00Z',
+  cancelled_by: row.submitted_by,
+};
+it('cancels using an empty POST and retains only student-safe cancellation details', async () => {
+  request.mockResolvedValue(Response.json(cancelled));
+  const result = await cancelOwnLateAccess(
+    row.late_access_id,
+    'student',
+    row.student_id,
+    signal(),
+  );
+  expect(result).toMatchObject({
+    status: 'cancelled',
+    cancelled_at: cancelled.cancelled_at,
+  });
+  expect(result).not.toHaveProperty('cancelled_by');
+  expect(request).toHaveBeenCalledWith(
+    `/api/v1/late-access-requests/${row.late_access_id}/cancel`,
+    'student',
+    expect.any(AbortSignal),
+    { method: 'POST' },
+  );
+});
+it.each([401, 403, 404, 409, 503])(
+  'reports cancellation rejection %s without retrying the write',
+  async (status) => {
+    request.mockResolvedValue(
+      Response.json({ error: 'late_access_conflict' }, { status }),
+    );
+    await expect(
+      cancelOwnLateAccess(
+        row.late_access_id,
+        'student',
+        row.student_id,
+        signal(),
+      ),
+    ).rejects.toBeInstanceOf(OwnLateAccessError);
+    expect(request).toHaveBeenCalledTimes(1);
+  },
+);
+it.each([
+  { ...cancelled, student_id: '99999999-9999-4999-8999-999999999999' },
+  { ...cancelled, cancelled_at: null },
+  { ...cancelled, cancelled_by: null },
+  row,
+])(
+  'rejects an invalid or unowned cancellation acknowledgement',
+  async (body) => {
+    request.mockResolvedValue(Response.json(body));
+    await expect(
+      cancelOwnLateAccess(
+        row.late_access_id,
+        'student',
+        row.student_id,
+        signal(),
+      ),
+    ).rejects.toMatchObject({ kind: 'unavailable' });
+  },
+);
+it('filters cancelled records for both student and staff validators', async () => {
+  request.mockResolvedValue(
+    Response.json(lateAccessPage([cancelled as typeof row])),
+  );
+  const result = await listOwnLateAccess(
+    'student',
+    row.student_id,
+    signal(),
+    'cancelled',
+  );
+  expect(result.items[0].status).toBe('cancelled');
+  expect(request.mock.calls[0][0]).toContain('status=cancelled');
+});
 it('lists owned requests without submitting a student ID or body', async () => {
   request.mockResolvedValue(Response.json(studentAccessPage()));
   expect(await listOwnLateAccess('student', row.student_id, signal())).toEqual({
