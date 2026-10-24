@@ -231,7 +231,7 @@ it('validates fields before preparing a publication', async () => {
   expect(publishAnnouncement).not.toHaveBeenCalled();
 });
 it('requires review and explicit confirmation before publishing', async () => {
-  open('new');
+  const { router } = open('new');
   fill();
   await userEvent.click(
     screen.getByRole('button', { name: 'Review announcement' }),
@@ -243,7 +243,16 @@ it('requires review and explicit confirmation before publishing', async () => {
   await userEvent.click(
     screen.getByRole('button', { name: 'Publish to all students' }),
   );
-  expect(await screen.findByRole('heading', { name: row.title })).toBeVisible();
+  // The review preview has the same title in an h4. Wait for the published
+  // detail route and its h2 rather than accepting the transient draft heading.
+  await waitFor(() => {
+    expect(router.state.location.pathname).toBe(
+      `/dashboard/announcements/${row.announcement_id}`,
+    );
+    expect(
+      screen.getByRole('heading', { name: row.title, level: 2 }),
+    ).toBeVisible();
+  });
   expect(publishAnnouncement).toHaveBeenCalledWith(
     {
       request_id: expect.any(String),
@@ -286,6 +295,9 @@ it('prevents duplicate clicks while a publication is pending', async () => {
   fireEvent.click(button);
   expect(publishAnnouncement).toHaveBeenCalledTimes(1);
   expect(screen.getByRole('button', { name: 'Publishing…' })).toBeDisabled();
+  expect(
+    screen.getByRole('heading', { name: row.title, level: 4 }),
+  ).toBeVisible();
 });
 it('locks unknown outcomes and retries the same normalized publication and UUID', async () => {
   vi.mocked(publishAnnouncement)
@@ -309,7 +321,7 @@ it('locks unknown outcomes and retries the same normalized publication and UUID'
   await userEvent.click(
     screen.getByRole('button', { name: 'Retry identical publication' }),
   );
-  await screen.findByRole('heading', { name: row.title });
+  await screen.findByRole('heading', { name: row.title, level: 2 });
   const calls = vi.mocked(publishAnnouncement).mock.calls;
   expect(calls[1].slice(0, 3)).toEqual(calls[0].slice(0, 3));
 });
