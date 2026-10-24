@@ -76,6 +76,50 @@ afterEach(() => {
 function renderPage(view: StudentView = 'overview') {
   return render(<StudentHomePage view={view} />, { wrapper: MemoryRouter });
 }
+it('opens photo management from My profile and refreshes when it closes', async () => {
+  const show = Object.getOwnPropertyDescriptor(
+    HTMLDialogElement.prototype,
+    'showModal',
+  );
+  const close = Object.getOwnPropertyDescriptor(
+    HTMLDialogElement.prototype,
+    'close',
+  );
+  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+    configurable: true,
+    value(this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    },
+  });
+  Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+    configurable: true,
+    value(this: HTMLDialogElement) {
+      this.removeAttribute('open');
+    },
+  });
+  const view = renderPage('profile');
+  try {
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Add photo' }),
+    );
+    expect(
+      await screen.findByRole('dialog', { name: 'Profile photo' }),
+    ).toBeVisible();
+    expect(screen.getByLabelText('Choose profile photo')).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(getOwnProfile).toHaveBeenCalledTimes(2));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  } finally {
+    view.unmount();
+    if (show)
+      Object.defineProperty(HTMLDialogElement.prototype, 'showModal', show);
+    else Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal');
+    if (close)
+      Object.defineProperty(HTMLDialogElement.prototype, 'close', close);
+    else Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
+  }
+});
 it('loads owned attendance on its page and marks the sidebar route active', async () => {
   render(<StudentHomePage view="attendance" />, {
     wrapper: ({ children }) => (

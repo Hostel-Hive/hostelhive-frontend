@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import StudentNavigation from '../components/StudentNavigation';
 import OwnProfileEditor from '../components/OwnProfileEditor';
+import OwnPhotoEditor from '../components/OwnPhotoEditor';
 import NavigationIcon from '../../../layouts/components/NavigationIcon';
 import { routePaths } from '../../../app/router/routePaths';
 import useAuth from '../../auth/hooks/useAuth';
@@ -99,6 +100,8 @@ export default function StudentHomePage({
   const uid = account?.firebase_uid ?? '';
   const [attempt, setAttempt] = useState(0);
   const [editing, setEditing] = useState<string>();
+  const [photoEditing, setPhotoEditing] = useState<string>();
+  const [photoVersion, setPhotoVersion] = useState(0);
   const [profileNotice, setProfileNotice] = useState('');
   const [result, setResult] = useState<{
     uid: string;
@@ -153,6 +156,7 @@ export default function StudentHomePage({
   const error = current?.error;
   const loading = !current;
   const editingCurrent = editing === `${uid}:${data?.student_id}`;
+  const editingPhoto = photoEditing === `${uid}:${data?.student_id}`;
   const refresh = () => setAttempt((n) => n + 1);
   return (
     <div className="portal-shell">
@@ -244,6 +248,7 @@ export default function StudentHomePage({
                 disabled={
                   loading ||
                   editingCurrent ||
+                  editingPhoto ||
                   Boolean(error && isAccessError(error))
                 }
               >
@@ -511,7 +516,7 @@ export default function StudentHomePage({
                         <div className="portal-identity">
                           {data.profile_image_url ? (
                             <OwnStudentPhoto
-                              key={uid + ':' + data.student_id + ':' + attempt}
+                              key={`${uid}:${data.student_id}:${attempt}:${photoVersion}`}
                               uid={uid}
                               name={data.full_name}
                               onAccessError={invalidate}
@@ -529,6 +534,19 @@ export default function StudentHomePage({
                                 .join('') || 'S'}
                             </div>
                           )}
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={editingCurrent}
+                            onClick={() => {
+                              setProfileNotice('');
+                              setPhotoEditing(`${uid}:${data.student_id}`);
+                            }}
+                          >
+                            {data.profile_image_url
+                              ? 'Change photo'
+                              : 'Add photo'}
+                          </Button>
                           <div>
                             <h3>{shown(data.full_name)}</h3>
                             <p className="portal-muted">
@@ -568,6 +586,27 @@ export default function StudentHomePage({
                           your hostel administrator to correct your name,
                           registration number, email, faculty or academic year.
                         </p>
+                        {editingPhoto && (
+                          <OwnPhotoEditor
+                            key={`${uid}:${data.student_id}`}
+                            uid={uid}
+                            profile={data}
+                            onClose={() => {
+                              setPhotoEditing(undefined);
+                              refresh();
+                            }}
+                            onSaved={(profile, message) => {
+                              setResult({ uid, attempt, data: profile });
+                              setPhotoEditing(undefined);
+                              setPhotoVersion((n) => n + 1);
+                              setProfileNotice(message);
+                            }}
+                            onAccessError={(failure) => {
+                              setPhotoEditing(undefined);
+                              invalidate(failure);
+                            }}
+                          />
+                        )}
                         {editingCurrent && (
                           <OwnProfileEditor
                             key={`${uid}:${data.student_id}`}
