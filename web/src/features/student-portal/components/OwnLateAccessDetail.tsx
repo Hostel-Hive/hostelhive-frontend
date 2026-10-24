@@ -13,6 +13,7 @@ import type {
 } from '../api/own-late-access.api';
 import type { OwnLateAccessProps } from './OwnLateAccessList';
 import LeaveDate from '../../leave/components/LeaveDate';
+import OwnAccessCancellation from './OwnAccessCancellation';
 export default function OwnLateAccessDetail({
   uid,
   studentID,
@@ -21,6 +22,8 @@ export default function OwnLateAccessDetail({
   const location = useLocation();
   const { lateAccessID = '' } = useParams();
   const [attempt, setAttempt] = useState(0);
+  const [confirmation, setConfirmation] = useState<string>();
+  const [notice, setNotice] = useState<{ key: string; message: string }>();
   const key = `${uid}:${studentID}:${lateAccessID}:${attempt}`;
   const [result, setResult] = useState<{
     key: string;
@@ -61,7 +64,11 @@ export default function OwnLateAccessDetail({
         <Button
           size="sm"
           variant="secondary"
-          disabled={!current || Boolean(error && lateAccessAccountError(error))}
+          disabled={
+            !current ||
+            confirmation === key ||
+            Boolean(error && lateAccessAccountError(error))
+          }
           onClick={() => setAttempt((n) => n + 1)}
         >
           Refresh request
@@ -69,6 +76,7 @@ export default function OwnLateAccessDetail({
       </div>
       {!current && <p role="status">Loading your access request…</p>}
       {error && <p role="alert">{error.message}</p>}
+      {notice?.key === key && <p role="status">{notice.message}</p>}
       {row && (
         <>
           <p>
@@ -112,6 +120,13 @@ export default function OwnLateAccessDetail({
                 <dt>Decision</dt>
                 <dd>Waiting for a hostel staff decision.</dd>
               </div>
+            ) : row.status === 'cancelled' ? (
+              <div>
+                <dt>Cancelled at</dt>
+                <dd>
+                  <LeaveDate value={row.cancelled_at!} />
+                </dd>
+              </div>
             ) : (
               <>
                 <div>
@@ -133,6 +148,34 @@ export default function OwnLateAccessDetail({
               </>
             )}
           </dl>
+          {row.status === 'pending' && (
+            <div className="portal-actions">
+              <Button variant="secondary" onClick={() => setConfirmation(key)}>
+                Cancel request
+              </Button>
+            </div>
+          )}
+          {row.status === 'pending' && confirmation === key && (
+            <OwnAccessCancellation
+              key={key}
+              uid={uid}
+              studentID={studentID}
+              row={row}
+              onAccessError={(failure) => {
+                setConfirmation(undefined);
+                onAccessError(failure);
+              }}
+              onClose={() => {
+                setConfirmation(undefined);
+                setAttempt((n) => n + 1);
+              }}
+              onUpdated={(fresh, message) => {
+                setConfirmation(undefined);
+                setResult({ key, data: fresh });
+                setNotice({ key, message });
+              }}
+            />
+          )}
           {row.status === 'approved' && (
             <div className="portal-note portal-card portal-access-use">
               <h3>Recorded use</h3>

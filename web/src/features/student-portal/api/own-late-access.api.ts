@@ -20,6 +20,7 @@ export type OwnLateAccess = Pick<
   | 'direction'
   | 'expected_at'
   | 'consumed_at'
+  | 'cancelled_at'
   | 'reason'
   | 'status'
   | 'created_at'
@@ -194,6 +195,7 @@ function ownRow(value: unknown, studentID: string): OwnLateAccess {
     decided_at,
     decision_note,
     consumed_at,
+    cancelled_at,
   } = value;
   return {
     late_access_id,
@@ -206,6 +208,7 @@ function ownRow(value: unknown, studentID: string): OwnLateAccess {
     decided_at,
     decision_note,
     ...(consumed_at ? { consumed_at } : {}),
+    ...(cancelled_at ? { cancelled_at } : {}),
   };
 }
 export async function listOwnLateAccess(
@@ -335,6 +338,39 @@ export async function submitOwnLateAccess(
       row.reason !== payload.reason ||
       row.direction !== payload.direction ||
       Date.parse(row.expected_at) !== Date.parse(payload.expected_at) ||
+      signal.aborted
+    )
+      throw ownLateAccessError(null);
+    return row;
+  } catch (reason) {
+    throw ownLateAccessError(reason);
+  }
+}
+
+export async function cancelOwnLateAccess(
+  id: string,
+  uid: string,
+  studentID: string,
+  signal: AbortSignal,
+): Promise<OwnLateAccess> {
+  try {
+    if (!lateAccessUUID(id) || !lateAccessUUID(studentID))
+      throw new OwnLateAccessError('invalid', 'Choose a valid access request.');
+    const row = ownRow(
+      await json(
+        await authorizedRequest(
+          `/api/v1/late-access-requests/${id.toLowerCase()}/cancel`,
+          uid,
+          signal,
+          { method: 'POST' },
+        ),
+        200,
+      ),
+      studentID,
+    );
+    if (
+      row.late_access_id !== id.toLowerCase() ||
+      row.status !== 'cancelled' ||
       signal.aborted
     )
       throw ownLateAccessError(null);

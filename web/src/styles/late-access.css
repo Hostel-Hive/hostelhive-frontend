@@ -218,6 +218,10 @@
   background: #fff1f2;
   color: #b91c1c;
 }
+.late-access-badge--cancelled {
+  background: var(--ink-50);
+  color: var(--color-text-muted);
+}
 .late-access-pagination {
   justify-content: flex-end;
   margin: 24px 0 0;

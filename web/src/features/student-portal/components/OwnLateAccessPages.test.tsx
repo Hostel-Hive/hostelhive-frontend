@@ -21,6 +21,7 @@ import {
   getOwnLateAccess,
   submitOwnLateAccess,
   OwnLateAccessError,
+  cancelOwnLateAccess,
 } from '../api/own-late-access.api';
 import type { OwnLateAccess } from '../api/own-late-access.api';
 import {
@@ -33,6 +34,7 @@ vi.mock('../api/own-late-access.api', async (original) => ({
   listOwnLateAccess: vi.fn(),
   getOwnLateAccess: vi.fn(),
   submitOwnLateAccess: vi.fn(),
+  cancelOwnLateAccess: vi.fn(),
 }));
 const denied = vi.fn();
 const showDialog = Object.getOwnPropertyDescriptor(
@@ -70,6 +72,153 @@ const props = {
   studentID: studentAccessFixture.student_id,
   onAccessError: denied,
 };
+it('requires confirmation, can keep the request, and displays a successful cancellation', async () => {
+  const cancelled = {
+    ...row,
+    status: 'cancelled' as const,
+    cancelled_at: '2027-02-21T10:00:00Z',
+  };
+  vi.mocked(cancelOwnLateAccess).mockResolvedValue(cancelled);
+  open('detail');
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Cancel request' }),
+  );
+  expect(cancelOwnLateAccess).not.toHaveBeenCalled();
+  await userEvent.click(screen.getByRole('button', { name: 'Keep request' }));
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Cancel request' }),
+  );
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Confirm cancellation' }),
+  );
+  expect(
+    await screen.findByText('Your access request was cancelled.'),
+  ).toBeVisible();
+  expect(screen.getByText('Cancelled at')).toBeVisible();
+  expect(
+    screen.queryByRole('button', { name: 'Cancel request' }),
+  ).not.toBeInTheDocument();
+  expect(cancelOwnLateAccess).toHaveBeenCalledTimes(1);
+});
+it('reloads after an approval race and removes cancellation', async () => {
+  vi.mocked(cancelOwnLateAccess).mockRejectedValue(
+    new OwnLateAccessError('conflict', 'Changed'),
+  );
+  open('detail');
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Cancel request' }),
+  );
+  vi.mocked(getOwnLateAccess).mockResolvedValue({
+    ...row,
+    status: 'approved',
+    decided_at: '2027-02-21T10:00:00Z',
+  });
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Confirm cancellation' }),
+  );
+  expect(
+    await screen.findByText(/Current request status: approved/),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole('button', { name: 'Cancel request' }),
+  ).not.toBeInTheDocument();
+});
+it('requires a status check after an uncertain cancellation and failed reload', async () => {
+  vi.mocked(cancelOwnLateAccess).mockRejectedValue(new Error('Network lost'));
+  open('detail');
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Cancel request' }),
+  );
+  vi.mocked(getOwnLateAccess).mockRejectedValue(new Error('Offline'));
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Confirm cancellation' }),
+  );
+  expect(
+    await screen.findByText(/Unable to verify the current request/),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole('button', { name: 'Confirm cancellation' }),
+  ).not.toBeInTheDocument();
+  vi.mocked(getOwnLateAccess).mockResolvedValue({
+    ...row,
+    status: 'cancelled',
+    cancelled_at: '2027-02-21T10:00:00Z',
+  });
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Check current request' }),
+  );
+  expect(
+    await screen.findByText(/Current request status: cancelled/),
+  ).toBeVisible();
+  expect(cancelOwnLateAccess).toHaveBeenCalledTimes(1);
+});
+it('prevents duplicate confirmation and Escape dismissal while cancellation is pending', async () => {
+  let finish!: (value: OwnLateAccess) => void;
+  vi.mocked(cancelOwnLateAccess).mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  open('detail');
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Cancel request' }),
+  );
+  const confirm = screen.getByRole('button', { name: 'Confirm cancellation' });
+  await userEvent.dblClick(confirm);
+  expect(confirm).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Keep request' })).toBeDisabled();
+  fireEvent(
+    screen.getByRole('dialog'),
+    new Event('cancel', { cancelable: true }),
+  );
+  expect(screen.getByRole('dialog')).toBeVisible();
+  expect(cancelOwnLateAccess).toHaveBeenCalledTimes(1);
+  await act(async () =>
+    finish({
+      ...row,
+      status: 'cancelled',
+      cancelled_at: '2027-02-21T10:00:00Z',
+    }),
+  );
+  expect(
+    await screen.findByText('Your access request was cancelled.'),
+  ).toBeVisible();
+});
+it('reports access denial without retrying or reloading private data', async () => {
+  vi.mocked(cancelOwnLateAccess).mockRejectedValue(
+    new OwnLateAccessError('forbidden', 'Access denied'),
+  );
+  open('detail');
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Cancel request' }),
+  );
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Confirm cancellation' }),
+  );
+  await waitFor(() =>
+    expect(denied).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'forbidden' }),
+    ),
+  );
+  expect(getOwnLateAccess).toHaveBeenCalledTimes(1);
+});
+it.each(['approved', 'rejected', 'cancelled'] as const)(
+  'offers no cancellation for a %s request',
+  async (status) => {
+    vi.mocked(getOwnLateAccess).mockResolvedValue({
+      ...row,
+      status,
+      decided_at: status === 'cancelled' ? null : '2027-02-21T10:00:00Z',
+      cancelled_at: status === 'cancelled' ? '2027-02-21T10:00:00Z' : undefined,
+    });
+    open('detail');
+    await screen.findByText(status);
+    expect(
+      screen.queryByRole('button', { name: 'Cancel request' }),
+    ).not.toBeInTheDocument();
+  },
+);
 it('shows recorded use separately from approval and omits scanner references', async () => {
   vi.mocked(getOwnLateAccess).mockResolvedValueOnce({
     ...row,
@@ -175,7 +324,7 @@ it('shows owned list statuses, dates, details and a create link without staff co
     `/student/late-access-requests/${row.late_access_id}`,
   );
   expect(
-    screen.queryByRole('button', { name: /approve|reject|cancel|delete/i }),
+    screen.queryByRole('button', { name: /approve|reject|delete/i }),
   ).not.toBeInTheDocument();
   expect(
     screen.queryByText(studentAccessFixture.submitted_by),

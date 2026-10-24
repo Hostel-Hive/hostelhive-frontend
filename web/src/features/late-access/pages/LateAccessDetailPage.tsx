@@ -150,6 +150,17 @@ export default function LateAccessDetailPage() {
                       </Button>
                     </div>
                   </>
+                ) : row.status === 'cancelled' ? (
+                  <dl className="late-access-details">
+                    <dt>Status</dt>
+                    <dd>Cancelled by the student</dd>
+                    <dt>Cancelled at</dt>
+                    <dd>
+                      <LateAccessDate value={row.cancelled_at!} />
+                    </dd>
+                    <dt>Cancelled by (account ID)</dt>
+                    <dd className="late-access-id">{row.cancelled_by}</dd>
+                  </dl>
                 ) : (
                   <dl className="late-access-details">
                     <dt>Decision</dt>

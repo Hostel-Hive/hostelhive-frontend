@@ -70,6 +70,8 @@
 
 ### Added
 
+- Added student-owned contact phone and guardian editing for #52 through the restricted own-profile PATCH API; identity/academic fields remain read-only and student photo writes remain unavailable pending backend support.
+
 - Admin staff account/profile creation and missing-profile setup for existing
   accounts, with password visibility, stable provisioning keys, credential-free
   session recovery, partial-completion checks and protected navigation (issue #83).

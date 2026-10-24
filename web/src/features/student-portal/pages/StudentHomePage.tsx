@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import StudentNavigation from '../components/StudentNavigation';
+import OwnProfileEditor from '../components/OwnProfileEditor';
 import NavigationIcon from '../../../layouts/components/NavigationIcon';
 import { routePaths } from '../../../app/router/routePaths';
 import useAuth from '../../auth/hooks/useAuth';
@@ -97,6 +98,8 @@ export default function StudentHomePage({
   const { account, signOut, retry: verifySession } = useAuth();
   const uid = account?.firebase_uid ?? '';
   const [attempt, setAttempt] = useState(0);
+  const [editing, setEditing] = useState<string>();
+  const [profileNotice, setProfileNotice] = useState('');
   const [result, setResult] = useState<{
     uid: string;
     attempt: number;
@@ -149,6 +152,7 @@ export default function StudentHomePage({
   const data = current?.data;
   const error = current?.error;
   const loading = !current;
+  const editingCurrent = editing === `${uid}:${data?.student_id}`;
   const refresh = () => setAttempt((n) => n + 1);
   return (
     <div className="portal-shell">
@@ -237,7 +241,11 @@ export default function StudentHomePage({
                 size="sm"
                 variant="secondary"
                 onClick={refresh}
-                disabled={loading || Boolean(error && isAccessError(error))}
+                disabled={
+                  loading ||
+                  editingCurrent ||
+                  Boolean(error && isAccessError(error))
+                }
               >
                 {loading
                   ? 'Refreshing…'
@@ -471,6 +479,35 @@ export default function StudentHomePage({
                       >
                         <p className="portal-kicker">Personal details</p>
                         <h2 id="own-profile-title">My profile</h2>
+                        <Button
+                          className="portal-profile-edit"
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            setProfileNotice('');
+                            setEditing(`${uid}:${data.student_id}`);
+                          }}
+                        >
+                          <svg
+                            aria-hidden="true"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="m16 3 5 5-12 12-6 1 1-6z M14 5l5 5" />
+                          </svg>
+                          Edit profile
+                        </Button>
+                        {profileNotice && (
+                          <p className="portal-profile-notice" role="status">
+                            {profileNotice}
+                          </p>
+                        )}
                         <div className="portal-identity">
                           {data.profile_image_url ? (
                             <OwnStudentPhoto
@@ -527,9 +564,30 @@ export default function StudentHomePage({
                           )}
                         </div>
                         <p className="portal-caption">
-                          Contact your hostel administrator to correct profile
-                          or guardian details.
+                          You can edit your phone and guardian details. Contact
+                          your hostel administrator to correct your name,
+                          registration number, email, faculty or academic year.
                         </p>
+                        {editingCurrent && (
+                          <OwnProfileEditor
+                            key={`${uid}:${data.student_id}`}
+                            uid={uid}
+                            profile={data}
+                            onClose={() => {
+                              setEditing(undefined);
+                              refresh();
+                            }}
+                            onSaved={(profile, message) => {
+                              setResult({ uid, attempt, data: profile });
+                              setEditing(undefined);
+                              setProfileNotice(message);
+                            }}
+                            onAccessError={(failure) => {
+                              setEditing(undefined);
+                              invalidate(failure);
+                            }}
+                          />
+                        )}
                       </section>
                     )}
                     {view === 'accommodation' && (
