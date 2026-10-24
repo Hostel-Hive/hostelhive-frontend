@@ -109,9 +109,12 @@ it('displays private images for staff without mutation controls or public URLs',
     version: 1,
   });
   open({ editable: false, uid: 'staff' });
-  expect(await screen.findByAltText('Complaint evidence 1')).toHaveAttribute(
-    'src',
-    'blob:private-evidence',
+  // The image mounts before its effect attaches the private object URL.
+  await waitFor(() =>
+    expect(screen.getByAltText('Complaint evidence 1')).toHaveAttribute(
+      'src',
+      'blob:private-evidence',
+    ),
   );
   expect(
     screen.queryByLabelText('Choose evidence image'),
