@@ -203,7 +203,7 @@ export default function StudentHomePage({
                     accommodation: 'Your current hostel block, room and bed.',
                     qr: 'Your student identification code for the hostel scanner.',
                     attendance: 'Your recorded hostel entries and exits.',
-                    announcements: 'Published hostel notices for all students.',
+                    announcements: 'Published hostel notices available to you.',
                     notifications: 'Your updates and unread notifications.',
                     'announcement-detail':
                       'Read the published hostel announcement.',

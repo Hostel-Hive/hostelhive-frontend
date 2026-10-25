@@ -44,6 +44,9 @@ const InventoryPage = lazy(
 const UserManagementPage = lazy(
   () => import('../../features/users/pages/UserManagementPage'),
 );
+const FacultyManagementPage = lazy(
+  () => import('../../features/faculties/pages/FacultyManagementPage'),
+);
 const DeviceManagementPage = lazy(
   () => import('../../features/devices/pages/DeviceManagementPage'),
 );
@@ -192,6 +195,14 @@ export default function AppRoutes() {
               />
             ),
           )}
+          <Route
+            path="faculties"
+            element={
+              <Suspense fallback={<p role="status">Loading faculties…</p>}>
+                <FacultyManagementPage />
+              </Suspense>
+            }
+          />
           <Route path="attendance" element={<StaffAttendancePage />} />
           <Route
             path="attendance/incidents"

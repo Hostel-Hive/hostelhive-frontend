@@ -30,6 +30,7 @@ export const routePaths = {
   adminDashboard: '/dashboard/admin',
   users: '/dashboard/users',
   devices: '/dashboard/devices',
+  faculties: '/dashboard/faculties',
   staff: '/dashboard/staff',
   staffNew: '/dashboard/staff/new',
   wardenDashboard: '/dashboard/warden',
