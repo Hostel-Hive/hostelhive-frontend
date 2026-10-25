@@ -6,6 +6,7 @@ import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
 import StudentProfileForm from '../components/StudentProfileForm';
 import { routePaths } from '../../../app/router/routePaths';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
 
 function EditStudent() {
   const { studentID = '' } = useParams();
@@ -35,8 +36,8 @@ export default function StudentFormPage({
   const { studentID } = useParams();
   const [params] = useSearchParams();
   const { account } = useAuth();
-  const inviting =
-    account?.role === 'admin' && params.get('registration') !== 'existing';
+  const canRegister = account?.role === 'admin';
+  const inviting = canRegister && params.get('registration') !== 'existing';
   const filtered = new URLSearchParams(params);
   filtered.delete('registration');
   const modeLink = new URLSearchParams(filtered);
@@ -67,14 +68,31 @@ export default function StudentFormPage({
       </p>
       {creating ? (
         <>
-          {account?.role === 'admin' && (
-            <p>
-              <Link to={`?${modeLink.toString()}`}>
-                {inviting
-                  ? 'Create a profile for an existing account instead'
-                  : 'Register with a university email instead'}
-              </Link>
-            </p>
+          {(account?.role === 'admin' || account?.role === 'warden') && (
+            <div className="student-registration-mode">
+              <span className="student-registration-mode-icon">
+                <NavigationIcon name={inviting ? 'students' : 'profile'} />
+              </span>
+              <div>
+                <strong>
+                  {inviting
+                    ? 'New student registration'
+                    : 'Existing student account'}
+                </strong>
+                <p>
+                  {inviting
+                    ? 'Create their profile and send a private account setup invitation.'
+                    : 'Complete a profile for a student who already has a login account.'}
+                </p>
+              </div>
+              {canRegister && (
+                <Link replace to={`?${modeLink.toString()}`}>
+                  {inviting
+                    ? 'Create a profile for an existing account instead'
+                    : 'Register with a university email instead'}
+                </Link>
+              )}
+            </div>
           )}
           <StudentProfileForm
             key={`${account?.firebase_uid}:${inviting}`}

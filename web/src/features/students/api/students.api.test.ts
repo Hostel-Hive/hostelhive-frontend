@@ -6,6 +6,7 @@ import {
   listStudents,
   studentError,
   createStudent,
+  createStudentByEmail,
   updateStudent,
   archiveStudent,
 } from './students.api';
@@ -46,6 +47,75 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 describe('student API contract', () => {
+  it('creates a profile using normalized email without exposing or submitting an account UUID', async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(studentFixture)));
+    const details = normalizeStudent({
+      ...studentFixture,
+      guardians: studentFixture.guardians!,
+    });
+    await expect(
+      createStudentByEmail(
+        { ...details, email: `  ${studentFixture.email.toUpperCase()}  ` },
+        user.uid,
+        signal(),
+      ),
+    ).resolves.toEqual(studentFixture);
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe('/backend-api/api/v1/students');
+    expect(options).toMatchObject({
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer test-token',
+        'Content-Type': 'application/json',
+      },
+    });
+    const body = JSON.parse(options.body);
+    expect(body.email).toBe(studentFixture.email.toLowerCase());
+    expect(body).not.toHaveProperty('user_id');
+    expect(body.guardians[0]).not.toHaveProperty('guardian_id');
+  });
+  it('rejects malformed email before fetching and rejects a response for a different account', async () => {
+    const details = normalizeStudent({
+      ...studentFixture,
+      guardians: studentFixture.guardians!,
+    });
+    await expect(
+      createStudentByEmail({ ...details, email: 'bad' }, user.uid, signal()),
+    ).rejects.toMatchObject({ kind: 'invalid' });
+    expect(fetchMock).not.toHaveBeenCalled();
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({ ...studentFixture, email: 'another@example.edu' }),
+      ),
+    );
+    await expect(
+      createStudentByEmail(
+        { ...details, email: studentFixture.email },
+        user.uid,
+        signal(),
+      ),
+    ).rejects.toMatchObject({ kind: 'unavailable' });
+  });
+  it('rejects unknown, staff or inactive email matches without retrying registration', async () => {
+    const details = normalizeStudent({
+      ...studentFixture,
+      guardians: studentFixture.guardians!,
+    });
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({ error: 'active_student_account_required' }),
+        { status: 409 },
+      ),
+    );
+    await expect(
+      createStudentByEmail(
+        { ...details, email: studentFixture.email },
+        user.uid,
+        signal(),
+      ),
+    ).rejects.toMatchObject({ kind: 'account' });
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
   it('archives with a bearer-authorized empty DELETE and accepts 204 without parsing JSON', async () => {
     fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
     await expect(
