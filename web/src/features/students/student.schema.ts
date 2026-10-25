@@ -22,8 +22,8 @@ export function validateStudent(input: CreateStudentInput, creating: boolean) {
     if (!text(input[key], max))
       errors[key] =
         `${label} is required and must contain at most ${max} characters without control characters.`;
-  if (!Number.isInteger(input.year) || input.year < 1 || input.year > 10)
-    errors.year = 'Choose a year between 1 and 10.';
+  if (!Number.isInteger(input.year) || input.year < 1 || input.year > 5)
+    errors.year = 'Choose a year between 1 and 5.';
   if (!phone(input.contact_phone))
     errors.contact_phone =
       'Enter a phone number with at least 7 digits (maximum 32 characters).';

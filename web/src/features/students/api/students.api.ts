@@ -7,6 +7,7 @@ import type {
   StudentPage,
   StudentDetails,
   CreateStudentInput,
+  CreateStudentByEmailInput,
 } from '../student.types';
 
 export class StudentRequestError extends Error {
@@ -146,7 +147,7 @@ export async function studentResponse(
     if (object(value) && value.error === 'active_student_account_required')
       throw new StudentRequestError(
         'account',
-        'This account must be an active student account. Ask an administrator to check the account ID and status.',
+        'No eligible active student account was found. Ask an administrator to check the student email and account status.',
       );
     throw new StudentRequestError(
       'duplicate',
@@ -206,6 +207,37 @@ export async function createStudent(
   if (
     !validStudent(value) ||
     value.user_id.toLowerCase() !== input.user_id.toLowerCase()
+  )
+    throw unavailable();
+  return value;
+}
+export async function createStudentByEmail(
+  input: CreateStudentByEmailInput,
+  uid: string,
+  signal: AbortSignal,
+): Promise<Student> {
+  const email = input.email.trim().toLowerCase();
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    throw new StudentRequestError('invalid', 'Enter a valid university email.');
+  const body: CreateStudentByEmailInput = {
+    email,
+    index_no: input.index_no,
+    full_name: input.full_name,
+    faculty: input.faculty,
+    year: input.year,
+    contact_phone: input.contact_phone,
+    guardians: input.guardians.map(({ name, relationship, contact_phone }) => ({
+      name,
+      relationship,
+      contact_phone,
+    })),
+  };
+  const value = await request('', uid, signal, { method: 'POST', body });
+  if (
+    !validStudent(value) ||
+    !uuid.test(value.user_id) ||
+    value.email.toLowerCase() !== email ||
+    !value.account_active
   )
     throw unavailable();
   return value;

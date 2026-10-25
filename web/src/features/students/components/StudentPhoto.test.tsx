@@ -123,16 +123,20 @@ it('shows the empty state without fetching and validates before uploading', asyn
     'staff-uid',
     expect.any(AbortSignal),
   );
-  expect(await screen.findByAltText(/Profile photo of/)).toHaveAttribute(
-    'src',
-    'blob:private-photo',
+  await waitFor(() =>
+    expect(screen.getByAltText(/Profile photo of/)).toHaveAttribute(
+      'src',
+      'blob:private-photo',
+    ),
   );
 });
 it('fetches existing photos privately, previews replacements and revokes URLs on discard/unmount', async () => {
   const view = show(true);
-  expect(await screen.findByAltText(/Profile photo of/)).toHaveAttribute(
-    'src',
-    'blob:private-photo',
+  await waitFor(() =>
+    expect(screen.getByAltText(/Profile photo of/)).toHaveAttribute(
+      'src',
+      'blob:private-photo',
+    ),
   );
   expect(getStudentImage).toHaveBeenCalledWith(
     studentFixture.student_id,

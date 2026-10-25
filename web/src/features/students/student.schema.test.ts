@@ -4,6 +4,12 @@ import { studentFixture } from '../../test/fixtures/student';
 const input = () =>
   normalizeStudent({ ...studentFixture, guardians: studentFixture.guardians! });
 describe('student form validation', () => {
+  it('accepts Year 5 and rejects years beyond the form limit', () => {
+    expect(validateStudent({ ...input(), year: 5 }, true)).toEqual({});
+    expect(validateStudent({ ...input(), year: 6 }, true).year).toBe(
+      'Choose a year between 1 and 5.',
+    );
+  });
   it('accepts valid input and strips guardian IDs and extra response fields', () => {
     expect(validateStudent(input(), true)).toEqual({});
     expect(input()).not.toHaveProperty('email');

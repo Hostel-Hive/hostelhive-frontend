@@ -5,7 +5,7 @@ import Input from '../../../shared/components/ui/Input';
 import { routePaths } from '../../../app/router/routePaths';
 import useAuth from '../../auth/hooks/useAuth';
 import {
-  createStudent,
+  createStudentByEmail,
   updateStudent,
   studentError,
   StudentRequestError,
@@ -17,6 +17,7 @@ import {
 import StudentDiscardDialog from './StudentDiscardDialog';
 import type { CreateStudentInput, Student } from '../student.types';
 import { normalizeStudent, validateStudent } from '../student.schema';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
 
 export default function StudentProfileForm({
   student,
@@ -124,15 +125,15 @@ export default function StudentProfileForm({
   }
   async function submit() {
     if (operation.current || locked) return;
-    const nextErrors = validateStudent(value, !student && !inviting);
-    if (inviting && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email.trim()))
+    const nextErrors = validateStudent(value, false);
+    if (!student && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email.trim()))
       nextErrors.email = 'Enter a valid university email.';
     setErrors(nextErrors);
     setError(undefined);
     if (Object.keys(nextErrors).length) {
       form.current
         ?.querySelector<HTMLInputElement | HTMLSelectElement>(
-          `[name="${Object.keys(nextErrors)[0]}"]`,
+          `[name="${nextErrors.email ? 'email' : Object.keys(nextErrors)[0]}"]`,
         )
         ?.focus();
       return;
@@ -197,8 +198,8 @@ export default function StudentProfileForm({
             account!.firebase_uid,
             controller.current.signal,
           )
-        : await createStudent(
-            input,
+        : await createStudentByEmail(
+            { ...details, email: value.email.trim().toLowerCase() },
             account!.firebase_uid,
             controller.current.signal,
           );
@@ -264,26 +265,31 @@ export default function StudentProfileForm({
           <Button onClick={() => void signOut()}>Sign in again</Button>
         )}
         <fieldset disabled={locked || uncertain}>
-          <legend>Student details</legend>
+          <legend>
+            <span className="student-form-section-icon">
+              <NavigationIcon name="students" />
+            </span>
+            Student details
+          </legend>
           {!student && !inviting && (
             <>
-              <p className="student-form-help">
-                Enter the student account UUID supplied by an administrator.
-                This creates a profile, not a login account. The backend
-                verifies account eligibility.
+              <p className="student-form-help student-invitation-note">
+                Enter the university email of an existing active student
+                account. This creates their profile only. New accounts and setup
+                invitations are managed by an administrator.
               </p>
               {field(
-                'user_id',
-                'Student account ID',
-                value.user_id,
-                (text) => change('user_id', text),
-                36,
+                'email',
+                'University email',
+                value.email,
+                (text) => change('email', text),
+                254,
               )}
             </>
           )}
           {inviting && (
             <>
-              <p className="student-form-help">
+              <p className="student-form-help student-invitation-note">
                 Register the student using their university email. They will
                 receive a private link to choose their HostelHive password.
                 Email delivery is processed in the background.
@@ -337,7 +343,7 @@ export default function StudentProfileForm({
                 aria-describedby={errors.year ? 'year-error' : undefined}
               >
                 <option value={0}>Select year</option>
-                {Array.from({ length: 10 }, (_, i) => (
+                {Array.from({ length: 5 }, (_, i) => (
                   <option value={i + 1} key={i}>
                     Year {i + 1}
                   </option>
@@ -359,7 +365,12 @@ export default function StudentProfileForm({
           </div>
         </fieldset>
         <fieldset disabled={locked || uncertain}>
-          <legend>Guardian details</legend>
+          <legend>
+            <span className="student-form-section-icon">
+              <NavigationIcon name="users" />
+            </span>
+            Guardian details
+          </legend>
           <p className="student-form-help">
             Provide at least one guardian; up to ten are supported.
           </p>
@@ -425,10 +436,16 @@ export default function StudentProfileForm({
               }))
             }
           >
-            Add guardian
+            <span aria-hidden="true">＋ </span>Add guardian
           </Button>
         </fieldset>
         <div className="student-form-actions student-editor-footer">
+          {inviting && (
+            <p className="student-registration-footer-note">
+              Account setup is sent by email. No password is created in this
+              form.
+            </p>
+          )}
           <Button
             type="submit"
             disabled={locked || (Boolean(student) && !dirty)}

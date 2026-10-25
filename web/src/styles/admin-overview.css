@@ -130,6 +130,93 @@
   font-size: var(--text-heading);
   font-weight: 700;
 }
+.overview-presence-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.overview-presence-heading .eyebrow {
+  margin: 0;
+}
+.overview-presence-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--cyan-700);
+  background: var(--cyan-50);
+  border-radius: 10px;
+}
+.overview-presence-panel h2 {
+  margin: 8px 0 16px;
+}
+.admin-overview-presence .overview-presence-count {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--ink-400);
+  padding: clamp(12px, 1.5vw, 20px);
+}
+.admin-overview-presence .overview-presence-count--in {
+  border-top-color: var(--cyan-700);
+  background: var(--cyan-50);
+}
+.admin-overview-presence .overview-presence-count--out {
+  border-top-color: var(--amber-700);
+  background: var(--amber-50);
+}
+.overview-presence-count dt {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.overview-presence-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-500);
+}
+.overview-presence-count--in .overview-presence-dot {
+  background: var(--cyan-700);
+}
+.overview-presence-count--out .overview-presence-dot {
+  background: var(--amber-700);
+}
+.overview-presence-count dd {
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+.overview-presence-panel > p:not(.admin-overview-caption) {
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+.overview-presence-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--cyan-700);
+  text-decoration: none;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.overview-presence-link:hover {
+  border-color: var(--cyan-700);
+  background: var(--cyan-50);
+}
+@media (max-width: 380px) {
+  .admin-overview-presence {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .admin-overview-shortcuts {
   display: grid;
   gap: 10px;
