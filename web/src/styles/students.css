@@ -701,6 +701,27 @@
   margin-bottom: var(--space-4);
   font-size: var(--text-sm);
 }
+
+.student-directory-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-block: 1.25rem;
+}
+
+.student-restored-notice {
+  padding: 0.875rem 1rem;
+  background: #effaf3;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.student-restore-dialog p {
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
 .student-import-file,
 .student-import-confirm,
 .student-import-table {

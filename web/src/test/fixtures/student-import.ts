@@ -2,7 +2,7 @@ import { studentFixture } from './student';
 import { STUDENT_CSV_COLUMNS } from '../../features/students/student-import';
 import type { ImportReport } from '../../features/students/student-import';
 export const csvRow = [
-  studentFixture.user_id,
+  'alex@students.example.edu',
   studentFixture.index_no,
   studentFixture.full_name,
   studentFixture.faculty,
@@ -36,6 +36,32 @@ export const importReportFixture: ImportReport = {
       record: 1,
       line: 2,
       status: 'created',
+      student_id: studentFixture.student_id,
+    },
+    { record: 2, line: 3, status: 'rejected', error: 'invalid_input' },
+    {
+      record: 3,
+      line: 4,
+      status: 'not_attempted',
+      error: 'import_interrupted',
+    },
+  ],
+};
+
+export const registrationReportFixture = {
+  total: 3,
+  queued: 1,
+  replayed: 0,
+  rejected: 1,
+  not_attempted: 1,
+  retry_required: 0,
+  stopped_reason: 'import_interrupted',
+  rows: [
+    {
+      record: 1,
+      line: 2,
+      status: 'queued',
+      invitation_id: '00000000-0000-4000-8000-000000000001',
       student_id: studentFixture.student_id,
     },
     { record: 2, line: 3, status: 'rejected', error: 'invalid_input' },

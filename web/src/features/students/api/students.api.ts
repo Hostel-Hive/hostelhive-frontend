@@ -193,6 +193,32 @@ export async function archiveStudent(
     method: 'DELETE',
   });
 }
+
+export async function restoreStudent(
+  id: string,
+  uid: string,
+  signal: AbortSignal,
+): Promise<{ student: Student; restored: boolean }> {
+  if (!uuid.test(id))
+    throw new StudentRequestError('invalid', 'Invalid student profile.');
+  const response = await studentResponse(
+    `/${encodeURIComponent(id)}/restore`,
+    uid,
+    signal,
+    { method: 'POST' },
+  );
+  if (response.status !== 200) throw unavailable();
+  const value: unknown = await response.json();
+  if (
+    !object(value) ||
+    !validStudent(value.student) ||
+    value.student.student_id !== id ||
+    !value.student.account_active ||
+    typeof value.restored !== 'boolean'
+  )
+    throw unavailable();
+  return { student: value.student, restored: value.restored };
+}
 export async function createStudent(
   input: CreateStudentInput,
   uid: string,
@@ -267,7 +293,11 @@ export async function listStudents(
   signal: AbortSignal,
 ): Promise<StudentPage> {
   const query = directoryQuery(params);
-  const value = await request(`?${query}`, uid, signal);
+  const value = await request(
+    `${params.get('status') === 'archived' ? '/archived' : ''}?${query}`,
+    uid,
+    signal,
+  );
   if (
     !object(value) ||
     !Array.isArray(value.students) ||

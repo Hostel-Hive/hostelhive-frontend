@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { routePaths } from '../../../app/router/routePaths';
 import Input from '../../../shared/components/ui/Input';
@@ -7,6 +7,8 @@ import useAuth from '../../auth/hooks/useAuth';
 import { listStudents } from '../api/students.api';
 import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
+import StudentRestoreDialog from '../components/StudentRestoreDialog';
+import type { Student } from '../student.types';
 
 export default function StudentDirectoryPage() {
   const location = useLocation();
@@ -14,12 +16,18 @@ export default function StudentDirectoryPage() {
   const [params, setParams] = useSearchParams();
   const search = params.toString();
   const uid = account?.firebase_uid ?? '';
+  const archived = params.get('status') === 'archived';
+  const [selected, setSelected] = useState<{ student: Student; uid: string }>();
+  const [notice, setNotice] = useState<{ text: string; uid: string }>();
   const load = useCallback(
     (signal: AbortSignal) =>
       listStudents(new URLSearchParams(search), uid, signal),
     [search, uid],
   );
-  const { data, error, retry } = useStudentRequest(`${uid}:${search}`, load);
+  const { data, error, retry } = useStudentRequest(
+    `${uid}:${account?.role}:${search}`,
+    load,
+  );
   const filtered = ['q', 'faculty', 'year'].some((key) =>
     Boolean(params.get(key)),
   );
@@ -39,7 +47,9 @@ export default function StudentDirectoryPage() {
           <p className="eyebrow">Directory / Students</p>
           <h1 id="students-title">Students</h1>
           <p className="page-description">
-            Browse resident profiles and account status.
+            {archived
+              ? 'Review archived profiles and restore eligible students to the current directory.'
+              : 'Browse resident profiles and account status.'}
           </p>
         </div>
         <div className="student-directory-actions">
@@ -59,6 +69,39 @@ export default function StudentDirectoryPage() {
           )}
         </div>
       </div>
+      {account?.role === 'admin' && (
+        <nav
+          className="student-directory-tabs"
+          aria-label="Student profile status"
+        >
+          {[
+            ['current', 'Current students'],
+            ['archived', 'Archived students'],
+          ].map(([status, label]) => (
+            <Button
+              key={status}
+              variant={
+                archived === (status === 'archived') ? 'primary' : 'secondary'
+              }
+              aria-pressed={archived === (status === 'archived')}
+              onClick={() => {
+                const next = new URLSearchParams(params);
+                next.delete('offset');
+                if (status === 'archived') next.set('status', 'archived');
+                else next.delete('status');
+                setParams(next);
+              }}
+            >
+              {label}
+            </Button>
+          ))}
+        </nav>
+      )}
+      {notice?.uid === uid && (
+        <p role="status" className="student-restored-notice">
+          {notice.text}
+        </p>
+      )}
       {location.state?.studentNotice === 'Student profile archived.' && (
         <p role="status">Student profile archived.</p>
       )}
@@ -70,6 +113,7 @@ export default function StudentDirectoryPage() {
             event.preventDefault();
             const values = new FormData(event.currentTarget);
             const next = new URLSearchParams();
+            if (archived) next.set('status', 'archived');
             for (const key of ['q', 'faculty', 'year']) {
               const value = String(values.get(key) ?? '').trim();
               if (value) next.set(key, value);
@@ -116,7 +160,11 @@ export default function StudentDirectoryPage() {
           <Button type="submit">Apply filters</Button>
           <Button
             variant="secondary"
-            onClick={() => setParams(new URLSearchParams())}
+            onClick={() =>
+              setParams(
+                new URLSearchParams(archived ? { status: 'archived' } : {}),
+              )
+            }
           >
             Clear filters
           </Button>
@@ -129,7 +177,9 @@ export default function StudentDirectoryPage() {
               ? 'No students match these filters.'
               : data.offset
                 ? 'No students on this page. Go to the previous page or clear filters.'
-                : 'No student records yet.'}
+                : archived
+                  ? 'No archived student profiles.'
+                  : 'No student records yet.'}
           </p>
         ) : (
           <div
@@ -149,7 +199,7 @@ export default function StudentDirectoryPage() {
                   <th scope="col">Faculty</th>
                   <th scope="col">Year</th>
                   <th scope="col">Account status</th>
-                  <th scope="col">Profile</th>
+                  <th scope="col">{archived ? 'Recovery' : 'Profile'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -187,14 +237,27 @@ export default function StudentDirectoryPage() {
                       </span>
                     </td>
                     <td>
-                      <Link
-                        className="student-view-link"
-                        to={`${routePaths.students}/${encodeURIComponent(student.student_id)}${search ? `?${search}` : ''}`}
-                        aria-label={`View ${student.full_name}`}
-                      >
-                        View
-                        <span aria-hidden="true"> ↗</span>
-                      </Link>
+                      {archived ? (
+                        account?.role === 'admin' && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setSelected({ student, uid })}
+                            aria-label={`Restore ${student.full_name}`}
+                          >
+                            Restore profile
+                          </Button>
+                        )
+                      ) : (
+                        <Link
+                          className="student-view-link"
+                          to={`${routePaths.students}/${encodeURIComponent(student.student_id)}${search ? `?${search}` : ''}`}
+                          aria-label={`View ${student.full_name}`}
+                        >
+                          View
+                          <span aria-hidden="true"> ↗</span>
+                        </Link>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -222,6 +285,24 @@ export default function StudentDirectoryPage() {
           </nav>
         )}
       </div>
+      {account?.role === 'admin' && archived && selected?.uid === uid && (
+        <StudentRestoreDialog
+          key={`${uid}:${selected.student.student_id}`}
+          student={selected.student}
+          uid={uid}
+          close={() => setSelected(undefined)}
+          restored={(alreadyCurrent) => {
+            setSelected(undefined);
+            setNotice({
+              uid,
+              text: alreadyCurrent
+                ? 'Student profile is already restored.'
+                : 'Student profile restored successfully.',
+            });
+            retry();
+          }}
+        />
+      )}
     </section>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useBlocker, useNavigate } from 'react-router-dom';
 import Button from '../../../shared/components/ui/Button';
 import Input from '../../../shared/components/ui/Input';
+import ErrorToast from '../../../shared/components/ui/ErrorToast';
 import { routePaths } from '../../../app/router/routePaths';
 import useAuth from '../../auth/hooks/useAuth';
 import {
@@ -49,6 +50,7 @@ export default function StudentProfileForm({
   const [value, setValue] = useState(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<StudentRequestError>();
+  const [notificationDismissed, setNotificationDismissed] = useState(false);
   const [pending, setPending] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const attempt = useRef<StudentInvitationInput | null>(null);
@@ -130,6 +132,7 @@ export default function StudentProfileForm({
       nextErrors.email = 'Enter a valid university email.';
     setErrors(nextErrors);
     setError(undefined);
+    setNotificationDismissed(false);
     if (Object.keys(nextErrors).length) {
       form.current
         ?.querySelector<HTMLInputElement | HTMLSelectElement>(
@@ -249,8 +252,23 @@ export default function StudentProfileForm({
           void submit();
         }}
       >
-        {error && (
-          <div role="alert" className="auth-error">
+        {error && !notificationDismissed && (
+          <ErrorToast
+            title={
+              error.kind === 'duplicate'
+                ? 'Registration already exists'
+                : error.kind === 'session'
+                  ? 'Please sign in again'
+                  : inviting
+                    ? 'Registration could not be confirmed'
+                    : 'Profile could not be saved'
+            }
+            onDismiss={
+              error.kind === 'session'
+                ? undefined
+                : () => setNotificationDismissed(true)
+            }
+          >
             {error.message}
             {error.kind === 'unavailable' && !inviting && (
               <p>
@@ -259,10 +277,10 @@ export default function StudentProfileForm({
                 interrupted.
               </p>
             )}
-          </div>
-        )}
-        {error?.kind === 'session' && (
-          <Button onClick={() => void signOut()}>Sign in again</Button>
+            {error.kind === 'session' && (
+              <Button onClick={() => void signOut()}>Sign in again</Button>
+            )}
+          </ErrorToast>
         )}
         <fieldset disabled={locked || uncertain}>
           <legend>

@@ -66,13 +66,13 @@ it.each([
 ])('rejects structural errors before submission', (text, error) => {
   expect(() => parseStudentCSV(text)).toThrow(error);
 });
-it('accepts 500 records and rejects 501 before any request', () => {
+it('accepts 100 records and rejects 101 before any request', () => {
   expect(
-    parseStudentCSV(makeCSV(Array.from({ length: 500 }, () => csvRow))),
-  ).toHaveLength(500);
+    parseStudentCSV(makeCSV(Array.from({ length: 100 }, () => csvRow))),
+  ).toHaveLength(100);
   expect(() =>
-    parseStudentCSV(makeCSV(Array.from({ length: 501 }, () => csvRow))),
-  ).toThrow('500');
+    parseStudentCSV(makeCSV(Array.from({ length: 101 }, () => csvRow))),
+  ).toThrow('100');
 });
 it('reads UTF-8 bytes and rejects invalid encoding, empty, oversized and non-CSV files', async () => {
   const file = new File([makeCSV()], 'students.CSV', {
