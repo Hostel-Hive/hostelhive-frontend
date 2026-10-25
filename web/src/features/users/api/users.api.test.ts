@@ -26,6 +26,22 @@ vi.mock('../../auth/api/authorized-request', () => ({
   },
 }));
 const request = vi.mocked(authorizedRequest);
+
+it('validates optional student lifecycle metadata without inventing missing status', () => {
+  expect(validUser(user)).toBe(true);
+  const enriched = {
+    ...user,
+    student_profile_id: '11111111-1111-4111-8111-111111111111',
+    student_profile_archived: true,
+    student_has_active_bed: false,
+  };
+  expect(validUser(enriched)).toBe(true);
+  expect(validUser({ ...enriched, student_profile_archived: 'yes' })).toBe(
+    false,
+  );
+  expect(validUser({ ...user, student_has_active_bed: false })).toBe(false);
+  expect(validUser({ ...enriched, role: 'warden' })).toBe(false);
+});
 const signal = new AbortController().signal;
 const response = (value: unknown, status = 200) =>
   new Response(JSON.stringify(value), { status });

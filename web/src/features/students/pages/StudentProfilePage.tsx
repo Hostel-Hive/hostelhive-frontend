@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback } from 'react';
+import { lazy, Suspense, useCallback, useRef } from 'react';
 import {
   Link,
   useLocation,
@@ -11,7 +11,9 @@ import { getStudent } from '../api/students.api';
 import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
 import StudentArchiveAction from '../components/StudentArchiveAction';
-import StudentCheckoutAction from '../components/StudentCheckoutAction';
+import StudentCheckoutAction, {
+  type CheckoutHandle,
+} from '../components/StudentCheckoutAction';
 import StudentPhoto from '../components/StudentPhoto';
 import StudentInvitationStatus from '../components/StudentInvitationStatus';
 import { validInvitation } from '../api/student-invitations.api';
@@ -28,6 +30,7 @@ export default function StudentProfilePage() {
   const [params] = useSearchParams();
   const { account } = useAuth();
   const uid = account?.firebase_uid ?? '';
+  const checkoutAction = useRef<CheckoutHandle>(null);
   const load = useCallback(
     (signal: AbortSignal) => getStudent(studentID, uid, signal),
     [studentID, uid],
@@ -81,6 +84,7 @@ export default function StudentProfilePage() {
           )}
           <div className="student-profile-actions">
             <StudentCheckoutAction
+              actionRef={checkoutAction}
               key={`${uid}:${account?.role}:${data.student_id}`}
               student={data}
               search={search}
@@ -95,6 +99,11 @@ export default function StudentProfilePage() {
               key={data.student_id}
               student={data}
               search={search}
+              onEndStay={
+                account?.role === 'admin'
+                  ? () => checkoutAction.current?.open()
+                  : undefined
+              }
             />
           </div>
           <div className="student-profile-layout">

@@ -257,6 +257,62 @@ it('supports activation', async () => {
   await screen.findByText(/Account activated/);
   expect(change.mock.calls[0][3]).toEqual({ kind: 'activate' });
 });
+
+it('warns about an archived profile before activation without performing restoration or allocation', async () => {
+  list.mockResolvedValue(
+    page([
+      {
+        ...user,
+        is_active: false,
+        student_profile_id: '11111111-1111-4111-8111-111111111111',
+        student_profile_archived: true,
+        student_has_active_bed: false,
+      },
+    ]),
+  );
+  change.mockResolvedValue({ account: user, revocationPending: false });
+  mount();
+  const dialog = await open('Activate');
+  expect(
+    within(dialog).getByText('This student profile is archived'),
+  ).toBeVisible();
+  expect(
+    within(dialog).getByText('Accommodation is not assigned.'),
+  ).toBeVisible();
+  expect(
+    within(dialog).getByRole('link', { name: 'Open archived students' }),
+  ).toHaveAttribute('href', '/dashboard/students?status=archived');
+  fireEvent.click(within(dialog).getByText('Confirm change'));
+  expect(
+    await screen.findByText(/Check Archived students to restore/),
+  ).toBeVisible();
+  expect(change.mock.calls[0][3]).toEqual({ kind: 'activate' });
+});
+
+it('explains that deactivation preserves the allocated bed', async () => {
+  list.mockResolvedValue(
+    page([
+      {
+        ...user,
+        student_profile_id: '11111111-1111-4111-8111-111111111111',
+        student_profile_archived: false,
+        student_has_active_bed: true,
+      },
+    ]),
+  );
+  mount();
+  const dialog = await open('Deactivate');
+  expect(
+    within(dialog).getByText(/Any allocated bed stays reserved/),
+  ).toBeVisible();
+  expect(
+    within(dialog).getByText('This student currently has a reserved bed.'),
+  ).toBeVisible();
+  expect(
+    within(dialog).getByText(/For a permanent departure, use End hostel stay/),
+  ).toBeVisible();
+  expect(change).not.toHaveBeenCalled();
+});
 it('blocks duplicate submission and Escape while pending', async () => {
   let resolve!: (value: Awaited<ReturnType<typeof changeUser>>) => void;
   change.mockReturnValue(

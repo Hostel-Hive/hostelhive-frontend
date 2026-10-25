@@ -393,3 +393,27 @@ pre {
     gap: 8px;
   }
 }
+
+.lifecycle-guidance {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--amber-300);
+  border-inline-start: 3px solid var(--amber-600);
+  border-radius: 0.75rem;
+  background: var(--amber-50);
+  color: var(--ink-800);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+.lifecycle-guidance p {
+  margin: 0.5rem 0;
+}
+.lifecycle-guidance a {
+  color: var(--cyan-700);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.lifecycle-guidance a[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: default;
+}

@@ -7,7 +7,9 @@ import useAuth from '../../auth/hooks/useAuth';
 import { listStudents } from '../api/students.api';
 import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
-import StudentRestoreDialog from '../components/StudentRestoreDialog';
+import StudentRestoreDialog, {
+  type RecoveryAccommodation,
+} from '../components/StudentRestoreDialog';
 import type { Student } from '../student.types';
 
 export default function StudentDirectoryPage() {
@@ -19,6 +21,11 @@ export default function StudentDirectoryPage() {
   const archived = params.get('status') === 'archived';
   const [selected, setSelected] = useState<{ student: Student; uid: string }>();
   const [notice, setNotice] = useState<{ text: string; uid: string }>();
+  const [recovery, setRecovery] = useState<{
+    uid: string;
+    studentID: string;
+    accommodation: RecoveryAccommodation;
+  }>();
   const load = useCallback(
     (signal: AbortSignal) =>
       listStudents(new URLSearchParams(search), uid, signal),
@@ -101,6 +108,31 @@ export default function StudentDirectoryPage() {
         <p role="status" className="student-restored-notice">
           {notice.text}
         </p>
+      )}
+      {account?.role === 'admin' && recovery?.uid === uid && (
+        <div className="lifecycle-guidance" role="status">
+          <strong>Accommodation checked after restoration</strong>
+          {recovery.accommodation.state === 'assigned' ? (
+            <p>
+              An existing bed allocation was kept. Bed ID:{' '}
+              <span className="student-id">{recovery.accommodation.bedID}</span>
+              .
+            </p>
+          ) : recovery.accommodation.state === 'unassigned' ? (
+            <p>
+              Accommodation is not assigned. Open the restored profile to assign
+              an available bed.
+            </p>
+          ) : (
+            <p>
+              The profile was restored, but accommodation could not be verified.
+              Open the profile and refresh accommodation before assigning a bed.
+            </p>
+          )}
+          <Link to={`${routePaths.students}/${recovery.studentID}`}>
+            Review profile and accommodation
+          </Link>
+        </div>
       )}
       {account?.role === 'admin' &&
         location.state?.checkoutActor === uid &&
@@ -301,7 +333,12 @@ export default function StudentDirectoryPage() {
           student={selected.student}
           uid={uid}
           close={() => setSelected(undefined)}
-          restored={(alreadyCurrent) => {
+          restored={(alreadyCurrent, accommodation) => {
+            setRecovery({
+              uid,
+              studentID: selected.student.student_id,
+              accommodation,
+            });
             setSelected(undefined);
             setNotice({
               uid,
