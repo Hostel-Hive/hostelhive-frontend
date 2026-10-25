@@ -70,9 +70,9 @@ Configure these public browser values:
 
 ```dotenv
 VITE_API_BASE_URL=https://hostelhive-backend-dev.onrender.com
-VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_API_KEY=your-public-firebase-web-api-key
+VITE_FIREBASE_PROJECT_ID=hostel-hive-152ef
+VITE_FIREBASE_AUTH_DOMAIN=hostel-hive-152ef.firebaseapp.com
+VITE_FIREBASE_API_KEY=AIzaSyDahWBZuLq_T4aSoVeCbTiLVNCV2rqSJhk
 ```
 
 Use the Firebase values for the registered web app in the same project as the
