@@ -85,15 +85,15 @@ export default function OwnLeaveList({
         <h2 id="own-leave-list-title">My leave requests</h2>
         <Link
           className="ui-button ui-button--primary ui-button--sm"
-          to={routePaths.ownLeaveNew}
+          to={routePaths.ownGoingHome}
         >
-          New leave request
+          Going Home
         </Link>
       </div>
       <p className="portal-muted">
-        Request time away from the hostel and follow the staff decision.
-        Approval does not record a departure or return; scans record your
-        movements.
+        Read-only history of ordinary leave requests. New submissions and staff
+        decisions are no longer available. Use Going Home to declare your
+        intention to leave; gate scans record your movements.
       </p>
       <div className="portal-leave-toolbar portal-directory-filters">
         <label className="portal-leave-status-filter">
@@ -107,6 +107,7 @@ export default function OwnLeaveList({
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
+            <option value="cancelled">Cancelled</option>
           </select>
         </label>
         <Button

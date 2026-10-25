@@ -30,8 +30,9 @@ export default function LeaveListPage() {
       <p className="eyebrow">Operations / Leave requests</p>
       <h1 id="leave-list-title">Leave requests</h1>
       <p className="page-description">
-        Review extended leave requests and recorded decisions. Dates include
-        your browser’s local timezone.
+        Read-only history of ordinary leave requests and recorded decisions. The
+        submission and approval workflow is retired. Dates include your
+        browser’s local timezone.
       </p>
       <div className="leave-directory-panel">
         {!denied && (

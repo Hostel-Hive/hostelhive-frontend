@@ -21,6 +21,8 @@ export type OwnLeave = Pick<
   | 'created_at'
   | 'decided_at'
   | 'decision_note'
+  | 'cancelled_at'
+  | 'cancelled_by'
 >;
 export interface OwnLeavePage {
   items: OwnLeave[];
@@ -192,6 +194,9 @@ function ownRow(value: unknown, studentID: string): OwnLeave {
   } = value;
   return {
     leave_id,
+    ...(value.status === 'cancelled'
+      ? { cancelled_at: value.cancelled_at, cancelled_by: value.cancelled_by }
+      : {}),
     request_id,
     starts_at,
     ends_at,

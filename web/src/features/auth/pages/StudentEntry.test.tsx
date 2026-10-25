@@ -154,7 +154,7 @@ it.each([
   ['/student/qr', 'My QR code'],
   ['/student/attendance', 'Attendance'],
   ['/student/leaves', 'Leave requests'],
-  ['/student/leaves/new', 'New leave request'],
+  ['/student/going-home', 'Going Home'],
   [`/student/leaves/${ownLeaveFixture.leave_id}`, 'Leave request'],
   ['/student/late-access-requests', 'Access requests'],
   ['/student/late-access-requests/new', 'New access request'],
@@ -169,6 +169,15 @@ it.each([
     await screen.findByRole('heading', { name: title, level: 1 }),
   ).toBeVisible();
   expect(window.location.pathname).toBe(path);
+});
+it('redirects the retired ordinary-leave form to Going Home', async () => {
+  vi.mocked(restoreStaffSession).mockResolvedValue(student);
+  open('/student/leaves/new');
+  await screen.findByRole('heading', { name: 'Going Home', level: 1 });
+  expect(window.location.pathname).toBe('/student/going-home');
+  expect(
+    screen.queryByRole('textbox', { name: /reason/i }),
+  ).not.toBeInTheDocument();
 });
 it.each(['/', '/student/login'])(
   'opens the canonical student login from %s and links to staff login',

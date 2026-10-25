@@ -1,5 +1,5 @@
-export type LeaveStatus = 'pending' | 'approved' | 'rejected';
-export type LeaveDecision = Exclude<LeaveStatus, 'pending'>;
+export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+export type LeaveDecision = 'approved' | 'rejected';
 export interface LeaveRequest {
   leave_id: string;
   request_id: string;
@@ -13,6 +13,8 @@ export interface LeaveRequest {
   decided_at: string | null;
   decided_by: string | null;
   decision_note: string;
+  cancelled_at?: string | null;
+  cancelled_by?: string | null;
 }
 export interface LeavePage {
   items: LeaveRequest[];

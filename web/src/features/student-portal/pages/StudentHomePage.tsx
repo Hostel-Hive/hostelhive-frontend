@@ -29,7 +29,7 @@ import NotificationsPage from '../../notifications/pages/NotificationsPage';
 import NotificationBadge from '../../notifications/components/NotificationBadge';
 import type { AnnouncementError } from '../../announcements/api/announcements.api';
 import OwnLeaveList from '../components/OwnLeaveList';
-import OwnLeaveForm from '../components/OwnLeaveForm';
+import GoingHome from '../components/GoingHome';
 import OwnLeaveDetail from '../components/OwnLeaveDetail';
 import OwnLateAccessList from '../components/OwnLateAccessList';
 import OwnLateAccessForm from '../components/OwnLateAccessForm';
@@ -68,7 +68,7 @@ export type StudentView =
   | 'complaint-new'
   | 'complaint-detail'
   | 'leaves'
-  | 'leave-new'
+  | 'going-home'
   | 'leave-detail'
   | 'access'
   | 'access-new'
@@ -91,7 +91,7 @@ export default function StudentHomePage({
     'complaint-new': 'New complaint',
     'complaint-detail': 'Complaint details',
     leaves: 'Leave requests',
-    'leave-new': 'New leave request',
+    'going-home': 'Going Home',
     'leave-detail': 'Leave request',
     access: 'Access requests',
     'access-new': 'New access request',
@@ -212,9 +212,10 @@ export default function StudentHomePage({
                       'Submit a maintenance or disciplinary concern.',
                     'complaint-detail':
                       'Your complaint, staff responses and update history.',
-                    leaves: 'Request leave and follow your approval status.',
-                    'leave-new':
-                      'Submit your planned time away for staff review.',
+                    leaves:
+                      'Read-only history of previous ordinary leave requests.',
+                    'going-home':
+                      'Record your intention to go home; gate scans record your movements.',
                     'leave-detail':
                       'Your leave dates, reason and recorded decision.',
                     access:
@@ -236,7 +237,7 @@ export default function StudentHomePage({
               'complaint-new',
               'complaint-detail',
               'leaves',
-              'leave-new',
+              'going-home',
               'leave-detail',
               'access',
               'access-new',
@@ -452,8 +453,8 @@ export default function StudentHomePage({
                     onAccessError={invalidate}
                   />
                 )}
-                {view === 'leave-new' && (
-                  <OwnLeaveForm
+                {view === 'going-home' && (
+                  <GoingHome
                     key={uid + ':' + data.student_id}
                     uid={uid}
                     studentID={data.student_id}

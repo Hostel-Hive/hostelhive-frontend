@@ -1187,3 +1187,33 @@
     justify-content: flex-start;
   }
 }
+
+.portal-going-home-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 24px 0;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+.portal-card > .portal-notice {
+  padding: 16px 20px;
+  margin-block: 20px;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--cyan-600);
+  border-radius: 10px;
+  background: var(--cyan-50);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+.portal-card > .portal-notice p:first-child {
+  margin-top: 0;
+}
+.portal-card > .portal-notice p:last-child {
+  margin-bottom: 0;
+}
+.portal-going-home-confirm input {
+  margin-top: 6px;
+  accent-color: var(--indigo-900);
+  flex-shrink: 0;
+}
