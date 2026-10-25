@@ -24,6 +24,7 @@ import {
 } from '../../auth/api/auth.api';
 import {
   archiveStudent,
+  restoreStudent,
   getStudent,
   listStudents,
   StudentRequestError,
@@ -41,6 +42,7 @@ vi.mock('../../auth/api/auth.api', async (original) => ({
 vi.mock('../api/students.api', async (original) => ({
   ...(await original<typeof import('../api/students.api')>()),
   archiveStudent: vi.fn(),
+  restoreStudent: vi.fn(),
   getStudent: vi.fn(),
   listStudents: vi.fn(),
 }));
@@ -101,6 +103,10 @@ beforeEach(() => {
     offset: 20,
   });
   vi.mocked(archiveStudent).mockResolvedValue(undefined);
+  vi.mocked(restoreStudent).mockResolvedValue({
+    student: studentFixture,
+    restored: true,
+  });
 });
 function renderProfile() {
   window.history.replaceState(
@@ -110,6 +116,117 @@ function renderProfile() {
   );
   return render(<App />);
 }
+
+async function openRestore() {
+  vi.mocked(listStudents).mockResolvedValue(studentPageFixture);
+  window.history.replaceState(
+    {},
+    '',
+    '/dashboard/students?status=archived&faculty=Science',
+  );
+  const view = render(<App />);
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Restore Alex Morgan' }),
+  );
+  return view;
+}
+
+describe('archived student restoration', () => {
+  it('confirms, restores and refreshes the archived list', async () => {
+    await openRestore();
+    const dialog = screen.getByRole('dialog');
+    expect(
+      within(dialog).getByRole('button', { name: 'Cancel' }),
+    ).toHaveFocus();
+    expect(dialog).toHaveTextContent('does not reactivate');
+    vi.mocked(listStudents).mockResolvedValue({
+      ...studentPageFixture,
+      students: [],
+    });
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Restore profile' }),
+    );
+    expect(
+      await screen.findByText('Student profile restored successfully.'),
+    ).toBeVisible();
+    expect(
+      await screen.findByText('No students match these filters.'),
+    ).toBeVisible();
+    expect(restoreStudent).toHaveBeenCalledWith(
+      studentFixture.student_id,
+      'staff-uid',
+      expect.any(AbortSignal),
+    );
+    expect(window.location.search).toContain('status=archived');
+  });
+  it('cancels without restoration and supports Escape', async () => {
+    await openRestore();
+    fireEvent(
+      screen.getByRole('dialog'),
+      new Event('cancel', { bubbles: true, cancelable: true }),
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(restoreStudent).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('button', { name: 'Restore Alex Morgan' }),
+    ).toHaveFocus();
+  });
+  it('retries an uncertain restore for the same student and handles an already restored result', async () => {
+    vi.mocked(restoreStudent)
+      .mockRejectedValueOnce(
+        new StudentRequestError('unavailable', 'Unknown outcome'),
+      )
+      .mockResolvedValueOnce({ student: studentFixture, restored: false });
+    await openRestore();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Restore profile' }),
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent('Retry safely');
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Retry restoration' }),
+    );
+    expect(
+      await screen.findByText('Student profile is already restored.'),
+    ).toBeVisible();
+    expect(restoreStudent).toHaveBeenCalledTimes(2);
+    expect(
+      vi
+        .mocked(restoreStudent)
+        .mock.calls.every((call) => call[0] === studentFixture.student_id),
+    ).toBe(true);
+  });
+  it('prevents duplicate clicks during restoration and aborts on unmount', async () => {
+    vi.mocked(restoreStudent).mockImplementation(() => new Promise(() => {}));
+    const view = await openRestore();
+    await userEvent.dblClick(
+      screen.getByRole('button', { name: 'Restore profile' }),
+    );
+    expect(restoreStudent).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+    const signal = vi.mocked(restoreStudent).mock.calls[0][2];
+    view.unmount();
+    expect(signal.aborted).toBe(true);
+  });
+  it('does not show archived recovery to a Warden', async () => {
+    vi.mocked(restoreStaffSession).mockResolvedValue({
+      user_id: 'staff',
+      firebase_uid: 'staff-uid',
+      email: 'staff@example.com',
+      role: 'warden',
+      is_active: true,
+    });
+    vi.mocked(listStudents).mockResolvedValue(studentPageFixture);
+    window.history.replaceState({}, '', '/dashboard/students');
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Students' });
+    expect(
+      screen.queryByRole('button', { name: 'Archived students' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Restore Alex Morgan' }),
+    ).not.toBeInTheDocument();
+  });
+});
 async function openDialog() {
   await userEvent.click(
     await screen.findByRole(

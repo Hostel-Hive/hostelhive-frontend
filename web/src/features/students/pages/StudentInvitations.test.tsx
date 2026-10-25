@@ -260,6 +260,58 @@ describe('Admin invitation registration', () => {
     ).toBeVisible();
     expect(registerStudentInvitation).not.toHaveBeenCalled();
   });
+  it('shows a dismissible error outside the long form and announces repeated failures', async () => {
+    vi.mocked(registerStudentInvitation).mockRejectedValue(
+      new StudentRequestError('duplicate', 'Duplicate registration.'),
+    );
+    renderAt();
+    await fillCreate();
+    const submit = screen.getByRole('button', { name: 'Register student' });
+    await userEvent.click(submit);
+    const toast = await screen.findByRole('alert');
+    expect(toast).toHaveTextContent('Duplicate registration.');
+    expect(toast.parentElement).toBe(document.body);
+    expect(submit).toHaveFocus();
+    const dismiss = screen.getByRole('button', {
+      name: 'Dismiss notification',
+    });
+    dismiss.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('University email')).toHaveValue(
+      'ALEX@STUDENTS.EXAMPLE.EDU',
+    );
+    await userEvent.click(submit);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Duplicate registration.',
+    );
+    expect(registerStudentInvitation).toHaveBeenCalledTimes(2);
+  });
+  it('keeps uncertain registration locked after dismissing the notification', async () => {
+    vi.mocked(registerStudentInvitation).mockRejectedValueOnce(
+      new StudentRequestError('unavailable', 'Unable to confirm registration.'),
+    );
+    renderAt();
+    await fillCreate();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Register student' }),
+    );
+    await screen.findByRole('alert');
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Dismiss notification' }),
+    );
+    expect(screen.getByLabelText('University email')).toBeDisabled();
+    expect(
+      screen.getByText(/The registration result is unknown/),
+    ).toBeVisible();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Retry same registration' }),
+    );
+    await screen.findByText(/Account setup invitation queued/);
+    const calls = vi.mocked(registerStudentInvitation).mock.calls;
+    expect(calls[1][0]).toEqual(calls[0][0]);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
   it.each(['forbidden', 'session'] as const)(
     'locks registration after %s',
     async (kind) => {

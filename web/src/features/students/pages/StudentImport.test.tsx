@@ -32,7 +32,9 @@ import {
   csvRow,
   makeCSV,
   importReportFixture,
+  registrationReportFixture,
 } from '../../../test/fixtures/student-import';
+import { registrationReport } from '../api/student-import.api';
 import { studentPageFixture } from '../../../test/fixtures/student';
 
 vi.mock('../../auth/api/auth.api', async (original) => ({
@@ -45,7 +47,8 @@ vi.mock('../api/students.api', async (original) => ({
   ...(await original<typeof import('../api/students.api')>()),
   listStudents: vi.fn(),
 }));
-vi.mock('../api/student-import.api', () => ({
+vi.mock('../api/student-import.api', async (original) => ({
+  ...(await original<typeof import('../api/student-import.api')>()),
   getStudentImportTemplate: vi.fn(),
   importStudents: vi.fn(),
 }));
@@ -224,7 +227,7 @@ it('requires file review and explicit confirmation before sending, then shows ev
     await screen.findByRole('heading', { name: 'Import report' }),
   ).toBeInTheDocument();
   expect(
-    screen.getByText('1 created · 1 rejected · 1 not attempted · 3 total'),
+    screen.getByText('1 confirmed · 1 rejected · 1 not attempted · 3 total'),
   ).toBeInTheDocument();
   expect(
     screen.getByRole('region', { name: 'Import results' }),
@@ -312,6 +315,42 @@ it('requires a directory check after a lost response, then allows a newly review
   ).not.toBeInTheDocument();
   expect(screen.getByLabelText('Choose student CSV')).toBeEnabled();
   expect(importStudents).toHaveBeenCalledOnce();
+});
+
+it('retries the exact selected CSV after a lost response without reading another file', async () => {
+  vi.mocked(importStudents)
+    .mockRejectedValueOnce(new Error('lost response'))
+    .mockResolvedValueOnce(importReportFixture);
+  open();
+  await choose();
+  await confirm();
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'outcome could not be confirmed',
+  );
+  const firstFile = vi.mocked(importStudents).mock.calls[0][0];
+  await userEvent.click(screen.getByRole('button', { name: 'Retry same CSV' }));
+  await screen.findByRole('heading', { name: 'Import report' });
+  expect(importStudents).toHaveBeenCalledTimes(2);
+  expect(vi.mocked(importStudents).mock.calls[1][0]).toBe(firstFile);
+  expect(vi.mocked(importStudents).mock.calls[1][1]).toBe('admin-uid');
+  expect(readStudentCSV).toHaveBeenCalledOnce();
+});
+
+it('shows real registration outcomes rather than claiming that queued invitations were delivered', async () => {
+  vi.mocked(importStudents).mockResolvedValue(
+    registrationReport(registrationReportFixture),
+  );
+  open();
+  await choose();
+  await confirm();
+  await screen.findByRole('heading', { name: 'Import report' });
+  expect(screen.getByText('Invitation queued')).toBeVisible();
+  expect(
+    screen.getByText(/1 invitations queued · 0 already registered/),
+  ).toBeVisible();
+  expect(
+    screen.getByText(/Queued email does not mean delivered/),
+  ).toBeVisible();
 });
 it('rejects a mismatched report as uncertain instead of claiming results for another CSV', async () => {
   vi.mocked(importStudents).mockResolvedValue({

@@ -1,5 +1,5 @@
 export const STUDENT_CSV_COLUMNS = [
-  'user_id',
+  'email',
   'index_no',
   'full_name',
   'faculty',
@@ -35,8 +35,8 @@ export function parseStudentCSV(source: string): CSVRecord[] {
   function finish() {
     if (started || fields.length || field) {
       rows.push({ line: start, fields: [...fields, field] });
-      if (rows.length > 501)
-        throw new Error('A CSV can contain at most 500 student records.');
+      if (rows.length > 101)
+        throw new Error('A CSV can contain at most 100 student records.');
     }
     fields = [];
     field = '';
@@ -119,6 +119,10 @@ export async function readStudentCSV(file: File): Promise<StudentCSV> {
 }
 
 export const IMPORT_ERRORS = {
+  invitation_conflict:
+    'This email or registration number conflicts with an existing registration.',
+  registration_unavailable:
+    'Registration could not be confirmed. Retry the original CSV as the same Admin; confirmed registrations will replay safely.',
   invalid_input: 'Student or guardian details are invalid.',
   duplicate_in_file: 'Duplicate account or student ID in this file.',
   duplicate_student:
@@ -138,6 +142,8 @@ export interface ImportRow {
   status: 'created' | 'rejected' | 'not_attempted';
   student_id?: string;
   error?: ImportErrorCode;
+  registration_status?:
+    'queued' | 'replayed' | 'rejected' | 'not_attempted' | 'retry_required';
 }
 export interface ImportReport {
   total: number;
@@ -146,6 +152,13 @@ export interface ImportReport {
   not_attempted: number;
   stopped_reason?: ImportErrorCode;
   rows: ImportRow[];
+  registration?: {
+    queued: number;
+    replayed: number;
+    rejected: number;
+    not_attempted: number;
+    retry_required: number;
+  };
 }
 
 export function parseImportReport(value: unknown): ImportReport {
@@ -176,6 +189,7 @@ export function parseImportReport(value: unknown): ImportReport {
         'forbidden',
         'student_profiles_unavailable',
         'import_interrupted',
+        'registration_unavailable',
       ].includes(report.stopped_reason))
   )
     return invalid();
@@ -237,7 +251,7 @@ export function importReportCSV(report: ImportReport): string {
         [
           row.record,
           row.line,
-          row.status,
+          row.registration_status ?? row.status,
           row.student_id ?? '',
           row.error ?? '',
         ].join(','),

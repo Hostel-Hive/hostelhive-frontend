@@ -9,6 +9,7 @@ import {
   createStudentByEmail,
   updateStudent,
   archiveStudent,
+  restoreStudent,
 } from './students.api';
 import { normalizeStudent } from '../student.schema';
 import {
@@ -47,6 +48,43 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 describe('student API contract', () => {
+  it('lists archived students through the separate endpoint and sends an empty restore body', async () => {
+    await listStudents(
+      new URLSearchParams('status=archived&faculty=Science'),
+      user.uid,
+      signal(),
+    );
+    expect(fetchMock.mock.calls[0][0]).toContain('/students/archived?');
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({ student: studentFixture, restored: false }),
+      ),
+    );
+    await expect(
+      restoreStudent(studentFixture.student_id, user.uid, signal()),
+    ).resolves.toMatchObject({ restored: false });
+    const [path, options] = fetchMock.mock.calls[1];
+    expect(path).toContain(`/students/${studentFixture.student_id}/restore`);
+    expect(options.method).toBe('POST');
+    expect(options.body).toBeUndefined();
+  });
+  it('rejects malformed and mismatched restore responses', async () => {
+    for (const value of [
+      { student: studentFixture },
+      {
+        student: {
+          ...studentFixture,
+          student_id: '00000000-0000-4000-8000-000000000000',
+        },
+        restored: true,
+      },
+    ]) {
+      fetchMock.mockResolvedValue(new Response(JSON.stringify(value)));
+      await expect(
+        restoreStudent(studentFixture.student_id, user.uid, signal()),
+      ).rejects.toMatchObject({ kind: 'unavailable' });
+    }
+  });
   it('creates a profile using normalized email without exposing or submitting an account UUID', async () => {
     fetchMock.mockResolvedValue(new Response(JSON.stringify(studentFixture)));
     const details = normalizeStudent({

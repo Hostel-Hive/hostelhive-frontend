@@ -168,6 +168,7 @@ describe('student directory and profiles', () => {
     );
     renderAt();
     expect(await screen.findByText('Loading student records…')).toBeVisible();
+    await waitFor(() => expect(listStudents).toHaveBeenCalled());
     await act(async () => reject(new Error('private response')));
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Unable to load student records',

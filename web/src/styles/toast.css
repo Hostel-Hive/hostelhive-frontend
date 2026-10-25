@@ -1,0 +1,93 @@
+.error-toast {
+  position: fixed;
+  z-index: 1000;
+  inset-block-start: max(1rem, env(safe-area-inset-top));
+  inset-inline-end: max(1rem, env(safe-area-inset-right));
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  width: min(26rem, calc(100vw - 2rem));
+  box-sizing: border-box;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid #fda4af;
+  border-inline-start: 4px solid #be123c;
+  border-radius: 0.75rem;
+  background: #fff1f2;
+  color: #881337;
+  box-shadow:
+    0 4px 8px rgb(24 16 55 / 4%),
+    0 12px 32px rgb(24 16 55 / 12%);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.error-toast-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.error-toast-title {
+  margin-block: 0.125rem 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #881337;
+}
+
+.error-toast-description {
+  color: #9f1239;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.error-toast-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.error-toast-content p {
+  margin: 0.75rem 0 0;
+}
+
+.error-toast-content .ui-button {
+  margin-block-start: 0.75rem;
+}
+
+.error-toast-dismiss {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #9f1239;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .error-toast-dismiss {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
+.error-toast-dismiss:hover {
+  background: #ffe4e6;
+}
+
+.error-toast-dismiss:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
