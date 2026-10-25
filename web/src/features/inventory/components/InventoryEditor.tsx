@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useBlocker } from 'react-router-dom';
 import Button from '../../../shared/components/ui/Button';
 import Input from '../../../shared/components/ui/Input';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
 import { AuthorizedRequestError } from '../../auth/api/authorized-request';
 import {
   InventoryManagementError,
@@ -117,6 +118,7 @@ export default function InventoryEditor({
       ref={dialog}
       className="inventory-dialog"
       aria-labelledby="inventory-editor-title"
+      aria-describedby="inventory-editor-description"
       onCancel={(event) => {
         event.preventDefault();
         if (!busy.current) onClose();
@@ -130,10 +132,21 @@ export default function InventoryEditor({
         }}
         aria-busy={pending}
       >
-        <h2 id="inventory-editor-title">
-          {row ? 'Rename' : 'Create'} {singular}
-        </h2>
-        <p>
+        <header className="inventory-editor-heading">
+          <span className="inventory-editor-icon">
+            <NavigationIcon name="building" />
+          </span>
+          <div>
+            <p className="eyebrow">Accommodation / Inventory</p>
+            <h2 id="inventory-editor-title">
+              {row ? 'Rename' : 'Create'} {singular}
+            </h2>
+          </div>
+        </header>
+        <p
+          id="inventory-editor-description"
+          className="inventory-editor-description"
+        >
           {kind === 'blocks'
             ? 'Block names must be unique.'
             : `Labels must be unique within this ${kind === 'rooms' ? 'block' : 'room'}. Parent assignments cannot be changed here.`}
@@ -147,6 +160,7 @@ export default function InventoryEditor({
         </label>
         <Input
           id="inventory-label"
+          maxLength={kind === 'blocks' ? 120 : 32}
           value={label}
           disabled={pending || missing}
           aria-invalid={Boolean(error)}
@@ -181,7 +195,7 @@ export default function InventoryEditor({
           </div>
         )}
         {pending && <p role="status">Saving {singular}…</p>}
-        <div className="inventory-actions">
+        <div className="inventory-actions inventory-editor-footer">
           <Button
             ref={cancel}
             variant="secondary"

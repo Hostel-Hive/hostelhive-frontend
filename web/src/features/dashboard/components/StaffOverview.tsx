@@ -10,6 +10,7 @@ import useOverviewRead from '../hooks/useOverviewRead';
 import type { OverviewRead } from '../hooks/useOverviewRead';
 import RecentIncidents from './RecentIncidents';
 import '../../../styles/admin-overview.css';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
 
 const metrics = {
   leaves: {
@@ -320,10 +321,15 @@ function Overview({
       </section>
       <div className="admin-overview-columns">
         <section
-          className="admin-overview-panel"
+          className="admin-overview-panel overview-presence-panel"
           aria-labelledby="overview-presence-title"
         >
-          <p className="eyebrow">Attendance snapshot</p>
+          <div className="overview-presence-heading">
+            <p className="eyebrow">Attendance snapshot</p>
+            <span className="overview-presence-icon">
+              <NavigationIcon name="attendance" />
+            </span>
+          </div>
           <h2 id="overview-presence-title">Recorded presence</h2>
           <ReadStatus request={presence} label="Recorded presence" />
           {presence.data && (
@@ -332,8 +338,17 @@ function Overview({
               aria-label="Recorded presence counts"
             >
               {(['in', 'out', 'unknown'] as const).map((key) => (
-                <div key={key}>
-                  <dt>{key.toUpperCase()}</dt>
+                <div
+                  key={key}
+                  className={`overview-presence-count overview-presence-count--${key}`}
+                >
+                  <dt>
+                    <span
+                      className="overview-presence-dot"
+                      aria-hidden="true"
+                    />
+                    {key.toUpperCase()}
+                  </dt>
                   <dd>{presence.data![key].toLocaleString()}</dd>
                 </div>
               ))}
@@ -343,7 +358,9 @@ function Overview({
             Presence is the last accepted scanner movement, not proof of
             physical location. UNKNOWN does not mean outside.
           </p>
-          <Link to={routePaths.attendance}>Open attendance dashboard</Link>
+          <Link className="overview-presence-link" to={routePaths.attendance}>
+            Open attendance dashboard<span aria-hidden="true"> ↗</span>
+          </Link>
           <p className="admin-overview-caption">
             Use Attendance for live updates, search, filters and incidents. This
             overview refreshes on request.

@@ -170,6 +170,53 @@
 .inventory-dialog::backdrop {
   background: #18103766;
 }
+.inventory-editor-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.inventory-editor-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  color: var(--cyan-700);
+  background: var(--cyan-50);
+}
+.inventory-editor-heading .eyebrow {
+  margin: 0 0 6px;
+  font-size: 10px;
+}
+.inventory-dialog .inventory-editor-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.inventory-editor-description {
+  margin: 20px 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+.inventory-dialog #inventory-label-help {
+  margin: 10px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+.inventory-dialog #inventory-editor-error:empty {
+  display: none;
+}
+.inventory-editor-footer {
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+.inventory-dialog .ui-button--secondary {
+  border-color: var(--color-border);
+}
 .inventory-dialog .ui-input {
   display: block;
   width: 100%;
