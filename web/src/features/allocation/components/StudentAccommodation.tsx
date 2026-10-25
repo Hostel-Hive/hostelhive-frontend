@@ -397,7 +397,9 @@ function AccommodationControls({
                             ? 'Transferred'
                             : row.end_reason === 'revoked'
                               ? 'Revoked'
-                              : 'Ended'}
+                              : row.end_reason === 'checkout'
+                                ? 'Hostel stay ended'
+                                : 'Ended'}
                       </td>
                     </tr>
                   ))}

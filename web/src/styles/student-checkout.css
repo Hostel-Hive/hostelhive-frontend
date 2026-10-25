@@ -1,0 +1,115 @@
+.student-checkout-dialog {
+  width: min(42rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+.student-checkout-dialog p {
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.checkout-student {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.checkout-bed-review {
+  padding: 1rem;
+  margin-block: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: var(--cyan-50);
+}
+.checkout-bed-review h3 {
+  font-size: 0.9375rem;
+  margin: 0;
+}
+.checkout-bed-review .student-id {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 0.8125rem;
+  margin-top: 0.5rem;
+}
+.checkout-fields {
+  display: grid;
+  gap: 0.75rem;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.checkout-fields > label:not(.checkout-confirm),
+.checkout-access legend {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.checkout-access {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+.checkout-access label,
+.checkout-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.checkout-fields input[type='radio'],
+.checkout-fields input[type='checkbox'] {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  accent-color: var(--cyan-700);
+}
+.student-checkout-dialog .checkout-help {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0.5rem 0 0;
+}
+.checkout-confirm {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: var(--ink-50);
+}
+.checkout-warning {
+  padding: 0.875rem;
+  border: 1px solid var(--amber-300);
+  border-radius: 0.625rem;
+  background: var(--amber-50);
+  color: #92400e;
+}
+.checkout-error {
+  padding: 0.875rem;
+  border: 1px solid #fecdd3;
+  border-radius: 0.625rem;
+  background: #fff1f2;
+  color: #9f1239;
+}
+.checkout-summary {
+  display: grid;
+  gap: 0.875rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+.checkout-summary dt {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+.checkout-summary dd {
+  font-size: 0.875rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 560px) {
+  .student-checkout-dialog .student-form-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .student-checkout-dialog .ui-button {
+    width: 100%;
+  }
+}

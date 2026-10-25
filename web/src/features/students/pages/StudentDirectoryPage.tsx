@@ -102,6 +102,16 @@ export default function StudentDirectoryPage() {
           {notice.text}
         </p>
       )}
+      {account?.role === 'admin' &&
+        location.state?.checkoutActor === uid &&
+        [
+          'Hostel stay ended successfully.',
+          'Original checkout confirmed.',
+        ].includes(location.state?.checkoutNotice) && (
+          <p role="status" className="student-restored-notice">
+            {location.state.checkoutNotice}
+          </p>
+        )}
       {location.state?.studentNotice === 'Student profile archived.' && (
         <p role="status">Student profile archived.</p>
       )}

@@ -11,6 +11,7 @@ import { getStudent } from '../api/students.api';
 import useStudentRequest from '../hooks/useStudentRequest';
 import StudentRequestState from '../components/StudentRequestState';
 import StudentArchiveAction from '../components/StudentArchiveAction';
+import StudentCheckoutAction from '../components/StudentCheckoutAction';
 import StudentPhoto from '../components/StudentPhoto';
 import StudentInvitationStatus from '../components/StudentInvitationStatus';
 import { validInvitation } from '../api/student-invitations.api';
@@ -79,6 +80,11 @@ export default function StudentProfilePage() {
             />
           )}
           <div className="student-profile-actions">
+            <StudentCheckoutAction
+              key={`${uid}:${account?.role}:${data.student_id}`}
+              student={data}
+              search={search}
+            />
             <Link
               className="button-link"
               to={`${routePaths.students}/${data.student_id}/edit${search ? `?${search}` : ''}`}
