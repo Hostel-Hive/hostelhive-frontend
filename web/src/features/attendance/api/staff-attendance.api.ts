@@ -20,7 +20,7 @@ export interface Incident {
   event_id: string;
   student_id: string;
   direction: 'IN' | 'OUT';
-  incident_type: 'late_entry' | 'early_exit';
+  incident_type: 'late_entry' | 'early_exit' | 'late_exit';
   occurred_at: string;
   hostel_timezone: string;
   exit_opening_minute: number;
@@ -37,7 +37,7 @@ export interface StaffAttendancePage<T> {
 export interface IncidentFilters {
   studentID: string;
   direction: '' | 'IN' | 'OUT';
-  type: '' | 'late_entry' | 'early_exit';
+  type: '' | 'late_entry' | 'early_exit' | 'late_exit';
 }
 export const emptyIncidentFilters: IncidentFilters = {
   studentID: '',
@@ -79,7 +79,7 @@ export function validateIncidentFilters(
   if (
     (studentID && !uuid(studentID)) ||
     !['', 'IN', 'OUT'].includes(filters.direction) ||
-    !['', 'late_entry', 'early_exit'].includes(filters.type)
+    !['', 'late_entry', 'early_exit', 'late_exit'].includes(filters.type)
   )
     throw new AttendanceError(
       'invalid',
@@ -163,7 +163,9 @@ function validIncident(v: unknown): v is Incident {
     uuid(v.device_id) &&
     uuid(v.event_id) &&
     ((v.direction === 'IN' && v.incident_type === 'late_entry') ||
-      (v.direction === 'OUT' && v.incident_type === 'early_exit')) &&
+      (v.direction === 'OUT' &&
+        (v.incident_type === 'early_exit' ||
+          v.incident_type === 'late_exit'))) &&
     date(v.occurred_at) &&
     text(v.hostel_timezone) &&
     integer(v.exit_opening_minute) &&
