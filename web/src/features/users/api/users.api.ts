@@ -26,6 +26,9 @@ export interface ManagedUser {
   is_active: boolean;
   full_name?: string;
   designation?: string;
+  student_profile_id?: string;
+  student_profile_archived?: boolean;
+  student_has_active_bed?: boolean;
 }
 export interface UserPage {
   users: ManagedUser[];
@@ -69,7 +72,16 @@ export function validUser(value: unknown): value is ManagedUser {
     roles.includes(value.role as UserRole) &&
     typeof value.is_active === 'boolean' &&
     (value.full_name === undefined || typeof value.full_name === 'string') &&
-    (value.designation === undefined || typeof value.designation === 'string')
+    (value.designation === undefined ||
+      typeof value.designation === 'string') &&
+    (value.student_profile_id === undefined
+      ? value.student_profile_archived === undefined &&
+        value.student_has_active_bed === undefined
+      : value.role === 'student' &&
+        typeof value.student_profile_id === 'string' &&
+        uuid.test(value.student_profile_id) &&
+        typeof value.student_profile_archived === 'boolean' &&
+        typeof value.student_has_active_bed === 'boolean')
   );
 }
 export function userOffset(params: URLSearchParams): number | null {

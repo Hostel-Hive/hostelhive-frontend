@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Button from '../../../shared/components/ui/Button';
+import { Link } from 'react-router-dom';
+import { routePaths } from '../../../app/router/routePaths';
 import {
   changeUser,
   roles,
@@ -83,7 +85,7 @@ export default function AccountDialog({
         kind === 'role' ? { kind, role } : { kind },
       );
       if (controller.signal.aborted) return;
-      const message =
+      let message =
         kind === 'role'
           ? `Role changed to ${roleLabels[result.account.role]}.`
           : kind === 'activate'
@@ -91,6 +93,15 @@ export default function AccountDialog({
             : result.revocationPending
               ? 'Account deactivated locally. Firebase session revocation is still processing.'
               : 'Account deactivated.';
+      if (user.role === 'student' && kind === 'deactivate')
+        message += ' The profile and bed allocation are unchanged.';
+      if (
+        user.role === 'student' &&
+        kind === 'activate' &&
+        user.student_profile_archived === true
+      )
+        message +=
+          ' Check Archived students to restore the profile if needed, then review accommodation.';
       onSaved(
         message,
         user.firebase_uid === uid &&
@@ -152,6 +163,63 @@ export default function AccountDialog({
               ? 'Activation restores account access when backend identity checks succeed.'
               : 'Deactivation denies account access. It does not archive the student profile.'}
         </p>
+        {kind === 'deactivate' && user.role === 'student' && (
+          <div className="lifecycle-guidance">
+            <strong>Suspend access only</strong>
+            <p>
+              The profile's current or archived status is unchanged. Any
+              allocated bed stays reserved and must not be offered to another
+              student.
+            </p>
+            <p>
+              For a permanent departure, use End hostel stay from the student
+              profile to release the bed and archive the profile together.
+            </p>
+            {user.student_has_active_bed === true && (
+              <p>This student currently has a reserved bed.</p>
+            )}
+          </div>
+        )}
+        {kind === 'activate' && user.role === 'student' && (
+          <div className="lifecycle-guidance">
+            <strong>
+              {user.student_profile_archived === true
+                ? 'This student profile is archived'
+                : 'Account access and hostel accommodation are separate'}
+            </strong>
+            <p>
+              Activation restores account access only. It does not restore an
+              archived profile or assign a bed.
+            </p>
+            {user.student_profile_archived === true ? (
+              <p>
+                After activation, open Archived students and restore the profile
+                if the student is returning. Then check accommodation and assign
+                an available bed if needed.
+              </p>
+            ) : (
+              user.student_profile_id === undefined && (
+                <p>
+                  Profile status is unavailable in this account list. Check the
+                  student directory before treating this account as a current
+                  resident.
+                </p>
+              )
+            )}
+            {user.student_has_active_bed === false && (
+              <p>Accommodation is not assigned.</p>
+            )}
+            <Link
+              to={`${routePaths.students}?status=archived`}
+              aria-disabled={pending || uncertain}
+              onClick={(event) => {
+                if (pending || uncertain) event.preventDefault();
+              }}
+            >
+              Open archived students
+            </Link>
+          </div>
+        )}
         {user.firebase_uid === uid && (
           <p>
             You are changing your own account. Your access will be checked again

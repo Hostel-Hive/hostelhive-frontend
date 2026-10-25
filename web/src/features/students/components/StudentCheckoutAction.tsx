@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useImperativeHandle,
+  type Ref,
+} from 'react';
 import { useBlocker, useNavigate } from 'react-router-dom';
 import Button from '../../../shared/components/ui/Button';
 import Input from '../../../shared/components/ui/Input';
@@ -25,6 +31,10 @@ interface SavedCheckout {
   input: CheckoutInput | null;
   uncertain: boolean;
   allocation: Allocation | null | undefined;
+}
+
+export interface CheckoutHandle {
+  open: () => void;
 }
 
 function CheckoutDialog({
@@ -480,9 +490,11 @@ function CheckoutDialog({
 export default function StudentCheckoutAction({
   student,
   search,
+  actionRef,
 }: {
   student: Student;
   search: string;
+  actionRef?: Ref<CheckoutHandle>;
 }) {
   const { account } = useAuth();
   const navigate = useNavigate();
@@ -492,6 +504,7 @@ export default function StudentCheckoutAction({
     uncertain: false,
     allocation: undefined,
   });
+  useImperativeHandle(actionRef, () => ({ open: () => setOpen(true) }), []);
   if (account?.role !== 'admin') return null;
   function finished(result: CheckoutResult, archived: boolean) {
     const params = new URLSearchParams(search);

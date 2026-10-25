@@ -206,6 +206,23 @@ it('cancels with Escape without a request and restores trigger focus', async () 
   expect(checkoutStudent).not.toHaveBeenCalled();
 });
 
+it('guides an Admin from Archive to End hostel stay without archiving first', async () => {
+  renderProfile();
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Archive student profile' }),
+  );
+  expect(screen.getByRole('alertdialog')).toHaveTextContent(
+    'Archive alone only hides the profile',
+  );
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Use End hostel stay' }),
+  );
+  expect(
+    await screen.findByRole('heading', { name: 'End hostel stay' }),
+  ).toBeVisible();
+  expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  expect(checkoutStudent).not.toHaveBeenCalled();
+});
 it('keeps the original operation across an uncertain response, close and reopen', async () => {
   vi.mocked(checkoutStudent)
     .mockRejectedValueOnce(

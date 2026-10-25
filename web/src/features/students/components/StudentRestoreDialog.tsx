@@ -7,6 +7,13 @@ import {
   type StudentRequestError,
 } from '../api/students.api';
 import type { Student } from '../student.types';
+import { listAllocations } from '../../allocation/api/allocation.api';
+
+export interface RecoveryAccommodation {
+  state: 'assigned' | 'unassigned' | 'unknown';
+  bedID?: string;
+}
+
 export default function StudentRestoreDialog({
   student,
   uid,
@@ -16,7 +23,10 @@ export default function StudentRestoreDialog({
   student: Student;
   uid: string;
   close: () => void;
-  restored: (alreadyCurrent: boolean) => void;
+  restored: (
+    alreadyCurrent: boolean,
+    accommodation: RecoveryAccommodation,
+  ) => void;
 }) {
   const { signOut } = useAuth();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -24,6 +34,7 @@ export default function StudentRestoreDialog({
   const busy = useRef(false);
   const controller = useRef<AbortController | null>(null);
   const [pending, setPending] = useState(false);
+  const [restoreConfirmed, setRestoreConfirmed] = useState(false);
   const [error, setError] = useState<StudentRequestError>();
   useEffect(() => {
     active.current = true;
@@ -57,7 +68,25 @@ export default function StudentRestoreDialog({
         controller.current.signal,
       );
       if (!active.current) return;
-      if (active.current) restored(!result.restored);
+      setRestoreConfirmed(true);
+      let accommodation: RecoveryAccommodation = { state: 'unknown' };
+      try {
+        const page = await listAllocations(
+          student.student_id,
+          uid,
+          controller.current.signal,
+          0,
+          true,
+        );
+        accommodation = page.items.length
+          ? { state: 'assigned', bedID: page.items[0].bed_id }
+          : { state: 'unassigned' };
+      } catch {
+        // Restoration is already confirmed. A failed accommodation read must
+        // never be presented as an uncertain or failed restoration.
+        accommodation = { state: 'unknown' };
+      }
+      if (active.current) restored(!result.restored, accommodation);
     } catch (reason) {
       if (active.current) setError(studentError(reason));
     } finally {
@@ -101,7 +130,13 @@ export default function StudentRestoreDialog({
               : error.message}
         </p>
       )}
-      {pending && <p role="status">Restoring student profile…</p>}
+      {pending && (
+        <p role="status">
+          {restoreConfirmed
+            ? 'Profile restored. Checking accommodation…'
+            : 'Restoring student profile…'}
+        </p>
+      )}
       <div className="student-form-actions">
         <Button variant="secondary" disabled={pending} onClick={close}>
           Cancel
@@ -111,7 +146,9 @@ export default function StudentRestoreDialog({
           onClick={() => void confirm()}
         >
           {pending
-            ? 'Restoring…'
+            ? restoreConfirmed
+              ? 'Checking accommodation…'
+              : 'Restoring…'
             : error?.kind === 'unavailable'
               ? 'Retry restoration'
               : 'Restore profile'}

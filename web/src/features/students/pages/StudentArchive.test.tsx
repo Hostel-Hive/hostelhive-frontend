@@ -18,6 +18,14 @@ import {
 } from 'vitest';
 import App from '../../../app/App';
 import {
+  listAllocations,
+  AllocationError,
+} from '../../allocation/api/allocation.api';
+import {
+  allocationFixture,
+  allocationPage,
+} from '../../../test/fixtures/allocation';
+import {
   restoreStaffSession,
   subscribeStaffSession,
   logout,
@@ -45,6 +53,10 @@ vi.mock('../api/students.api', async (original) => ({
   restoreStudent: vi.fn(),
   getStudent: vi.fn(),
   listStudents: vi.fn(),
+}));
+vi.mock('../../allocation/api/allocation.api', async (original) => ({
+  ...(await original<typeof import('../../allocation/api/allocation.api')>()),
+  listAllocations: vi.fn(),
 }));
 const show = Object.getOwnPropertyDescriptor(
   HTMLDialogElement.prototype,
@@ -103,6 +115,7 @@ beforeEach(() => {
     offset: 20,
   });
   vi.mocked(archiveStudent).mockResolvedValue(undefined);
+  vi.mocked(listAllocations).mockResolvedValue(allocationPage());
   vi.mocked(restoreStudent).mockResolvedValue({
     student: studentFixture,
     restored: true,
@@ -132,6 +145,41 @@ async function openRestore() {
 }
 
 describe('archived student restoration', () => {
+  it.each(['unassigned', 'assigned', 'unknown'] as const)(
+    'shows %s accommodation after confirmed restoration',
+    async (state) => {
+      if (state === 'assigned')
+        vi.mocked(listAllocations).mockResolvedValue(
+          allocationPage([allocationFixture]),
+        );
+      if (state === 'unknown')
+        vi.mocked(listAllocations).mockRejectedValue(
+          new AllocationError('unavailable', 'Unavailable'),
+        );
+      await openRestore();
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Restore profile' }),
+      );
+      expect(
+        await screen.findByText('Student profile restored successfully.'),
+      ).toBeVisible();
+      if (state === 'unassigned')
+        expect(screen.getByText(/Accommodation is not assigned/)).toBeVisible();
+      if (state === 'assigned')
+        expect(screen.getByText(allocationFixture.bed_id)).toBeVisible();
+      if (state === 'unknown')
+        expect(
+          screen.getByText(/accommodation could not be verified/),
+        ).toBeVisible();
+      expect(
+        screen.getByRole('link', { name: 'Review profile and accommodation' }),
+      ).toHaveAttribute(
+        'href',
+        `/dashboard/students/${studentFixture.student_id}`,
+      );
+      expect(restoreStudent).toHaveBeenCalledOnce();
+    },
+  );
   it('confirms, restores and refreshes the archived list', async () => {
     await openRestore();
     const dialog = screen.getByRole('dialog');
