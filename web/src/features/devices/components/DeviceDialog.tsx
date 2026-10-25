@@ -33,6 +33,7 @@ export default function DeviceDialog({
   const [result, setResult] = useState<DeviceResult>();
   const [copied, setCopied] = useState('');
   const [stored, setStored] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const busy = useRef(false);
   const controller = useRef<AbortController | null>(null);
@@ -44,6 +45,7 @@ export default function DeviceDialog({
         direction: 'Configure scan direction',
         rotate: 'Rotate device credential',
         deactivate: 'Deactivate device',
+        reactivate: 'Reactivate device',
       }[action];
   useEffect(() => {
     const previous = document.activeElement;
@@ -67,7 +69,13 @@ export default function DeviceDialog({
       onClose(Boolean(result) || uncertain);
   }
   async function submit() {
-    if (busy.current || uncertain || result) return;
+    if (
+      busy.current ||
+      uncertain ||
+      result ||
+      (action === 'reactivate' && !confirmed)
+    )
+      return;
     if (action === 'register') {
       const validation = deviceNameError(name);
       if (validation) {
@@ -85,6 +93,7 @@ export default function DeviceDialog({
         deviceID: device?.device_id,
         name,
         direction,
+        ...(action === 'reactivate' ? { confirmed } : {}),
       });
       if (request.signal.aborted) return;
       if (value.credential) setResult(value);
@@ -99,12 +108,20 @@ export default function DeviceDialog({
         onDenied(failure.message);
         return;
       }
-      if (!(failure instanceof DeviceError) || failure.kind === 'unavailable') {
+      if (
+        !(failure instanceof DeviceError) ||
+        failure.kind === 'unavailable' ||
+        (action === 'reactivate' && failure.kind === 'conflict')
+      ) {
         setUncertain(true);
         setError(
-          action === 'rotate'
-            ? 'The rotation result is unknown. The previous credential may no longer work. Refresh the directory, then rotate again if you did not receive a new credential.'
-            : 'The result is unknown. Close and refresh the directory before trying again. If registration succeeded without a credential, use Rotate credential on that device.',
+          action === 'reactivate'
+            ? failure instanceof DeviceError && failure.kind === 'conflict'
+              ? failure.message
+              : 'The reactivation result is unknown. Close and refresh the directory. If the device is active but you did not receive its credential, use Rotate credential. Do not deactivate it to retry.'
+            : action === 'rotate'
+              ? 'The rotation result is unknown. The previous credential may no longer work. Refresh the directory, then rotate again if you did not receive a new credential.'
+              : 'The result is unknown. Close and refresh the directory before trying again. If registration succeeded without a credential, use Rotate credential on that device.',
         );
       } else setError(failure.message);
     } finally {
@@ -242,11 +259,36 @@ export default function DeviceDialog({
                 Rotation does not reactivate an inactive device.
               </p>
             )}
+            {action === 'reactivate' && (
+              <>
+                <p className="device-callout device-callout--warning">
+                  Return this scanner to service and issue a new credential. All
+                  previous credentials remain invalid. Save the new credential
+                  and install it on the scanner. Its identity, scan direction
+                  and history are retained. Active status does not confirm
+                  connectivity.
+                </p>
+                {!device?.direction && (
+                  <p className="device-help">
+                    Configure Entry or Exit before submitting scans.
+                  </p>
+                )}
+                <label className="device-check">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    disabled={pending || uncertain}
+                    onChange={(event) => setConfirmed(event.target.checked)}
+                  />
+                  I confirm this scanner is ready to return to service.
+                </label>
+              </>
+            )}
             {action === 'deactivate' && (
               <p className="device-callout device-callout--warning">
                 This scanner will no longer be able to authenticate or submit
-                new scans. Its history is retained. Reactivation is not
-                currently supported.
+                new scans. Its history is retained. An Admin can reactivate it
+                later with a new credential.
               </p>
             )}
           </>
@@ -280,7 +322,7 @@ export default function DeviceDialog({
             <Button
               type="submit"
               variant={action === 'deactivate' ? 'danger' : 'primary'}
-              disabled={pending}
+              disabled={pending || (action === 'reactivate' && !confirmed)}
             >
               {pending
                 ? 'Saving…'
@@ -289,6 +331,7 @@ export default function DeviceDialog({
                     direction: 'Save direction',
                     rotate: 'Rotate credential',
                     deactivate: 'Deactivate device',
+                    reactivate: 'Reactivate device',
                   }[action]}
             </Button>
           )}
