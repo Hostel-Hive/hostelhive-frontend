@@ -6,7 +6,7 @@ export interface Allocation {
   ended_at: string | null;
   started_by: string | null;
   ended_by: string | null;
-  end_reason: 'revoked' | 'transferred' | null;
+  end_reason: 'revoked' | 'transferred' | 'checkout' | null;
 }
 export interface AllocationPage {
   items: Allocation[];

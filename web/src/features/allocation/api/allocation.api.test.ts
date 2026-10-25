@@ -16,6 +16,26 @@ const auth = {
 const fetchMock = vi.fn();
 const signal = () => new AbortController().signal;
 const id = studentFixture.student_id;
+
+it('accepts checkout allocation history without treating it as an active assignment', async () => {
+  fetchMock.mockResolvedValue(
+    new Response(
+      JSON.stringify(
+        allocationPage([
+          {
+            ...allocationFixture,
+            ended_at: '2026-10-25T15:00:00Z',
+            ended_by: studentFixture.user_id,
+            end_reason: 'checkout',
+          },
+        ]),
+      ),
+    ),
+  );
+  await expect(listAllocations(id, user.uid, signal())).resolves.toMatchObject({
+    items: [{ end_reason: 'checkout' }],
+  });
+});
 beforeEach(() => {
   vi.resetAllMocks();
   vi.stubEnv('DEV', true);
