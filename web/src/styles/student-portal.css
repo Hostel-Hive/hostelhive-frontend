@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 16px 28px;
+  padding: 4px 28px;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
@@ -1152,7 +1152,7 @@
     flex-direction: column;
   }
   .portal-header {
-    padding: 16px;
+    padding: 4px 16px;
     gap: 12px;
   }
   .portal-card,

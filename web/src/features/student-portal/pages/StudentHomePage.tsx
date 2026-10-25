@@ -1,3 +1,4 @@
+import BrandLogo from '../../../shared/components/ui/BrandLogo';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import StudentNavigation from '../components/StudentNavigation';
@@ -165,7 +166,7 @@ export default function StudentHomePage({
       </a>
       <header className="portal-header">
         <Link to={routePaths.studentHome} className="brand">
-          Hostel<span className="brand__accent">Hive</span>
+          <BrandLogo />
         </Link>
         <span className="portal-workspace">Student portal</span>
         <NotificationBadge />
