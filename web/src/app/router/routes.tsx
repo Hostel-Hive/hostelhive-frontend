@@ -35,6 +35,9 @@ const ReportsPage = lazy(
   () => import('../../features/reports/pages/ReportsPage'),
 );
 
+const StudentInvitationManagementPage = lazy(
+  () => import('../../features/students/pages/StudentInvitationManagementPage'),
+);
 const StudentImportPage = lazy(
   () => import('../../features/students/pages/StudentImportPage'),
 );
@@ -305,6 +308,14 @@ export default function AppRoutes() {
           />
           <Route path="students/:studentID" element={<StudentProfilePage />} />
           <Route element={<RoleGuard role="admin" />}>
+            <Route
+              path="students/invitations"
+              element={
+                <Suspense fallback={<p role="status">Loading invitations…</p>}>
+                  <StudentInvitationManagementPage />
+                </Suspense>
+              }
+            />
             <Route
               path="devices"
               element={
