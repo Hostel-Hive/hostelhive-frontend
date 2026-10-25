@@ -13,13 +13,17 @@ it('groups student routes and marks nested complaint routes active', () => {
   const nav = within(
     screen.getByRole('navigation', { name: 'Student navigation' }),
   );
-  expect(nav.getAllByRole('link')).toHaveLength(10);
+  expect(nav.getAllByRole('link')).toHaveLength(11);
   expect(
     within(nav.getByRole('list', { name: 'My account navigation' })).getByRole(
       'link',
       { name: 'My profile' },
     ),
   ).toHaveAttribute('href', '/student/profile');
+  expect(nav.getByRole('link', { name: 'Pass history' })).toHaveAttribute(
+    'href',
+    '/student/passes',
+  );
   expect(nav.getByRole('link', { name: 'Complaints' })).toHaveAttribute(
     'aria-current',
     'page',

@@ -22,7 +22,12 @@ export class LeaveError extends Error {
 export const leaveUUID = (value: unknown): value is string =>
   typeof value === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-export const leaveStatuses = ['pending', 'approved', 'rejected'] as const;
+export const leaveStatuses = [
+  'pending',
+  'approved',
+  'rejected',
+  'cancelled',
+] as const;
 export function decisionNoteError(
   status: LeaveDecision,
   note: string,
@@ -87,13 +92,19 @@ export function validLeave(value: unknown): value is LeaveRequest {
     Array.from(row.reason).length <= 1000 &&
     leaveStatuses.includes(row.status) &&
     typeof row.decision_note === 'string' &&
-    (row.status === 'pending'
-      ? row.decided_at === null &&
+    (row.status === 'cancelled'
+      ? timestamp(row.cancelled_at) &&
+        leaveUUID(row.cancelled_by) &&
+        row.decided_at === null &&
         row.decided_by === null &&
         row.decision_note === ''
-      : timestamp(row.decided_at) &&
-        leaveUUID(row.decided_by) &&
-        !decisionNoteError(row.status, row.decision_note))
+      : row.status === 'pending'
+        ? row.decided_at === null &&
+          row.decided_by === null &&
+          row.decision_note === ''
+        : timestamp(row.decided_at) &&
+          leaveUUID(row.decided_by) &&
+          !decisionNoteError(row.status, row.decision_note))
   );
 }
 export function leaveError(error: unknown): LeaveError {

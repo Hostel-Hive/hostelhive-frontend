@@ -421,3 +421,15 @@ it('aborts old list requests on identity changes and suppresses old records', as
   await act(async () => finish(ownLeavePage()));
   expect(screen.queryByText('Family visit')).not.toBeInTheDocument();
 });
+
+it('shows the cancellation time on a historical cancelled leave detail', async () => {
+  vi.mocked(getOwnLeave).mockResolvedValue({
+    ...row,
+    status: 'cancelled',
+    cancelled_at: row.created_at,
+    cancelled_by: studentLeaveFixture.submitted_by,
+  });
+  open('detail');
+  expect(await screen.findByText('Cancelled at')).toBeVisible();
+  expect(screen.queryByText('Decided at')).not.toBeInTheDocument();
+});

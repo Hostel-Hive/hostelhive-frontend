@@ -17,6 +17,7 @@ export const routePaths = {
   ownComplaints: '/student/complaints',
   ownComplaintNew: '/student/complaints/new',
   ownLeaves: '/student/leaves',
+  ownPassHistory: '/student/passes',
   ownLeaveNew: '/student/leaves/new',
   ownLateAccess: '/student/late-access-requests',
   ownLateAccessNew: '/student/late-access-requests/new',

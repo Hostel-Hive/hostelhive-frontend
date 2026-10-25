@@ -146,6 +146,7 @@ export default function AppRoutes() {
             [routePaths.ownComplaintNew, 'complaint-new'],
             [`${routePaths.ownComplaints}/:complaintID`, 'complaint-detail'],
             [routePaths.ownLeaves, 'leaves'],
+            [routePaths.ownPassHistory, 'passes'],
             [routePaths.ownLeaveNew, 'leave-new'],
             [`${routePaths.ownLeaves}/:leaveID`, 'leave-detail'],
             [routePaths.ownLateAccess, 'access'],

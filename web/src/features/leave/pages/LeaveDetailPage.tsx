@@ -121,7 +121,16 @@ export default function LeaveDetailPage() {
             </div>
             <div className="leave-card leave-decision-card">
               <h2>Recorded decision</h2>
-              {row.status === 'pending' ? (
+              {row.status === 'cancelled' ? (
+                <dl className="leave-details">
+                  <dt>Cancelled at</dt>
+                  <dd>
+                    <LeaveDate value={row.cancelled_at!} />
+                  </dd>
+                  <dt>Cancelled by (account ID)</dt>
+                  <dd className="leave-id">{row.cancelled_by}</dd>
+                </dl>
+              ) : row.status === 'pending' ? (
                 <>
                   <p>No decision has been recorded.</p>
                   <div className="leave-actions">

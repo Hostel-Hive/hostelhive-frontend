@@ -197,3 +197,14 @@ it('maps session transport failures without exposing internal errors', () => {
     kind: 'unavailable',
   });
 });
+
+it('reads a cancelled historical leave with its cancellation audit', async () => {
+  const cancelled = {
+    ...row,
+    status: 'cancelled',
+    cancelled_at: row.created_at,
+    cancelled_by: row.submitted_by,
+  };
+  request.mockResolvedValue(Response.json(cancelled));
+  expect(await getLeave(row.leave_id, 'staff', signal())).toEqual(cancelled);
+});

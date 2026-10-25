@@ -102,7 +102,14 @@ export default function OwnLeaveDetail({
               <dt>Reason</dt>
               <dd className="portal-leave-prose">{row.reason}</dd>
             </div>
-            {row.status === 'pending' ? (
+            {row.status === 'cancelled' ? (
+              <div>
+                <dt>Cancelled at</dt>
+                <dd>
+                  <LeaveDate value={row.cancelled_at!} />
+                </dd>
+              </div>
+            ) : row.status === 'pending' ? (
               <div className="portal-leave-full">
                 <dt>Decision</dt>
                 <dd>Waiting for a hostel staff decision.</dd>
