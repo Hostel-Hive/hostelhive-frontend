@@ -1,6 +1,16 @@
 # HostelHive Web
 
-React staff dashboard. Responsible member: Navon Sanjuni.
+React student portal and Admin/Warden dashboard. Responsible member: Navon Sanjuni.
+
+## Live application
+
+- [Student login](https://web-kohl-delta-90.vercel.app/login)
+- [Admin and Warden login](https://web-kohl-delta-90.vercel.app/staff/login)
+- [Backend Swagger documentation](https://hostelhive-backend-dev.onrender.com/docs/)
+- Backend API base: `https://hostelhive-backend-dev.onrender.com/api/v1`
+
+See the [repository README](../README.md#demo-accounts) for the assessment demo
+accounts, repository links, CI and coverage information.
 
 ## Prerequisites
 
@@ -60,7 +70,8 @@ src/
   test/      DOM test setup
 ```
 
-The proposed larger feature structure grows through individual tickets. Issue #3 adds routing and the dashboard layout; issue #7 adds `features/auth/`, the shared authentication layout and login stylesheet. Realtime connections and business features belong to subsequent tickets.
+Feature folders contain the implemented modules. See the repository README and
+the individual guides in `docs/` for their current scope and verification steps.
 
 ## Routes and navigation
 
