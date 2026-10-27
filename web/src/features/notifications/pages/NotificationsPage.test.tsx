@@ -163,18 +163,28 @@ it('paginates and resets page on filter and refresh', async () => {
       'No notifications on this page. Use Previous or refresh.',
     ),
   ).toBeVisible();
-  expect(screen.getByRole('region', { name: 'Inbox results' })).toHaveFocus();
+  const expectResultsFocus = () =>
+    waitFor(() =>
+      expect(
+        screen.getByRole('region', { name: 'Inbox results' }),
+      ).toHaveFocus(),
+    );
+  await expectResultsFocus();
   fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
   await screen.findByText('Notice 0');
+  await expectResultsFocus();
   fireEvent.click(screen.getByRole('button', { name: 'Next' }));
   await screen.findByText('Page 2');
+  await expectResultsFocus();
   fireEvent.click(screen.getByRole('button', { name: 'Refresh inbox' }));
   await screen.findByText('Notice 0');
   expect(screen.getByText('Page 1')).toBeVisible();
+  await expectResultsFocus();
   fireEvent.click(screen.getByRole('checkbox', { name: 'Unread only' }));
   expect(
     await screen.findByText('You have no unread notifications.'),
   ).toBeVisible();
+  await expectResultsFocus();
 });
 it('handles empty results and service retry without fabricating a count', async () => {
   vi.mocked(listNotifications)
