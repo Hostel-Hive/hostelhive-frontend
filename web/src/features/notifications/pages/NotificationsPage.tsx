@@ -135,11 +135,13 @@ function InboxContents({
   const current = result?.key === key ? result : undefined;
   const pending = !current;
   useEffect(() => {
+    // An immediately resolved page can replace the result without a committed
+    // loading render. Observe the result as well as the loading flag.
     if (!pending && focusResults.current) {
       focusResults.current = false;
       results.current?.focus();
     }
-  }, [pending]);
+  }, [current, pending]);
   function refresh() {
     if (write.current) return;
     setSelected(undefined);

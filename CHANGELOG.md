@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Restored inbox-results keyboard focus after pagination, filtering and refresh even when an immediate response skips the loading render; focus checks now await the completed effect.
+
 - Stabilized Admin/Warden access-denial tests by waiting for request cancellation during React effect cleanup, preserving abort assertions under CI coverage instrumentation.
 
 - Simplified the staff header by retaining desktop sign-out in the account menu and mobile sign-out inside navigation; aligned workspace labels, notification controls and compact header spacing across portals.
