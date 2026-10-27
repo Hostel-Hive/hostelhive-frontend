@@ -3,10 +3,10 @@ import { routePaths } from '../../app/router/routePaths';
 import MobileSidebar from './MobileSidebar';
 import useAuth from '../../features/auth/hooks/useAuth';
 import { dashboardForRole } from '../../config/roles';
-import Button from '../../shared/components/ui/Button';
+import NotificationBadge from '../../features/notifications/components/NotificationBadge';
 
 export default function AppHeader() {
-  const { account, signOut } = useAuth();
+  const { account } = useAuth();
   return (
     <header className="app-header">
       <Link
@@ -17,10 +17,13 @@ export default function AppHeader() {
         Hostel<span className="brand__accent">Hive</span>
       </Link>
       <span className="app-header__description">Staff workspace</span>
+      {account && (
+        <span className="app-header__role">
+          {account.role === 'admin' ? 'Admin' : 'Warden'}
+        </span>
+      )}
       <div className="app-header__actions">
-        <Button variant="secondary" onClick={() => void signOut()}>
-          Sign out
-        </Button>
+        <NotificationBadge />
         <MobileSidebar />
       </div>
     </header>

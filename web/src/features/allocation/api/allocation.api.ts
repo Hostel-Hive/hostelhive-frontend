@@ -56,6 +56,7 @@ function valid(value: unknown): value is Allocation {
     (row.ended_by === null || uuid(row.ended_by)) &&
     (row.end_reason === null ||
       row.end_reason === 'revoked' ||
+      row.end_reason === 'checkout' ||
       row.end_reason === 'transferred') &&
     (row.ended_at !== null ||
       (row.ended_by === null && row.end_reason === null))

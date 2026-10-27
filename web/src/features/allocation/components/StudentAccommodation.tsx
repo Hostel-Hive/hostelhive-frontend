@@ -14,6 +14,7 @@ import type {
 } from '../allocation.types';
 import AvailableBedPicker from './AvailableBedPicker';
 import type { BedChoice } from './AvailableBedPicker';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
 
 function EditAllocation({
   action,
@@ -35,12 +36,13 @@ function EditAllocation({
   denied: (reason: unknown) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const cancelButton = useRef<HTMLButtonElement>(null);
   const [chosen, setChosen] = useState<BedChoice | null>(null);
   useEffect(() => {
     const element = dialog.current!;
     const previous = document.activeElement as HTMLElement | null;
     element.showModal();
-    element.querySelector('button')?.focus();
+    cancelButton.current?.focus();
     return () => {
       element.close();
       previous?.focus();
@@ -57,31 +59,41 @@ function EditAllocation({
       ref={dialog}
       className="student-discard allocation-dialog"
       aria-labelledby="allocation-confirm-title"
+      aria-describedby="allocation-guidance"
+      aria-busy={pending}
       onCancel={(event) => {
         event.preventDefault();
         if (!pending) cancel();
       }}
     >
-      <h2 id="allocation-confirm-title">
-        {verb} for {studentName}?
-      </h2>
-      <Button variant="secondary" size="sm" disabled={pending} onClick={cancel}>
-        Cancel
-      </Button>
+      <div className="allocation-dialog-heading">
+        <span className="allocation-heading-icon" aria-hidden="true">
+          <NavigationIcon name="building" />
+        </span>
+        <div>
+          <p className="allocation-eyebrow">Accommodation</p>
+          <h2 id="allocation-confirm-title">
+            {verb} for {studentName}?
+          </h2>
+        </div>
+      </div>
       {current && (
-        <p>
+        <p className="allocation-current">
           Current bed ID: <span className="student-id">{current.bed_id}</span>
         </p>
       )}
-      <p>
+      <p id="allocation-guidance" className="allocation-guidance">
         {action === 'revoke'
           ? 'This ends the current allocation and releases the bed. Allocation history and the student account are kept.'
           : action === 'transfer'
-            ? 'The backend closes the current allocation and creates its replacement together. An occupied target leaves the original assignment unchanged.'
-            : 'The backend checks that the student and selected bed are still eligible before assigning.'}
+            ? 'Choose a new available bed. The transfer is saved as one change; if the selected bed is occupied, the current assignment is kept.'
+            : 'Choose a block, room and available bed. Student eligibility and bed availability are checked again when you confirm.'}
       </p>
       {action !== 'revoke' && (
-        <fieldset disabled={pending} className="allocation-picker">
+        <fieldset
+          disabled={pending}
+          className="allocation-picker allocation-picker-container"
+        >
           <AvailableBedPicker
             uid={uid}
             chosen={chosen}
@@ -91,26 +103,44 @@ function EditAllocation({
         </fieldset>
       )}
       {chosen && (
-        <p>
+        <p className="allocation-selection" aria-live="polite">
           Selected: <strong>{chosen.label}</strong>
           <br />
           <span className="student-id">{chosen.id}</span>
         </p>
       )}
       {pending && <p role="status">Saving allocation. Keep this page open…</p>}
-      <Button
-        variant={action === 'revoke' ? 'danger' : 'primary'}
-        disabled={pending || (action !== 'revoke' && !chosen)}
-        onClick={() => confirm(chosen)}
-      >
-        {pending
-          ? 'Saving…'
-          : action === 'assign'
-            ? 'Confirm assignment'
-            : action === 'transfer'
-              ? 'Confirm transfer'
-              : 'Confirm revocation'}
-      </Button>
+      <div className="allocation-dialog-footer">
+        <span className="allocation-footer-hint">
+          {action !== 'revoke' && !chosen
+            ? 'Choose a bed to continue.'
+            : 'Review the allocation before confirming.'}
+        </span>
+        <div className="allocation-footer-actions">
+          <Button
+            ref={cancelButton}
+            variant="secondary"
+            size="sm"
+            disabled={pending}
+            onClick={cancel}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant={action === 'revoke' ? 'danger' : 'primary'}
+            disabled={pending || (action !== 'revoke' && !chosen)}
+            onClick={() => confirm(chosen)}
+          >
+            {pending
+              ? 'Saving…'
+              : action === 'assign'
+                ? 'Confirm assignment'
+                : action === 'transfer'
+                  ? 'Confirm transfer'
+                  : 'Confirm revocation'}
+          </Button>
+        </div>
+      </div>
     </dialog>
   );
 }
@@ -367,7 +397,9 @@ function AccommodationControls({
                             ? 'Transferred'
                             : row.end_reason === 'revoked'
                               ? 'Revoked'
-                              : 'Ended'}
+                              : row.end_reason === 'checkout'
+                                ? 'Hostel stay ended'
+                                : 'Ended'}
                       </td>
                     </tr>
                   ))}

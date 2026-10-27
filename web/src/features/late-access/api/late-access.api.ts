@@ -26,7 +26,12 @@ export class LateAccessError extends Error {
 export const lateAccessUUID = (value: unknown): value is string =>
   typeof value === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-export const lateAccessStatuses = ['pending', 'approved', 'rejected'] as const;
+export const lateAccessStatuses = [
+  'pending',
+  'approved',
+  'rejected',
+  'cancelled',
+] as const;
 export function decisionNoteError(
   status: LateAccessDecision,
   note: string,
@@ -76,7 +81,7 @@ const timestamp = (value: unknown): value is string =>
     value,
   ) &&
   Number.isFinite(Date.parse(value));
-function validLateAccess(value: unknown): value is LateAccessRequest {
+export function validLateAccess(value: unknown): value is LateAccessRequest {
   if (!value || typeof value !== 'object') return false;
   const row = value as LateAccessRequest;
   return (
@@ -98,8 +103,11 @@ function validLateAccess(value: unknown): value is LateAccessRequest {
     Boolean(row.reason.trim()) &&
     Array.from(row.reason).length <= 1000 &&
     lateAccessStatuses.includes(row.status) &&
+    (row.status === 'cancelled'
+      ? timestamp(row.cancelled_at) && lateAccessUUID(row.cancelled_by)
+      : row.cancelled_at == null && row.cancelled_by == null) &&
     typeof row.decision_note === 'string' &&
-    (row.status === 'pending'
+    (row.status === 'pending' || row.status === 'cancelled'
       ? row.decided_at === null &&
         row.decided_by === null &&
         row.decision_note === ''

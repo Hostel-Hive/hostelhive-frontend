@@ -9,7 +9,7 @@ import {
   onIdTokenChanged,
 } from 'firebase/auth';
 import { parseEnvironment } from '../../../config/env';
-import type { LoginInput, StaffAccount } from '../auth.types';
+import type { LoginInput, AuthAccount } from '../auth.types';
 
 const configurationMessage =
   'Sign-in is not configured yet. Contact the project administrator.';
@@ -101,10 +101,11 @@ export async function logout() {
   if (auth) await signOut(auth);
 }
 
-async function verifyStaffAccount(
+async function verifyAccount(
   uid: string,
   token: string,
-): Promise<StaffAccount> {
+  portal?: 'staff' | 'student',
+): Promise<AuthAccount> {
   const { apiBaseUrl } = parseEnvironment(import.meta.env);
   const base = import.meta.env.DEV ? '/backend-api' : apiBaseUrl;
   let response: Response;
@@ -124,7 +125,7 @@ async function verifyStaffAccount(
     );
   if (response.status === 403)
     throw new SessionRejectedError(
-      'This account cannot access the staff portal. Contact the Head Warden.',
+      `This account cannot access the ${portal === 'student' ? 'student' : 'staff'} portal. Contact your hostel administrator.`,
     );
   if (!response.ok)
     throw loginError(
@@ -144,16 +145,23 @@ async function verifyStaffAccount(
     !('is_active' in account) ||
     account.is_active !== true ||
     !('role' in account) ||
-    (account.role !== 'admin' && account.role !== 'warden')
+    !['admin', 'warden', 'student'].includes(String(account.role)) ||
+    ('setup_required' in account &&
+      typeof account.setup_required !== 'boolean') ||
+    (account.role !== 'student' &&
+      'setup_required' in account &&
+      account.setup_required === true) ||
+    (portal === 'staff' && account.role === 'student') ||
+    (portal === 'student' && account.role !== 'student')
   ) {
     throw new SessionRejectedError(
-      'This account cannot access the staff portal. Contact the Head Warden.',
+      `This account cannot access the ${portal === 'student' ? 'student' : 'staff'} portal. Use the correct login page or contact your hostel administrator.`,
     );
   }
-  return account as StaffAccount;
+  return account as AuthAccount;
 }
 
-export async function login(input: LoginInput): Promise<StaffAccount> {
+export async function login(input: LoginInput): Promise<AuthAccount> {
   const auth = configuredAuth();
   if (!auth) throw loginError(configurationMessage);
   try {
@@ -167,21 +175,27 @@ export async function login(input: LoginInput): Promise<StaffAccount> {
       input.email.trim(),
       input.password,
     );
-    return await verifyStaffAccount(user.uid, await user.getIdToken());
+    return await verifyAccount(
+      user.uid,
+      await user.getIdToken(),
+      input.portal ?? 'staff',
+    );
   } catch (error) {
     await signOut(auth).catch(() => undefined);
     throw error;
   }
 }
 
-export async function restoreStaffSession(): Promise<StaffAccount | null> {
+// Kept under the existing name for staff callers; restores either portal's
+// identity. Route guards enforce portal and setup boundaries after verification.
+export async function restoreStaffSession(): Promise<AuthAccount | null> {
   const auth = configuredAuth();
   if (!auth) return null;
   await auth.authStateReady();
   if (!auth.currentUser) return null;
   try {
     const user = auth.currentUser;
-    return await verifyStaffAccount(user.uid, await user.getIdToken());
+    return await verifyAccount(user.uid, await user.getIdToken());
   } catch (error) {
     if (isSessionRejected(error)) await signOut(auth).catch(() => undefined);
     throw error;

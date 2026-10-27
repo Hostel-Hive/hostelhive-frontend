@@ -21,7 +21,7 @@ import {
   logout,
 } from '../../auth/api/auth.api';
 import {
-  createStudent,
+  createStudentByEmail,
   updateStudent,
   getStudent,
   listStudents,
@@ -39,7 +39,7 @@ vi.mock('../../auth/api/auth.api', async (original) => ({
 }));
 vi.mock('../api/students.api', async (original) => ({
   ...(await original<typeof import('../api/students.api')>()),
-  createStudent: vi.fn(),
+  createStudentByEmail: vi.fn(),
   updateStudent: vi.fn(),
   getStudent: vi.fn(),
   listStudents: vi.fn(),
@@ -109,7 +109,7 @@ beforeEach(() => {
   }));
   vi.mocked(getStudentInvitation).mockResolvedValue(invitationFixture);
   vi.mocked(listStudents).mockResolvedValue(studentPageFixture);
-  vi.mocked(createStudent).mockResolvedValue(studentFixture);
+  vi.mocked(createStudentByEmail).mockResolvedValue(studentFixture);
   vi.mocked(updateStudent).mockResolvedValue(studentFixture);
 });
 function renderAt(path = '/dashboard/students/new') {
@@ -132,6 +132,40 @@ async function fillCreate() {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
 }
 describe('Admin invitation registration', () => {
+  it('keeps new account registration Admin-only while allowing Warden existing-account linking', async () => {
+    vi.mocked(restoreStaffSession).mockResolvedValue({
+      user_id: 'staff',
+      firebase_uid: 'staff-uid',
+      email: 'staff@example.com',
+      role: 'warden',
+      is_active: true,
+    });
+    renderAt();
+    expect(await screen.findByLabelText('University email')).toBeVisible();
+    expect(
+      screen.queryByLabelText('Student account ID'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Register student' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', {
+        name: 'Register with a university email instead',
+      }),
+    ).not.toBeInTheDocument();
+    await fillCreate();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Create profile' }),
+    );
+    await waitFor(() =>
+      expect(createStudentByEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ email: invitationFixture.email }),
+        'staff-uid',
+        expect.any(AbortSignal),
+      ),
+    );
+    expect(registerStudentInvitation).not.toHaveBeenCalled();
+  });
   it('registers without a manual UUID and keeps directory filters', async () => {
     renderAt('/dashboard/students/new?q=Alex');
     await fillCreate();
@@ -163,7 +197,7 @@ describe('Admin invitation registration', () => {
     expect(body).not.toHaveProperty('user_id');
     expect(body).not.toHaveProperty('password');
     expect(uid).toBe('staff-uid');
-    expect(createStudent).not.toHaveBeenCalled();
+    expect(createStudentByEmail).not.toHaveBeenCalled();
     expect(window.location.pathname).toBe(
       '/dashboard/students/' + invitationFixture.student_id,
     );
@@ -226,6 +260,58 @@ describe('Admin invitation registration', () => {
     ).toBeVisible();
     expect(registerStudentInvitation).not.toHaveBeenCalled();
   });
+  it('shows a dismissible error outside the long form and announces repeated failures', async () => {
+    vi.mocked(registerStudentInvitation).mockRejectedValue(
+      new StudentRequestError('duplicate', 'Duplicate registration.'),
+    );
+    renderAt();
+    await fillCreate();
+    const submit = screen.getByRole('button', { name: 'Register student' });
+    await userEvent.click(submit);
+    const toast = await screen.findByRole('alert');
+    expect(toast).toHaveTextContent('Duplicate registration.');
+    expect(toast.parentElement).toBe(document.body);
+    expect(submit).toHaveFocus();
+    const dismiss = screen.getByRole('button', {
+      name: 'Dismiss notification',
+    });
+    dismiss.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('University email')).toHaveValue(
+      'ALEX@STUDENTS.EXAMPLE.EDU',
+    );
+    await userEvent.click(submit);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Duplicate registration.',
+    );
+    expect(registerStudentInvitation).toHaveBeenCalledTimes(2);
+  });
+  it('keeps uncertain registration locked after dismissing the notification', async () => {
+    vi.mocked(registerStudentInvitation).mockRejectedValueOnce(
+      new StudentRequestError('unavailable', 'Unable to confirm registration.'),
+    );
+    renderAt();
+    await fillCreate();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Register student' }),
+    );
+    await screen.findByRole('alert');
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Dismiss notification' }),
+    );
+    expect(screen.getByLabelText('University email')).toBeDisabled();
+    expect(
+      screen.getByText(/The registration result is unknown/),
+    ).toBeVisible();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Retry same registration' }),
+    );
+    await screen.findByText(/Account setup invitation queued/);
+    const calls = vi.mocked(registerStudentInvitation).mock.calls;
+    expect(calls[1][0]).toEqual(calls[0][0]);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
   it.each(['forbidden', 'session'] as const)(
     'locks registration after %s',
     async (kind) => {
@@ -269,8 +355,13 @@ describe('Admin invitation registration', () => {
         name: 'Create a profile for an existing account instead',
       }),
     );
-    expect(await screen.findByLabelText('Student account ID')).toBeVisible();
-    expect(screen.queryByLabelText('University email')).not.toBeInTheDocument();
+    expect(await screen.findByLabelText('University email')).toBeVisible();
+    expect(
+      screen.queryByLabelText('Student account ID'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Create profile' }),
+    ).toBeVisible();
     expect(registerStudentInvitation).not.toHaveBeenCalled();
   });
   it('shows accepted email status without claiming delivery and retains it after refresh failure', async () => {

@@ -1,8 +1,9 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { routePaths } from '../app/router/routePaths';
 import AppFooter from './components/AppFooter';
 
 export default function AuthLayout() {
+  const { pathname } = useLocation();
   return (
     <div className="auth-shell">
       <a className="skip-link" href="#auth-content">
@@ -10,7 +11,12 @@ export default function AuthLayout() {
       </a>
       <header className="auth-header">
         <Link
-          to={routePaths.login}
+          to={
+            pathname.startsWith('/student') ||
+            pathname === routePaths.studentLogin
+              ? routePaths.studentLogin
+              : routePaths.login
+          }
           className="auth-brand"
           aria-label="HostelHive sign in"
         >

@@ -10,7 +10,11 @@ import {
 } from '../api/password.api';
 import { validateRecoveryEmail } from '../password.schema';
 
-export default function PasswordRecoveryPage() {
+export default function PasswordRecoveryPage({
+  student = false,
+}: {
+  student?: boolean;
+}) {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [pending, setPending] = useState(false);
@@ -48,7 +52,8 @@ export default function PasswordRecoveryPage() {
     busy.current = true;
     setPending(true);
     try {
-      await requestPasswordReset(email);
+      if (student) await requestPasswordReset(email, true);
+      else await requestPasswordReset(email);
       if (mounted.current) {
         setSent(true);
         setSeconds(60);
@@ -165,7 +170,10 @@ export default function PasswordRecoveryPage() {
             ? 'Reset request accepted. Check your email if an account exists.'
             : ''}
       </span>
-      <Link className="auth-back-link" to={routePaths.login}>
+      <Link
+        className="auth-back-link"
+        to={student ? routePaths.studentLogin : routePaths.login}
+      >
         ← Back to sign in
       </Link>
     </section>

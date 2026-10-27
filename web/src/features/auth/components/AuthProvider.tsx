@@ -36,14 +36,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       if (operation.current) return;
       const current = ++generation.current;
       setState((previous) => ({
-        status: 'checking',
-        // Focus can return from a native file chooser. Preserve the verified
-        // identity and page during this background check, so local selections
-        // survive without flicker. All failures clear the identity.
-        account:
-          preservePage && previous.verifiedPath === pathname
-            ? previous.account
-            : null,
+        status:
+          preservePage &&
+          previous.verifiedPath === pathname &&
+          previous.status === 'anonymous'
+            ? 'anonymous'
+            : 'checking',
+        // Navigation and focus checks retain the last verified identity while
+        // the backend revalidates it. Failures still clear the identity.
+        account: preservePage ? previous.account : null,
         message: '',
         verifiedPath: pathname,
       }));
@@ -73,9 +74,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     mounted.current = true;
+    const changedPath = latestPath.current !== pathname;
     latestPath.current = pathname;
     latestRetry.current = retry;
     let active = true;
+    let firstSessionEvent = true;
     let unsubscribe = () => {};
     const onError = (error: unknown) => {
       if (!active) return;
@@ -90,7 +93,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     try {
       unsubscribe = subscribeStaffSession((signedIn) => {
         if (!active || operation.current) return;
-        if (signedIn) void retry();
+        const preserveNavigation = changedPath && firstSessionEvent;
+        firstSessionEvent = false;
+        if (signedIn) void retry(preserveNavigation);
         else {
           ++generation.current;
           setState({

@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import AdminDashboardPage from '../../features/dashboard/pages/AdminDashboardPage';
 import WardenDashboardPage from '../../features/dashboard/pages/WardenDashboardPage';
+import StaffAttendancePage from '../../features/attendance/pages/StaffAttendancePage';
 import StudentDirectoryPage from '../../features/students/pages/StudentDirectoryPage';
 import StudentProfilePage from '../../features/students/pages/StudentProfilePage';
 import StudentFormPage from '../../features/students/pages/StudentFormPage';
@@ -17,12 +18,37 @@ import PublicOnlyRoute from './PublicOnlyRoute';
 import RoleGuard from './RoleGuard';
 import useAuth from '../../features/auth/hooks/useAuth';
 import { dashboardForRole } from '../../config/roles';
+const StudentSetupPage = lazy(
+  () => import('../../features/auth/pages/StudentSetupPage'),
+);
+const StudentHomePage = lazy(
+  () => import('../../features/student-portal/pages/StudentHomePage'),
+);
+
+const AnnouncementsPage = lazy(
+  () => import('../../features/announcements/pages/AnnouncementsPage'),
+);
+const NotificationsPage = lazy(
+  () => import('../../features/notifications/pages/NotificationsPage'),
+);
+const ReportsPage = lazy(
+  () => import('../../features/reports/pages/ReportsPage'),
+);
 
 const StudentImportPage = lazy(
   () => import('../../features/students/pages/StudentImportPage'),
 );
 const InventoryPage = lazy(
   () => import('../../features/inventory/pages/InventoryPage'),
+);
+const UserManagementPage = lazy(
+  () => import('../../features/users/pages/UserManagementPage'),
+);
+const StaffManagementPage = lazy(
+  () => import('../../features/staff/pages/StaffManagementPage'),
+);
+const StaffCreationPage = lazy(
+  () => import('../../features/staff/pages/StaffCreationPage'),
 );
 const LeaveListPage = lazy(
   () => import('../../features/leave/pages/LeaveListPage'),
@@ -59,11 +85,37 @@ export default function AppRoutes() {
     <Routes>
       <Route
         path={routePaths.home}
-        element={<Navigate to={routePaths.login} replace />}
+        element={<Navigate to={routePaths.studentLogin} replace />}
+      />
+      <Route
+        path="/student/login"
+        element={<Navigate to={routePaths.studentLogin} replace />}
       />
       <Route element={<AuthLayout />}>
         <Route element={<PublicOnlyRoute />}>
           <Route path={routePaths.login} element={<LoginPage />} />
+          <Route
+            path={routePaths.studentLogin}
+            element={<LoginPage student />}
+          />
+        </Route>
+        <Route
+          path={routePaths.studentForgotPassword}
+          element={<PasswordRecoveryPage student />}
+        />
+        <Route
+          path={routePaths.studentResetPassword}
+          element={<ResetPasswordPage />}
+        />
+        <Route element={<ProtectedRoute portal="student" allowSetup />}>
+          <Route
+            path={routePaths.studentSetup}
+            element={
+              <Suspense fallback={<p role="status">Loading account setup…</p>}>
+                <StudentSetupPage />
+              </Suspense>
+            }
+          />
         </Route>
         <Route
           path={routePaths.forgotPassword}
@@ -74,9 +126,101 @@ export default function AppRoutes() {
           element={<ResetPasswordPage />}
         />
       </Route>
+      <Route element={<ProtectedRoute portal="student" />}>
+        {(
+          [
+            [routePaths.ownStudentProfile, 'profile'],
+            [routePaths.ownStudentAccommodation, 'accommodation'],
+            [routePaths.ownStudentQR, 'qr'],
+            [routePaths.ownStudentAttendance, 'attendance'],
+            [routePaths.ownAnnouncements, 'announcements'],
+            [routePaths.ownNotifications, 'notifications'],
+            [
+              `${routePaths.ownAnnouncements}/:announcementID`,
+              'announcement-detail',
+            ],
+            [routePaths.ownComplaints, 'complaints'],
+            [routePaths.ownComplaintNew, 'complaint-new'],
+            [`${routePaths.ownComplaints}/:complaintID`, 'complaint-detail'],
+            [routePaths.ownLeaves, 'leaves'],
+            [routePaths.ownLeaveNew, 'leave-new'],
+            [`${routePaths.ownLeaves}/:leaveID`, 'leave-detail'],
+            [routePaths.ownLateAccess, 'access'],
+            [routePaths.ownLateAccessNew, 'access-new'],
+            [`${routePaths.ownLateAccess}/:lateAccessID`, 'access-detail'],
+          ] as const
+        ).map(([path, view]) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <Suspense fallback={<p role="status">Loading student page…</p>}>
+                <StudentHomePage view={view} />
+              </Suspense>
+            }
+          />
+        ))}
+        <Route
+          path={routePaths.studentHome}
+          element={
+            <Suspense fallback={<p role="status">Loading student portal…</p>}>
+              <StudentHomePage />
+            </Suspense>
+          }
+        />
+      </Route>
       <Route element={<ProtectedRoute />}>
         <Route path={routePaths.dashboard} element={<DashboardLayout />}>
           <Route index element={<DashboardRedirect />} />
+          {(['attendance', 'daily', 'leaves', 'complaints'] as const).map(
+            (kind) => (
+              <Route
+                key={kind}
+                path={kind === 'attendance' ? 'reports' : `reports/${kind}`}
+                element={
+                  <Suspense fallback={<p role="status">Loading reports...</p>}>
+                    <ReportsPage kind={kind} />
+                  </Suspense>
+                }
+              />
+            ),
+          )}
+          <Route path="attendance" element={<StaffAttendancePage />} />
+          <Route
+            path="attendance/incidents"
+            element={<StaffAttendancePage view="incidents" />}
+          />
+          <Route
+            path="attendance/incidents/:incidentID"
+            element={<StaffAttendancePage view="incident" />}
+          />
+          <Route
+            path="notifications"
+            element={
+              <Suspense fallback={<p role="status">Loading inbox...</p>}>
+                <NotificationsPage />
+              </Suspense>
+            }
+          />
+          {(['list', 'new', 'detail'] as const).map((view) => (
+            <Route
+              key={view}
+              path={
+                view === 'list'
+                  ? 'announcements'
+                  : view === 'new'
+                    ? 'announcements/new'
+                    : 'announcements/:announcementID'
+              }
+              element={
+                <Suspense
+                  fallback={<p role="status">Loading announcements...</p>}
+                >
+                  <AnnouncementsPage view={view} />
+                </Suspense>
+              }
+            />
+          ))}
           <Route
             path="complaints"
             element={
@@ -143,6 +287,39 @@ export default function AppRoutes() {
           />
           <Route path="students/:studentID" element={<StudentProfilePage />} />
           <Route element={<RoleGuard role="admin" />}>
+            <Route
+              path="staff/new"
+              element={
+                <Suspense
+                  fallback={<p role="status">Loading staff creation…</p>}
+                >
+                  <StaffCreationPage />
+                </Suspense>
+              }
+            />
+            {['staff', 'staff/:userID'].map((path) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <Suspense
+                    fallback={<p role="status">Loading staff management…</p>}
+                  >
+                    <StaffManagementPage />
+                  </Suspense>
+                }
+              />
+            ))}
+            <Route
+              path="users"
+              element={
+                <Suspense
+                  fallback={<p role="status">Loading user management…</p>}
+                >
+                  <UserManagementPage />
+                </Suspense>
+              }
+            />
             <Route
               path="students/import"
               element={

@@ -15,6 +15,16 @@ import {
   STUDENT_CSV_COLUMNS,
 } from '../student-import';
 import type { ImportReport, StudentCSV } from '../student-import';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
+import '../../../styles/student-import.css';
+
+const registrationLabels = {
+  queued: 'Invitation queued',
+  replayed: 'Already registered',
+  rejected: 'Rejected',
+  not_attempted: 'Not attempted',
+  retry_required: 'Unconfirmed',
+};
 
 function CSVDownload({
   blob,
@@ -105,12 +115,42 @@ function Report({
       new Blob([importReportCSV(report)], { type: 'text/csv;charset=utf-8' }),
   );
   return (
-    <section className="student-card" aria-labelledby="import-report-title">
+    <section
+      className="student-card import-results"
+      aria-labelledby="import-report-title"
+    >
       <h2 id="import-report-title">Import report</h2>
       <p role="status">
-        {report.created} created · {report.rejected} rejected ·{' '}
-        {report.not_attempted} not attempted · {report.total} total
+        {report.registration ? (
+          `${report.registration.queued} invitations queued · ${report.registration.replayed} already registered · ${report.registration.rejected} rejected · ${report.registration.retry_required} unconfirmed · ${report.registration.not_attempted} not attempted · ${report.total} total`
+        ) : (
+          <>
+            {report.created} confirmed · {report.rejected} rejected ·{' '}
+            {report.not_attempted} not attempted · {report.total} total
+          </>
+        )}
       </p>
+      <div className="import-metrics" aria-label="Import totals">
+        {(report.registration
+          ? [
+              ['Invitations queued', report.registration.queued, 'success'],
+              ['Already registered', report.registration.replayed, 'neutral'],
+              ['Rejected', report.registration.rejected, 'error'],
+              ['Unconfirmed', report.registration.retry_required, 'error'],
+              ['Not attempted', report.registration.not_attempted, 'neutral'],
+            ]
+          : [
+              ['Confirmed', report.created, 'success'],
+              ['Rejected', report.rejected, 'error'],
+              ['Not attempted', report.not_attempted, 'neutral'],
+            ]
+        ).map(([label, count, tone]) => (
+          <div className={`import-metric import-metric--${tone}`} key={label}>
+            <span>{label}</span>
+            <strong>{count}</strong>
+          </div>
+        ))}
+      </div>
       {report.stopped_reason && (
         <p role="alert">
           {IMPORT_ERRORS[report.stopped_reason]} Earlier successful rows are
@@ -118,10 +158,10 @@ function Report({
         </p>
       )}
       <p>
-        Rows marked created were confirmed. Validation, account, and duplicate
-        rejections were skipped. If processing stopped, check the directory
-        before retrying affected rows: a service failure can leave an outcome
-        uncertain. Existing and archived profiles are never overwritten.
+        Confirmed rows have an account and profile. New registrations queue
+        setup invitations; exact retries confirm the original registration
+        without sending another invitation. Queued email does not mean
+        delivered. Retry unchanged data as the same Admin if processing stops.
       </p>
       <div className="student-form-actions">
         <CSVDownload blob={blob} filename="student-import-report.csv">
@@ -153,16 +193,24 @@ function Report({
                 <th scope="row">{row.record}</th>
                 <td>{row.line}</td>
                 <td>
-                  {row.status === 'not_attempted'
-                    ? 'Not attempted'
-                    : row.status === 'created'
-                      ? 'Created'
-                      : 'Rejected'}
+                  <span
+                    className={`import-status import-status--${row.registration_status ?? row.status}`}
+                  >
+                    {row.registration_status
+                      ? registrationLabels[row.registration_status]
+                      : row.status === 'not_attempted'
+                        ? row.error === 'registration_unavailable'
+                          ? 'Unconfirmed'
+                          : 'Not attempted'
+                        : row.status === 'created'
+                          ? 'Confirmed'
+                          : 'Rejected'}
+                  </span>
                 </td>
                 <td>
                   {row.status === 'created' ? (
                     <Link to={`${routePaths.students}/${row.student_id}`}>
-                      View created profile (record {row.record})
+                      View student profile (record {row.record})
                     </Link>
                   ) : (
                     IMPORT_ERRORS[row.error!]
@@ -269,11 +317,11 @@ function ImportWorkspace({ uid }: { uid: string }) {
       if (active.current) setPending(null);
     }
   }
-  async function perform(importing: boolean) {
+  async function perform(importing: boolean, exactRetry = false) {
     if (
       operation.current ||
       blocked ||
-      uncertain ||
+      (uncertain && !exactRetry) ||
       (importing && (!csv || !confirmed || report))
     )
       return;
@@ -292,6 +340,7 @@ function ImportWorkspace({ uid }: { uid: string }) {
         )
           throw new Error('Import report does not match the selected CSV.');
         setReport(result);
+        setUncertain(false);
         setCSV(null);
         setConfirmed(false);
         if (result.stopped_reason === 'forbidden') {
@@ -324,90 +373,162 @@ function ImportWorkspace({ uid }: { uid: string }) {
         <span aria-hidden="true">← </span>Back to students
       </Link>
       <p className="page-description">
-        Create profiles for existing active student accounts. Valid records
-        import independently; this action does not create Firebase accounts or
-        replace existing profiles.
+        Register students in bulk using their email and profile details. Upload
+        your CSV, review the records, then queue their setup invitations.
       </p>
+      <ol className="import-steps" aria-label="Import progress">
+        {['Upload CSV', 'Review records', 'View results'].map(
+          (label, index) => {
+            const current = report ? 2 : csv ? 1 : 0;
+            return (
+              <li
+                key={label}
+                aria-current={index === current ? 'step' : undefined}
+                className={index < current ? 'is-complete' : ''}
+              >
+                <span aria-hidden="true">
+                  {index < current ? '✓' : index + 1}
+                </span>
+                {label}
+              </li>
+            );
+          },
+        )}
+      </ol>
       <section
-        className="student-card student-import"
+        className="student-card student-import import-workspace"
         aria-labelledby="csv-file-title"
         aria-busy={Boolean(pending)}
       >
-        <h2 id="csv-file-title">1. Prepare a UTF-8 CSV</h2>
-        <p id="csv-help">
-          Up to 2 MiB and 500 records. Use the exact template headers in any
-          order. Guardian details must be a JSON array inside a properly quoted
-          CSV field. Blank lines are ignored.
-        </p>
-        <p className="student-form-help">
-          Use the local account UUID in user_id, not an email, Firebase UID, or
-          student profile ID. Each row needs 1–10 guardians. Account
-          provisioning is a separate workflow.
-        </p>
-        <code className="student-import-columns">
-          {STUDENT_CSV_COLUMNS.join(',')}
-        </code>
-        {!blocked && (
-          <div className="student-form-actions">
-            <Button
-              variant="secondary"
-              disabled={Boolean(pending) || uncertain}
-              onClick={() => void perform(false)}
-            >
-              Get CSV template
-            </Button>
-            {template && (
-              <CSVDownload
-                blob={template}
-                filename="student-import-template.csv"
+        <div className="import-upload-panel">
+          <div className="import-section-heading">
+            <span className="import-section-icon">
+              <NavigationIcon name="students" />
+            </span>
+            <div>
+              <h2 id="csv-file-title">Upload your student list</h2>
+              <p>Start with the template for a correctly formatted file.</p>
+            </div>
+          </div>
+          {!blocked && (
+            <div className="student-form-actions">
+              <Button
+                variant="secondary"
+                disabled={Boolean(pending) || uncertain}
+                onClick={() => void perform(false)}
               >
-                Save CSV template
-              </CSVDownload>
-            )}
+                Get CSV template
+              </Button>
+              {template && (
+                <CSVDownload
+                  blob={template}
+                  filename="student-import-template.csv"
+                >
+                  Save CSV template
+                </CSVDownload>
+              )}
+            </div>
+          )}
+          {!blocked && (
+            <div className="student-form-field student-import-file import-upload-box">
+              <svg
+                aria-hidden="true"
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 16V3m-5 5 5-5 5 5M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
+              </svg>
+              <label htmlFor="student-csv">Choose student CSV</label>
+              <p id="csv-help">UTF-8 CSV · Up to 2 MiB · Maximum 100 records</p>
+              <input
+                id="student-csv"
+                type="file"
+                accept=".csv,text/csv"
+                aria-describedby="csv-help"
+                disabled={Boolean(pending) || uncertain || Boolean(report)}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = '';
+                  void choose(file);
+                }}
+              />
+              {csv && (
+                <span className="import-selected-file">
+                  Selected: {csv.file.name}
+                </span>
+              )}
+            </div>
+          )}
+          {pending && (
+            <p role="status">
+              {pending === 'read'
+                ? 'Checking CSV structure…'
+                : pending === 'template'
+                  ? 'Loading template…'
+                  : 'Importing student profiles. Keep this page open…'}
+            </p>
+          )}
+          {error && <p role="alert">{error}</p>}
+          {expired && (
+            <Button variant="secondary" onClick={() => void signOut()}>
+              Sign in again
+            </Button>
+          )}
+        </div>
+        <aside className="import-guide" aria-labelledby="import-guide-title">
+          <span className="import-guide-label">BEFORE YOU IMPORT</span>
+          <h3 id="import-guide-title">A few things to check</h3>
+          <ul>
+            <li>Use each student's email from an approved email domain.</li>
+            <li>Include 1–10 guardians for each student.</li>
+            <li>
+              Existing profiles are kept. Duplicate registrations are reported
+              per row.
+            </li>
+          </ul>
+          <div className="import-guide-note">
+            Each new registration creates an account and profile and queues a
+            private invitation to choose a password. No password is needed in
+            the CSV.
           </div>
-        )}
-        {!blocked && (
-          <div className="student-form-field student-import-file">
-            <label htmlFor="student-csv">Choose student CSV</label>
-            <input
-              id="student-csv"
-              type="file"
-              accept=".csv,text/csv"
-              aria-describedby="csv-help"
-              disabled={Boolean(pending) || uncertain || Boolean(report)}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = '';
-                void choose(file);
-              }}
-            />
-          </div>
-        )}
-        {pending && (
-          <p role="status">
-            {pending === 'read'
-              ? 'Checking CSV structure…'
-              : pending === 'template'
-                ? 'Loading template…'
-                : 'Importing student profiles. Keep this page open…'}
-          </p>
-        )}
-        {error && <p role="alert">{error}</p>}
-        {expired && (
-          <Button variant="secondary" onClick={() => void signOut()}>
-            Sign in again
-          </Button>
-        )}
+          <details className="import-format-guide">
+            <summary>CSV format &amp; column guide</summary>
+            <p>
+              Use the exact template headers in any order. Blank lines are
+              ignored.
+            </p>
+            <code className="student-import-columns">
+              {STUDENT_CSV_COLUMNS.join(',')}
+            </code>
+            <p>
+              Include <code>email</code>, not a user UUID or Firebase UID. Exact
+              retries by the same Admin reuse the original registration.
+            </p>
+            <p>
+              Guardian details must be a JSON array inside a properly quoted CSV
+              field.
+            </p>
+          </details>
+        </aside>
       </section>
       {csv && !report && !blocked && (
-        <section className="student-card" aria-labelledby="csv-review-title">
+        <section
+          className="student-card import-review"
+          aria-labelledby="csv-review-title"
+        >
           <h2 id="csv-review-title" tabIndex={-1} ref={summary}>
             2. Review {csv.records.length} records
           </h2>
           <p>
             {csv.file.name} · Document structure checked. The server validates
-            student fields, guardians, account eligibility, and duplicates when
-            you import.
+            student fields, guardians, email domains, and duplicates when you
+            import.
           </p>
           <div
             className="student-table-wrap"
@@ -450,8 +571,8 @@ function ImportWorkspace({ uid }: { uid: string }) {
               disabled={Boolean(pending) || uncertain}
               onChange={(event) => setConfirmed(event.target.checked)}
             />
-            I understand that valid rows will create profiles and successful
-            rows will remain if the import stops.
+            I understand that valid rows will register students and queue setup
+            invitations. Successful registrations remain if the import stops.
           </label>
           <div className="student-form-actions">
             <Button
@@ -472,17 +593,17 @@ function ImportWorkspace({ uid }: { uid: string }) {
       )}
       {uncertain && (
         <section
-          className="student-card"
+          className="student-card import-recovery"
           aria-labelledby="import-recovery-title"
         >
           <h2 id="import-recovery-title">
             Check the directory before another import
           </h2>
           <p>
-            Open the directory in a new tab and check which records exist.
-            Prepare a corrected CSV for the remaining rows. Retried committed
-            rows are rejected as duplicates; imports never overwrite or restore
-            profiles.
+            Check which registrations exist. Retry the unchanged CSV as the same
+            Admin to confirm completed registrations and process remaining rows.
+            Correct only definitively rejected rows. Existing profiles are never
+            overwritten.
           </p>
           <Link
             to={routePaths.students}
@@ -493,6 +614,14 @@ function ImportWorkspace({ uid }: { uid: string }) {
           </Link>
           {!blocked && (
             <>
+              {csv && (
+                <Button
+                  disabled={Boolean(pending)}
+                  onClick={() => void perform(true, true)}
+                >
+                  Retry same CSV
+                </Button>
+              )}
               <label className="student-import-confirm">
                 <input
                   type="checkbox"
@@ -538,7 +667,10 @@ function ImportWorkspace({ uid }: { uid: string }) {
 export default function StudentImportPage() {
   const { account } = useAuth();
   return (
-    <section className="students-page" aria-labelledby="student-import-title">
+    <section
+      className="students-page student-import-page"
+      aria-labelledby="student-import-title"
+    >
       <p className="eyebrow">Directory / Students / Admin import</p>
       <h1 id="student-import-title">Import students</h1>
       {account?.role === 'admin' ? (

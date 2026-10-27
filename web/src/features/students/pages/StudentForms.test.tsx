@@ -23,7 +23,7 @@ import {
   logout,
 } from '../../auth/api/auth.api';
 import {
-  createStudent,
+  createStudentByEmail,
   updateStudent,
   getStudent,
   listStudents,
@@ -41,7 +41,7 @@ vi.mock('../../auth/api/auth.api', async (original) => ({
 }));
 vi.mock('../api/students.api', async (original) => ({
   ...(await original<typeof import('../api/students.api')>()),
-  createStudent: vi.fn(),
+  createStudentByEmail: vi.fn(),
   updateStudent: vi.fn(),
   getStudent: vi.fn(),
   listStudents: vi.fn(),
@@ -98,17 +98,17 @@ beforeEach(() => {
   });
   vi.mocked(getStudent).mockResolvedValue(studentFixture);
   vi.mocked(listStudents).mockResolvedValue(studentPageFixture);
-  vi.mocked(createStudent).mockResolvedValue(studentFixture);
+  vi.mocked(createStudentByEmail).mockResolvedValue(studentFixture);
   vi.mocked(updateStudent).mockResolvedValue(studentFixture);
 });
-function renderAt(path = '/dashboard/students/new') {
+function renderAt(path = '/dashboard/students/new?registration=existing') {
   window.history.replaceState({}, '', path);
   return render(<App />);
 }
 async function fillCreate() {
-  await screen.findByLabelText('Student account ID');
+  await screen.findByLabelText('University email');
   for (const [label, value] of [
-    ['Student account ID', studentFixture.user_id],
+    ['University email', studentFixture.email],
     ['University registration / index number', studentFixture.index_no],
     ['Full name', studentFixture.full_name],
     ['Faculty', studentFixture.faculty],
@@ -121,6 +121,23 @@ async function fillCreate() {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
 }
 describe('add and edit student profiles', () => {
+  it('offers only Years 1 to 5 in the year selector', async () => {
+    renderAt();
+    const year = await screen.findByLabelText('Year');
+    expect(
+      Array.from(
+        year.querySelectorAll('option'),
+        (option) => option.textContent,
+      ),
+    ).toEqual([
+      'Select year',
+      'Year 1',
+      'Year 2',
+      'Year 3',
+      'Year 4',
+      'Year 5',
+    ]);
+  });
   it('protects browser back navigation and remains usable in StrictMode', async () => {
     window.history.replaceState({}, '', '/dashboard/students');
     render(
@@ -142,7 +159,7 @@ describe('add and edit student profiles', () => {
     expect(
       await screen.findByRole('link', { name: 'View Alex Morgan' }),
     ).toBeVisible();
-    expect(createStudent).not.toHaveBeenCalled();
+    expect(createStudentByEmail).not.toHaveBeenCalled();
   });
   it.each(['admin', 'warden'] as const)(
     'allows %s creation without provisioning credentials',
@@ -161,9 +178,9 @@ describe('add and edit student profiles', () => {
       );
       expect(await screen.findByText('Student profile created.')).toBeVisible();
       expect(window.location.search).toBe('?q=Alex');
-      expect(createStudent).toHaveBeenCalledWith(
+      expect(createStudentByEmail).toHaveBeenCalledWith(
         expect.objectContaining({
-          user_id: studentFixture.user_id,
+          email: studentFixture.email,
           full_name: 'Alex Morgan',
           guardians: [
             {
@@ -187,9 +204,7 @@ describe('add and edit student profiles', () => {
     expect(screen.getByLabelText('Guardian 1 name')).toHaveValue(
       'Robin Morgan',
     );
-    expect(
-      screen.queryByLabelText('Student account ID'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('University email')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Full name'), {
       target: { value: 'Alex Updated' },
@@ -210,21 +225,21 @@ describe('add and edit student profiles', () => {
   });
   it('blocks invalid forms, focuses the first error and makes no API call', async () => {
     renderAt();
-    await screen.findByLabelText('Student account ID');
+    await screen.findByLabelText('University email');
     await userEvent.click(
       screen.getByRole('button', { name: 'Create profile' }),
     );
-    expect(screen.getByLabelText('Student account ID')).toHaveFocus();
-    expect(screen.getByLabelText('Student account ID')).toHaveAttribute(
+    expect(screen.getByLabelText('University email')).toHaveFocus();
+    expect(screen.getByLabelText('University email')).toHaveAttribute(
       'aria-invalid',
       'true',
     );
-    expect(screen.getByText('Choose a year between 1 and 10.')).toBeVisible();
-    expect(createStudent).not.toHaveBeenCalled();
+    expect(screen.getByText('Choose a year between 1 and 5.')).toBeVisible();
+    expect(createStudentByEmail).not.toHaveBeenCalled();
   });
   it('adds/removes guardians while retaining at least one and enforcing ten', async () => {
     renderAt();
-    await screen.findByLabelText('Student account ID');
+    await screen.findByLabelText('University email');
     expect(
       screen.getByRole('button', { name: 'Remove guardian 1' }),
     ).toBeDisabled();
@@ -245,7 +260,7 @@ describe('add and edit student profiles', () => {
   ])(
     'preserves values after %s and allows correction/resubmission',
     async (kind, message) => {
-      vi.mocked(createStudent).mockRejectedValueOnce(
+      vi.mocked(createStudentByEmail).mockRejectedValueOnce(
         new StudentRequestError(
           kind as 'duplicate' | 'account' | 'unavailable',
           message,
@@ -266,7 +281,7 @@ describe('add and edit student profiles', () => {
   );
   it('prevents repeated pending saves', async () => {
     let resolve!: (value: typeof studentFixture) => void;
-    vi.mocked(createStudent).mockReturnValue(
+    vi.mocked(createStudentByEmail).mockReturnValue(
       new Promise((done) => {
         resolve = done;
       }),
@@ -276,7 +291,7 @@ describe('add and edit student profiles', () => {
     await userEvent.dblClick(
       screen.getByRole('button', { name: 'Create profile' }),
     );
-    expect(createStudent).toHaveBeenCalledOnce();
+    expect(createStudentByEmail).toHaveBeenCalledOnce();
     expect(screen.getByLabelText('Full name')).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
     await act(async () => resolve(studentFixture));
@@ -295,7 +310,7 @@ describe('add and edit student profiles', () => {
       screen.getByRole('button', { name: 'Discard changes' }),
     );
     await screen.findByRole('link', { name: 'View Alex Morgan' });
-    expect(createStudent).not.toHaveBeenCalled();
+    expect(createStudentByEmail).not.toHaveBeenCalled();
   });
   it('warns on browser refresh and cancels a clean edit without saving', async () => {
     const view = renderAt();
@@ -323,12 +338,12 @@ describe('add and edit student profiles', () => {
     vi.mocked(restoreStaffSession).mockResolvedValue(null);
     renderAt();
     await screen.findByRole('heading', { name: 'Sign in to HostelHive.' });
-    expect(createStudent).not.toHaveBeenCalled();
+    expect(createStudentByEmail).not.toHaveBeenCalled();
   });
   it.each(['forbidden', 'session'] as const)(
     'blocks saving after %s rejection',
     async (kind) => {
-      vi.mocked(createStudent).mockRejectedValue(
+      vi.mocked(createStudentByEmail).mockRejectedValue(
         new StudentRequestError(kind, 'Access rejected.'),
       );
       renderAt();
@@ -350,7 +365,7 @@ describe('add and edit student profiles', () => {
   );
   it('ignores late save results after unmount', async () => {
     let resolve!: (value: typeof studentFixture) => void;
-    vi.mocked(createStudent).mockReturnValue(
+    vi.mocked(createStudentByEmail).mockReturnValue(
       new Promise((done) => {
         resolve = done;
       }),
@@ -360,7 +375,7 @@ describe('add and edit student profiles', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'Create profile' }),
     );
-    const signal = vi.mocked(createStudent).mock.calls[0][2];
+    const signal = vi.mocked(createStudentByEmail).mock.calls[0][2];
     view.unmount();
     expect(signal.aborted).toBe(true);
     await act(async () => resolve(studentFixture));

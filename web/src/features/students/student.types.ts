@@ -36,3 +36,6 @@ export interface StudentDetails {
 export interface CreateStudentInput extends StudentDetails {
   user_id: string;
 }
+export interface CreateStudentByEmailInput extends StudentDetails {
+  email: string;
+}

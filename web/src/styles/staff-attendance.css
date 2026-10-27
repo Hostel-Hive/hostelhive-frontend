@@ -1,0 +1,442 @@
+.staff-attendance {
+  width: 100%;
+  min-width: 0;
+}
+.staff-attendance-card {
+  margin: 24px 0 0;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+.staff-attendance h2 {
+  font-size: 1.25rem;
+}
+.staff-attendance h3 {
+  font-size: var(--text-base);
+}
+.staff-attendance-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+.staff-attendance-navigation a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-decoration: none;
+}
+.staff-attendance-navigation a:hover {
+  background: var(--ink-100);
+}
+.staff-attendance-navigation [aria-current='page'] {
+  color: var(--cyan-700);
+  background: var(--cyan-100);
+}
+.staff-attendance-live {
+  padding: 16px;
+  margin: 20px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--cyan-50);
+  border-left: 3px solid var(--cyan-700);
+}
+.staff-attendance-live p {
+  margin: 8px 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+.staff-attendance-live .staff-attendance-toolbar {
+  margin-top: 0;
+}
+.staff-attendance-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin: 16px 0;
+}
+.staff-attendance-toolbar h2,
+.staff-attendance-toolbar h3 {
+  margin: 0 auto 0 0;
+}
+.staff-attendance-card > .staff-attendance-toolbar:first-child {
+  margin: 0 0 20px;
+}
+.staff-attendance .ui-button {
+  min-height: 36px;
+}
+.staff-attendance .ui-button--secondary {
+  border-color: var(--color-border);
+}
+.staff-attendance-pagination {
+  justify-content: flex-end;
+  margin: 24px 0 16px;
+  font-size: var(--text-xs);
+}
+.staff-attendance-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  margin: 20px 0;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.staff-attendance-filters label {
+  display: grid;
+  gap: 8px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.staff-attendance-filters input,
+.staff-attendance-filters select {
+  font: inherit;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  min-height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.staff-attendance-filters input:focus-visible,
+.staff-attendance-filters select:focus-visible,
+.staff-attendance-table:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.staff-attendance-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.staff-attendance-summary > div {
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.staff-attendance-summary .staff-summary--in {
+  border-top: 3px solid #15803d;
+}
+.staff-attendance-summary .staff-summary--out {
+  border-top: 3px solid var(--amber-600);
+}
+.staff-attendance-summary .staff-summary--unknown {
+  border-top: 3px solid var(--ink-400);
+}
+.staff-attendance-summary .staff-summary--total {
+  border-top: 3px solid var(--cyan-700);
+}
+.staff-attendance-summary dt {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.staff-attendance-summary dd {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 8px 0 0;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.staff-attendance-caption {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+.staff-attendance-table {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.staff-attendance-table table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+.staff-attendance-table caption {
+  text-align: left;
+  padding: 12px 16px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+}
+.staff-attendance-table th,
+.staff-attendance-table td {
+  padding: 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+  font-size: var(--text-sm);
+}
+.staff-attendance-table thead th {
+  background: var(--ink-50);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  padding-block: 12px;
+}
+.staff-attendance-table tbody th {
+  font-weight: 600;
+}
+.staff-attendance-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.staff-attendance-table tbody tr:hover {
+  background: var(--cyan-50);
+}
+.staff-attendance-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+}
+.staff-attendance-identity a {
+  text-decoration: none;
+}
+.staff-attendance-identity a:hover {
+  color: var(--cyan-700);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.staff-attendance-identity .staff-attendance-caption {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+.staff-attendance-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--indigo-100);
+  color: var(--indigo-700);
+  font-size: var(--text-xs);
+}
+.staff-attendance-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--cyan-700);
+  text-decoration: none;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.staff-attendance-link:hover {
+  background: var(--cyan-100);
+}
+.staff-attendance-table td > span.staff-attendance-caption {
+  display: block;
+  margin-top: 8px;
+}
+.staff-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  background: var(--ink-100);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+.staff-presence::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.staff-presence--in {
+  background: #ecfdf3;
+  color: #166534;
+}
+.staff-presence--out {
+  background: var(--amber-100);
+  color: var(--amber-700);
+}
+.staff-incident-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.staff-incident-list li {
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.staff-attendance-filters.staff-incident-filters {
+  padding: 16px;
+  background: var(--ink-50);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.staff-incident-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.staff-incident-filters .ui-button {
+  min-height: 40px;
+}
+.staff-incident-results-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.staff-incident-results-heading p {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.staff-incident-results-heading > span {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.staff-incident-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.staff-incident-icon {
+  flex: 0 0 40px;
+  padding: 9px;
+  border-radius: 12px;
+  color: var(--cyan-700);
+  background: var(--cyan-50);
+}
+.staff-incident-reference {
+  margin: 0 0 20px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.staff-incident-reference summary {
+  width: fit-content;
+  cursor: pointer;
+}
+.staff-incident-reference summary:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 4px;
+}
+.staff-incident-reference p {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.staff-incident-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+.staff-incident-card-actions .staff-attendance-link {
+  gap: 8px;
+}
+.staff-incident-student-link {
+  color: var(--cyan-700);
+  font-weight: 600;
+  font-size: var(--text-xs);
+  text-decoration: none;
+  padding-block: 8px;
+}
+.staff-incident-student-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.staff-incident-list h3 {
+  margin: 0;
+  line-height: 1.5;
+}
+.staff-incident-list h3 a {
+  text-decoration: none;
+}
+.staff-incident-list h3 a:hover {
+  color: var(--cyan-700);
+  text-decoration: underline;
+}
+.staff-incident-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  margin: 16px 0;
+}
+.staff-incident-explanation {
+  padding: 16px;
+  border-left: 3px solid var(--cyan-700);
+  border-radius: 8px;
+  background: var(--cyan-50);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+.staff-incident-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 24px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.staff-incident-details > div {
+  padding: 16px;
+  min-width: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.staff-incident-details > div:nth-child(odd) {
+  background: var(--ink-50);
+}
+.staff-incident-details dt {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.staff-incident-details dd {
+  margin: 8px 0 0;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+@media (max-width: 760px) {
+  .staff-attendance-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .staff-incident-details {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .staff-attendance-card {
+    padding: 16px;
+  }
+}

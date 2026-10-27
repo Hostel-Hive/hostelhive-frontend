@@ -68,7 +68,7 @@ describe('protected dashboard access', () => {
       expect(
         await screen.findByRole('heading', { name: 'Sign in to HostelHive.' }),
       ).toBeVisible();
-      expect(window.location.pathname).toBe('/login');
+      expect(window.location.pathname).toBe('/staff/login');
       expect(
         screen.queryByRole('navigation', { name: 'Primary navigation' }),
       ).not.toBeInTheDocument();
@@ -80,11 +80,57 @@ describe('protected dashboard access', () => {
       vi.mocked(restoreStaffSession).mockResolvedValue({ ...admin, role });
       const view = renderAt(`/dashboard/${role}`);
       await expectDashboard(role);
+      expect(
+        within(screen.getByRole('banner')).queryByRole('button', {
+          name: 'Sign out',
+        }),
+      ).not.toBeInTheDocument();
       expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content');
       const nav = within(
         screen.getByRole('navigation', { name: 'Primary navigation' }),
       );
-      expect(nav.getAllByRole('link')).toHaveLength(6);
+      expect(nav.getAllByRole('link')).toHaveLength(role === 'admin' ? 12 : 10);
+      const people = within(
+        nav.getByRole('list', { name: 'People navigation' }),
+      );
+      expect(people.getAllByRole('link')).toHaveLength(
+        role === 'admin' ? 3 : 1,
+      );
+      expect(people.getByRole('link', { name: 'Students' })).toHaveAttribute(
+        'href',
+        '/dashboard/students',
+      );
+      const operations = within(
+        nav.getByRole('list', { name: 'Operations navigation' }),
+      );
+      expect(
+        operations.getAllByRole('link').map((link) => link.textContent),
+      ).toEqual([
+        'Attendance',
+        'Leave requests',
+        'Access requests',
+        'Complaints',
+      ]);
+      if (role === 'admin')
+        expect(
+          nav.getByRole('link', { name: 'Staff management' }),
+        ).toHaveAttribute('href', '/dashboard/staff');
+      else
+        expect(
+          nav.queryByRole('link', { name: 'Staff management' }),
+        ).not.toBeInTheDocument();
+      if (role === 'admin')
+        expect(
+          nav.getByRole('link', { name: 'User management' }),
+        ).toHaveAttribute('href', '/dashboard/users');
+      else
+        expect(
+          nav.queryByRole('link', { name: 'User management' }),
+        ).not.toBeInTheDocument();
+      expect(nav.getByRole('link', { name: 'Announcements' })).toHaveAttribute(
+        'href',
+        '/dashboard/announcements',
+      );
       expect(nav.getByRole('link', { name: 'Complaints' })).toHaveAttribute(
         'href',
         '/dashboard/complaints',
@@ -132,7 +178,7 @@ describe('protected dashboard access', () => {
     'routes %s away from login to their own dashboard',
     async (role) => {
       vi.mocked(restoreStaffSession).mockResolvedValue({ ...admin, role });
-      renderAt('/login');
+      renderAt('/staff/login');
       await expectDashboard(role);
     },
   );
@@ -153,6 +199,72 @@ describe('protected dashboard access', () => {
     });
     await expectDashboard('admin');
   });
+  it('keeps the dashboard mounted while navigation revalidates the session', async () => {
+    const user = userEvent.setup();
+    renderAt('/dashboard/admin');
+    await expectDashboard('admin');
+    const header = screen.getByRole('banner');
+    let finish!: (account: StaffAccount) => void;
+    vi.mocked(restoreStaffSession).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    await user.click(
+      within(
+        screen.getByRole('navigation', { name: 'Primary navigation' }),
+      ).getByRole('link', { name: 'Students' }),
+    );
+    expect(window.location.pathname).toBe('/dashboard/students');
+    expect(screen.getByRole('banner')).toBe(header);
+    expect(
+      screen.queryByText('Checking your session…'),
+    ).not.toBeInTheDocument();
+    expect(restoreStaffSession).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      finish(admin);
+    });
+    expect(screen.getByRole('banner')).toBe(header);
+  });
+  it.each(['rejected', 'unavailable'] as const)(
+    'blocks the dashboard when navigation verification is %s',
+    async (failure) => {
+      const user = userEvent.setup();
+      renderAt('/dashboard/admin');
+      await expectDashboard('admin');
+      let reject!: (error: Error) => void;
+      vi.mocked(restoreStaffSession).mockReturnValueOnce(
+        new Promise((_, fail) => {
+          reject = fail;
+        }),
+      );
+      await user.click(
+        within(
+          screen.getByRole('navigation', { name: 'Primary navigation' }),
+        ).getByRole('link', { name: 'Students' }),
+      );
+      const dashboardHeader = screen.getByRole('banner');
+      expect(dashboardHeader).toBeVisible();
+      if (failure === 'rejected')
+        vi.mocked(restoreStaffSession).mockResolvedValue(null);
+      await act(async () => {
+        reject(
+          failure === 'rejected'
+            ? new SessionRejectedError('Expired session.')
+            : new Error('Unavailable'),
+        );
+      });
+      expect(
+        await screen.findByRole('heading', {
+          name:
+            failure === 'rejected'
+              ? 'Sign in to HostelHive.'
+              : 'Unable to verify your session',
+        }),
+      ).toBeVisible();
+      expect(dashboardHeader).not.toBeInTheDocument();
+    },
+  );
   it('blocks content during a service failure, then retries successfully', async () => {
     vi.mocked(restoreStaffSession).mockRejectedValueOnce(
       new Error('private error details'),
@@ -211,7 +323,7 @@ describe('protected dashboard access', () => {
     await act(async () => {
       finish(admin);
     });
-    expect(window.location.pathname).toBe('/login');
+    expect(window.location.pathname).toBe('/staff/login');
     // Simulate back navigation to a protected URL.
     await act(async () => {
       window.history.pushState({}, '', '/dashboard/admin');
@@ -220,14 +332,15 @@ describe('protected dashboard access', () => {
     expect(
       await screen.findByRole('heading', { name: 'Sign in to HostelHive.' }),
     ).toBeVisible();
-    expect(window.location.pathname).toBe('/login');
+    expect(window.location.pathname).toBe('/staff/login');
     // Re-enter a verified account to exercise the visible sign-out control.
     vi.mocked(restoreStaffSession).mockResolvedValue(admin);
     await act(async () => {
       notify(true);
     });
     await expectDashboard('admin');
-    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    await user.click(screen.getByRole('button', { name: /^Account menu for/ }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
     expect(
       await screen.findByRole('heading', { name: 'Sign in to HostelHive.' }),
     ).toBeVisible();
@@ -238,7 +351,8 @@ describe('protected dashboard access', () => {
     const user = userEvent.setup();
     renderAt('/dashboard/admin');
     await expectDashboard('admin');
-    await user.click(screen.getByRole('button', { name: 'Sign out' }));
+    await user.click(screen.getByRole('button', { name: /^Account menu for/ }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Unable to sign out',
     );

@@ -10,9 +10,11 @@ import type { Student } from '../student.types';
 export default function StudentArchiveAction({
   student,
   search,
+  onEndStay,
 }: {
   student: Student;
   search: string;
+  onEndStay?: () => void;
 }) {
   const { account, signOut } = useAuth();
   const navigate = useNavigate();
@@ -25,6 +27,7 @@ export default function StudentArchiveAction({
   const [checked, setChecked] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
   const active = useRef(false);
   const operation = useRef(false);
   const controller = useRef<AbortController | null>(null);
@@ -41,7 +44,7 @@ export default function StudentArchiveAction({
     const dialog = dialogRef.current!;
     const trigger = triggerRef.current;
     dialog.showModal();
-    dialog.querySelector<HTMLButtonElement>('button')?.focus();
+    cancelRef.current?.focus();
     return () => {
       dialog.close();
       trigger?.focus();
@@ -103,7 +106,7 @@ export default function StudentArchiveAction({
     <>
       <Button
         ref={triggerRef}
-        variant="danger"
+        variant="secondary"
         className="student-archive-trigger"
         onClick={() => setOpen(true)}
       >
@@ -127,6 +130,31 @@ export default function StudentArchiveAction({
             <span className="student-id">{student.index_no}</span>
           </p>
           <div id="archive-description">
+            <div className="lifecycle-guidance">
+              <strong>For a permanent departure, use End hostel stay</strong>
+              <p>
+                It releases the bed and archives the profile together, with an
+                explicit choice about account access. Archive alone only hides
+                the profile.
+              </p>
+              {onEndStay ? (
+                <Button
+                  variant="primary"
+                  disabled={Boolean(pending) || phase !== 'confirm'}
+                  onClick={() => {
+                    setOpen(false);
+                    onEndStay();
+                  }}
+                >
+                  Use End hostel stay
+                </Button>
+              ) : (
+                <p>
+                  Ask an Admin to complete End hostel stay for a permanent
+                  departure.
+                </p>
+              )}
+            </div>
             <p>
               This removes the profile from current student listings and
               preserves historical records.
@@ -136,7 +164,13 @@ export default function StudentArchiveAction({
               not be released automatically; manage it separately through the
               allocation workflow.
             </p>
-            <p>Restoring an archived profile is not available here.</p>
+            <p>
+              The profile photo will be removed and will not return
+              automatically if the profile is restored.
+            </p>
+            <p>
+              An Admin can restore this profile from the Archived students view.
+            </p>
           </div>
           {error && (
             <p role="alert">
@@ -162,6 +196,7 @@ export default function StudentArchiveAction({
           )}
           <div className="student-form-actions">
             <Button
+              ref={cancelRef}
               variant="secondary"
               disabled={Boolean(pending)}
               onClick={close}

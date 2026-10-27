@@ -1,3 +1,4 @@
+import { listComplaintImages } from '../api/complaint-images.api';
 import { act } from 'react';
 import {
   beforeAll,
@@ -73,8 +74,13 @@ afterAll(() => {
   if (close) Object.defineProperty(HTMLDialogElement.prototype, 'close', close);
   else Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
 });
+vi.mock('../api/complaint-images.api', async (original) => ({
+  ...(await original<typeof import('../api/complaint-images.api')>()),
+  listComplaintImages: vi.fn(),
+}));
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(listComplaintImages).mockResolvedValue({ items: [], version: 1 });
   vi.spyOn(crypto, 'randomUUID').mockReturnValue(complaintActionID);
   vi.mocked(useAuth).mockReturnValue({
     account: { firebase_uid: 'staff', role: 'admin' },

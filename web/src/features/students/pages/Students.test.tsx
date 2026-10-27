@@ -87,7 +87,15 @@ describe('student directory and profiles', () => {
         'staff-uid',
         expect.any(AbortSignal),
       );
-      expect(screen.queryByText('Attendance')).not.toBeInTheDocument();
+      expect(
+        within(screen.getByRole('table')).queryByRole('columnheader', {
+          name: 'Attendance',
+        }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Attendance' })).toHaveAttribute(
+        'href',
+        '/dashboard/attendance',
+      );
     },
   );
   it('redirects signed-out access without fetching private records', async () => {
@@ -160,6 +168,7 @@ describe('student directory and profiles', () => {
     );
     renderAt();
     expect(await screen.findByText('Loading student records…')).toBeVisible();
+    await waitFor(() => expect(listStudents).toHaveBeenCalled());
     await act(async () => reject(new Error('private response')));
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Unable to load student records',

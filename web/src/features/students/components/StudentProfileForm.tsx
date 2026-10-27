@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useBlocker, useNavigate } from 'react-router-dom';
 import Button from '../../../shared/components/ui/Button';
 import Input from '../../../shared/components/ui/Input';
+import ErrorToast from '../../../shared/components/ui/ErrorToast';
 import { routePaths } from '../../../app/router/routePaths';
 import useAuth from '../../auth/hooks/useAuth';
 import {
-  createStudent,
+  createStudentByEmail,
   updateStudent,
   studentError,
   StudentRequestError,
@@ -17,6 +18,7 @@ import {
 import StudentDiscardDialog from './StudentDiscardDialog';
 import type { CreateStudentInput, Student } from '../student.types';
 import { normalizeStudent, validateStudent } from '../student.schema';
+import NavigationIcon from '../../../layouts/components/NavigationIcon';
 
 export default function StudentProfileForm({
   student,
@@ -48,6 +50,7 @@ export default function StudentProfileForm({
   const [value, setValue] = useState(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<StudentRequestError>();
+  const [notificationDismissed, setNotificationDismissed] = useState(false);
   const [pending, setPending] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const attempt = useRef<StudentInvitationInput | null>(null);
@@ -124,15 +127,16 @@ export default function StudentProfileForm({
   }
   async function submit() {
     if (operation.current || locked) return;
-    const nextErrors = validateStudent(value, !student && !inviting);
-    if (inviting && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email.trim()))
+    const nextErrors = validateStudent(value, false);
+    if (!student && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email.trim()))
       nextErrors.email = 'Enter a valid university email.';
     setErrors(nextErrors);
     setError(undefined);
+    setNotificationDismissed(false);
     if (Object.keys(nextErrors).length) {
       form.current
         ?.querySelector<HTMLInputElement | HTMLSelectElement>(
-          `[name="${Object.keys(nextErrors)[0]}"]`,
+          `[name="${nextErrors.email ? 'email' : Object.keys(nextErrors)[0]}"]`,
         )
         ?.focus();
       return;
@@ -197,8 +201,8 @@ export default function StudentProfileForm({
             account!.firebase_uid,
             controller.current.signal,
           )
-        : await createStudent(
-            input,
+        : await createStudentByEmail(
+            { ...details, email: value.email.trim().toLowerCase() },
             account!.firebase_uid,
             controller.current.signal,
           );
@@ -240,7 +244,7 @@ export default function StudentProfileForm({
   return (
     <>
       <form
-        className="student-card student-profile-form"
+        className="student-card student-profile-form student-editor-form"
         ref={form}
         noValidate
         onSubmit={(event) => {
@@ -248,8 +252,23 @@ export default function StudentProfileForm({
           void submit();
         }}
       >
-        {error && (
-          <div role="alert" className="auth-error">
+        {error && !notificationDismissed && (
+          <ErrorToast
+            title={
+              error.kind === 'duplicate'
+                ? 'Registration already exists'
+                : error.kind === 'session'
+                  ? 'Please sign in again'
+                  : inviting
+                    ? 'Registration could not be confirmed'
+                    : 'Profile could not be saved'
+            }
+            onDismiss={
+              error.kind === 'session'
+                ? undefined
+                : () => setNotificationDismissed(true)
+            }
+          >
             {error.message}
             {error.kind === 'unavailable' && !inviting && (
               <p>
@@ -258,32 +277,37 @@ export default function StudentProfileForm({
                 interrupted.
               </p>
             )}
-          </div>
-        )}
-        {error?.kind === 'session' && (
-          <Button onClick={() => void signOut()}>Sign in again</Button>
+            {error.kind === 'session' && (
+              <Button onClick={() => void signOut()}>Sign in again</Button>
+            )}
+          </ErrorToast>
         )}
         <fieldset disabled={locked || uncertain}>
-          <legend>Student details</legend>
+          <legend>
+            <span className="student-form-section-icon">
+              <NavigationIcon name="students" />
+            </span>
+            Student details
+          </legend>
           {!student && !inviting && (
             <>
-              <p className="student-form-help">
-                Enter the student account UUID supplied by an administrator.
-                This creates a profile, not a login account. The backend
-                verifies account eligibility.
+              <p className="student-form-help student-invitation-note">
+                Enter the university email of an existing active student
+                account. This creates their profile only. New accounts and setup
+                invitations are managed by an administrator.
               </p>
               {field(
-                'user_id',
-                'Student account ID',
-                value.user_id,
-                (text) => change('user_id', text),
-                36,
+                'email',
+                'University email',
+                value.email,
+                (text) => change('email', text),
+                254,
               )}
             </>
           )}
           {inviting && (
             <>
-              <p className="student-form-help">
+              <p className="student-form-help student-invitation-note">
                 Register the student using their university email. They will
                 receive a private link to choose their HostelHive password.
                 Email delivery is processed in the background.
@@ -298,7 +322,7 @@ export default function StudentProfileForm({
             </>
           )}
           {student && (
-            <p className="student-form-help">
+            <p className="student-form-help student-login-note">
               Login email: {student.email}. Account identity and login
               credentials are managed separately.
             </p>
@@ -337,7 +361,7 @@ export default function StudentProfileForm({
                 aria-describedby={errors.year ? 'year-error' : undefined}
               >
                 <option value={0}>Select year</option>
-                {Array.from({ length: 10 }, (_, i) => (
+                {Array.from({ length: 5 }, (_, i) => (
                   <option value={i + 1} key={i}>
                     Year {i + 1}
                   </option>
@@ -359,7 +383,12 @@ export default function StudentProfileForm({
           </div>
         </fieldset>
         <fieldset disabled={locked || uncertain}>
-          <legend>Guardian details</legend>
+          <legend>
+            <span className="student-form-section-icon">
+              <NavigationIcon name="users" />
+            </span>
+            Guardian details
+          </legend>
           <p className="student-form-help">
             Provide at least one guardian; up to ten are supported.
           </p>
@@ -392,7 +421,9 @@ export default function StudentProfileForm({
                 )}
               </div>
               <Button
-                variant="ghost"
+                variant="secondary"
+                size="sm"
+                className="student-remove-guardian"
                 disabled={value.guardians.length === 1}
                 onClick={() => {
                   setValue((current) => ({
@@ -411,6 +442,7 @@ export default function StudentProfileForm({
           ))}
           <Button
             variant="secondary"
+            size="sm"
             disabled={value.guardians.length >= 10}
             onClick={() =>
               setValue((current) => ({
@@ -422,10 +454,16 @@ export default function StudentProfileForm({
               }))
             }
           >
-            Add guardian
+            <span aria-hidden="true">＋ </span>Add guardian
           </Button>
         </fieldset>
-        <div className="student-form-actions">
+        <div className="student-form-actions student-editor-footer">
+          {inviting && (
+            <p className="student-registration-footer-note">
+              Account setup is sent by email. No password is created in this
+              form.
+            </p>
+          )}
           <Button
             type="submit"
             disabled={locked || (Boolean(student) && !dirty)}

@@ -1,4 +1,6 @@
 import { useCallback, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { routePaths } from '../../../app/router/routePaths';
 import Button from '../../../shared/components/ui/Button';
 import useAuth from '../../auth/hooks/useAuth';
 import {
@@ -200,7 +202,13 @@ function AttendanceControls({
                                   {row.incident_id && (
                                     <>
                                       <dt>Incident ID</dt>
-                                      <dd>{row.incident_id}</dd>
+                                      <dd>
+                                        <Link
+                                          to={`${routePaths.attendanceIncidents}/${row.incident_id}`}
+                                        >
+                                          {row.incident_id}
+                                        </Link>
+                                      </dd>
                                     </>
                                   )}
                                 </dl>

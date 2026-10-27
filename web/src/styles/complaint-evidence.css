@@ -1,0 +1,127 @@
+.complaint-evidence {
+  min-width: 0;
+  padding: 24px;
+  margin: 24px 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+.complaint-evidence h2 {
+  font-size: var(--text-lg);
+}
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 20px;
+  padding: 0;
+  list-style: none;
+}
+.evidence-grid li {
+  min-width: 0;
+}
+.evidence-grid img,
+.evidence-preview img {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  max-height: 320px;
+  object-fit: contain;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--ink-100);
+}
+.evidence-preview {
+  margin: 20px 0;
+}
+.evidence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.evidence-file {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+  font-weight: 600;
+}
+.evidence-file input {
+  max-width: 100%;
+  font: inherit;
+}
+.evidence-file input:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.evidence-warning {
+  padding: 16px;
+  margin: 16px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+.complaint-detail-page .evidence-guidance {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  margin: 0 0 12px;
+}
+.complaint-detail-page .evidence-readonly {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--ink-50);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 0 0 16px;
+}
+.complaint-detail-page .evidence-count {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+.complaint-detail-page .evidence-grid {
+  gap: 16px;
+  margin: 0;
+}
+.complaint-detail-page .evidence-grid li {
+  border: 1px solid var(--color-border);
+  padding: 12px;
+  border-radius: 12px;
+}
+.complaint-detail-page .evidence-grid li > p {
+  margin: 12px 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.complaint-detail-page .evidence-image-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 180px;
+  margin: 0;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--ink-50);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+.complaint-detail-page .evidence-image-state p {
+  margin: 0;
+  line-height: 1.7;
+}
+.complaint-detail-page .evidence-grid img {
+  height: 220px;
+}
+.complaint-detail-page .complaint-evidence > p:empty,
+.complaint-detail-page .evidence-actions:empty {
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .complaint-evidence {
+    padding: 20px;
+  }
+}
