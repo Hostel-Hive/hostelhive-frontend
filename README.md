@@ -1,64 +1,152 @@
 # HostelHive Frontend
 
-[![Frontend CI](https://github.com/Hostel-Hive/hostelhive-frontend/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/Hostel-Hive/hostelhive-frontend/actions/workflows/frontend-ci.yml)
+[![Frontend CI](https://github.com/Hostel-Hive/hostelhive-frontend/actions/workflows/frontend-ci.yml/badge.svg?branch=develop)](https://github.com/Hostel-Hive/hostelhive-frontend/actions/workflows/frontend-ci.yml?query=branch%3Adevelop)
+[![Test coverage reports](https://img.shields.io/badge/coverage-CI%20artifacts-blue)](https://github.com/Hostel-Hive/hostelhive-frontend/actions/workflows/frontend-ci.yml?query=branch%3Adevelop)
 
-React staff web dashboard and planned Flutter mobile application for [HostelHive](https://github.com/Hostel-Hive).
+React, TypeScript and Vite web application for HostelHive. Students manage their
+profile, view accommodation and recorded presence, submit access requests and
+complaints, and read announcements. Admin and Warden staff manage the hostel
+through role-protected dashboards.
 
-## Current scope
+Part of the [HostelHive project](https://github.com/Hostel-Hive).
+Related repositories: [backend](https://github.com/Hostel-Hive/hostelhive-backend)
+and [design documents / development guideline](https://github.com/Hostel-Hive/Design-and-Development-Project).
+This README covers the web application; mobile integration is documented separately.
 
-Issue #1 provides the React + TypeScript + Vite scaffold and public environment configuration inside `web/`. Issue #3 adds application routing, admin/warden landing pages and a responsive dashboard layout. Feature folders are added when their tickets are implemented.
+## Live application
 
-Issue #5 applies the [HostelHive Figma component library](https://www.figma.com/design/TO7IwjDIvqi0dMv1D0VcZz/HostelHive?node-id=7-2) to the existing dashboard shell: indigo sidebar, cyan active navigation, tinted neutral surfaces and Plus Jakarta Sans typography. This ticket styles the existing landing pages; the complete Figma page content belongs to individual feature tickets.
+The shared assessment environment uses `develop`. The web application is hosted
+on Vercel and connects to the Render backend and Supabase PostgreSQL database.
 
-Design tokens live in `web/src/styles/tokens.css` and shared shell styles in `web/src/styles/globals.css`. The colour values and font families come from Figma; spacing, radii and shadows adapt the current shell. Plus Jakarta Sans, Instrument Serif (italic editorial accents) and JetBrains Mono are bundled locally through Fontsource, with no runtime font CDN request. Serif and mono tokens are available for future feature content. Only the Latin subsets and required weights are imported in the application entry point.
+| Service               | URL                                                                                |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| Student portal        | [Student login](https://web-kohl-delta-90.vercel.app/login)                        |
+| Staff portal          | [Admin / Warden login](https://web-kohl-delta-90.vercel.app/staff/login)           |
+| Backend base          | [hostelhive-backend-dev.onrender.com](https://hostelhive-backend-dev.onrender.com) |
+| API base              | [Backend `/api/v1`](https://hostelhive-backend-dev.onrender.com/api/v1)            |
+| API documentation     | [Swagger UI](https://hostelhive-backend-dev.onrender.com/docs/)                    |
+| API specification     | [OpenAPI JSON](https://hostelhive-backend-dev.onrender.com/openapi.json)           |
+| Backend health        | [Health](https://hostelhive-backend-dev.onrender.com/health)                       |
+| Database connectivity | [Readiness](https://hostelhive-backend-dev.onrender.com/ready)                     |
 
-- `web/`: application, package manifest, lockfile, TypeScript/Vite/Vitest configuration.
-- Root ESLint/Prettier configuration: shared entry points for coding checks.
-- `.github/workflows/frontend-ci.yml`: install, lint, format, tests, coverage and build; dependency scanning on pushes to develop/main.
+The backend base URLs are endpoint prefixes, not web pages; use Swagger to
+explore the API. Readiness confirms database connectivity, not applied migrations.
 
-See [web setup instructions](web/README.md) for installation, configuration and commands.
+## Demo accounts
 
-Issue #104 adds Admin student registration by university email using the backend invitation API. Account UUIDs remain internal in this flow; the existing-account profile form remains a separate option. See [registration integration and acceptance checks](docs/issues/104-student-invitation-registration.md).
+These shared accounts are supplied for assessment using test data. Select the
+correct login page for the role.
 
-## Contribution workflow
+| Role    | Email                         | Password       | Login page                                                |
+| ------- | ----------------------------- | -------------- | --------------------------------------------------------- |
+| Admin   | `darshikatasheen99@gmail.com` | `JackCM@3003`  | [Staff](https://web-kohl-delta-90.vercel.app/staff/login) |
+| Warden  | `navonsanjuni@gmail.com`      | `Sanjuni@1234` | [Staff](https://web-kohl-delta-90.vercel.app/staff/login) |
+| Student | `kavindithagya21@gmail.com`   | `Thagya21`     | [Student](https://web-kohl-delta-90.vercel.app/login)     |
 
-Issue #43 adds **Complaints** for Admin/Warden staff: filtered browsing, details, chronological history, student-visible notes and confirmed status changes. Writes follow backend request-ID/version semantics; uncertain retries preserve the original payload, and conflicts require reloading and explicit review. See the web README for the workflow and acceptance checks.
+Authentication uses Firebase; backend account status and role determine access.
+The browser does not connect directly to Supabase.
 
-Issue #41 adds **Access requests** for Admin/Warden review of early-exit and late-entry requests, using the existing late-access APIs. The interface displays recorded permission use separately from approval status and does not change attendance or scanner behavior. The GitHub-ready issue draft is in [docs/issues/41-late-access-request-management.md](docs/issues/41-late-access-request-management.md).
+## Requirements
 
-Issue #39 adds **Leave requests** for Admin/Warden staff: filtered browsing, request details and confirmed approval/rejection through the existing leave APIs. Decisions do not change attendance or presence. Implementation, recovery behavior and live acceptance checks are described in the web README.
+- Node.js **22.16.0**, pinned in [.nvmrc](.nvmrc); the supported range is Node 22.12+ below 23.
+- npm (included with Node.js) and Git.
+- Firebase public web-app configuration matching the backend project.
+- A running local backend or the hosted backend URL above.
 
-Issue #37 adds **Inventory** to the staff navigation. Admin and Warden accounts browse blocks, rooms and beds; only Admin accounts create or rename them. The inventory feature uses the existing backend APIs and shares the current-session Firebase transport with the student and allocation modules. See the web README for behavior and acceptance checks.
+## Install and run locally
 
-Issue #14 implements password recovery at `/forgot-password` and the Firebase password-reset action handler at `/reset-password`. It uses the project's Firebase password policy, institution-neutral copy, shared controls and the existing authentication layout. See the web README for email-template action URL setup and live verification.
+From a fresh repository checkout:
 
-Issue #7 adds the shared authentication layout and staff login flow, now at `/staff/login`; `/` opens the student login at `/login`. Firebase credentials are exchanged directly with Firebase, and the backend `/api/v1/me` response determines whether an active Admin or Warden can enter their dashboard. Issue #11 protects dashboard routes, verifies restored sessions and adds role-filtered navigation and sign-out. See the web README for public Firebase configuration and live verification.
+```powershell
+cd web
+npm ci
+if (-not (Test-Path '.env.local')) {
+    Copy-Item .env.example .env.local
+}
+notepad .env.local
+```
 
-Create a repository issue and add it to the existing HostelHive project with Phase = Development. Branch from `develop` using `feature/<issue-number>-<slug>` or `fix/<issue-number>-<slug>`. Reference the issue in commits and open a PR against `develop`. Require one peer approval and passing checks. Release into `main` through an approved PR.
+Configure these public browser values:
 
-Use Conventional Commits, for example `chore(frontend): configure web scaffold`, with `Refs #1` in the body. Put `Closes #1` in the PR description. This closes on merge only when the target is the repository default branch.
+```dotenv
+VITE_API_BASE_URL=https://hostelhive-backend-dev.onrender.com
+VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_API_KEY=your-public-firebase-web-api-key
+```
 
-## Coding standards
+Use the Firebase values for the registered web app in the same project as the
+backend. For a local backend, set `VITE_API_BASE_URL=http://127.0.0.1:18080`.
+The base URL must not include `/api/v1`; requests add that prefix themselves.
+The backend must allow the local browser origin in its CORS configuration when
+requests are made directly. Vite uses a development proxy for API requests.
 
-HostelHive is an open source application for use across hostels. Product copy and examples must remain institution-neutral; do not hard-code a hostel name, university email domain or local office extension.
+```powershell
+npm run dev
+```
 
-Frontend modules follow the proposed feature-based structure: `features/<module>` owns business pages, forms and API logic; `layouts/` owns page shells; `shared/components/ui/` owns reusable `Button.tsx` and `Input.tsx` primitives. Shared UI imports no feature-specific code. Create additional folders/components only when needed by a ticket. Colours come from `styles/tokens.css`, reusable controls from `styles/ui.css`, and authentication layout styles from `styles/auth.css`.
+Open [student login](http://127.0.0.1:5173/login) or
+[staff login](http://127.0.0.1:5173/staff/login). Restart Vite after editing
+environment settings. Frontend variables are public build-time values;
+database passwords, Firebase service accounts and storage secrets belong only
+on the backend. See [web setup and feature guides](web/README.md) for details.
 
-Use strict TypeScript, ESLint recommended JavaScript/TypeScript and React Hooks rules, and Prettier with single quotes. Tests cover observable behaviour and follow Arrange-Act-Assert. CI requires at least 80% lines, statements, functions and branches across application source; bootstrap, declarations and test utilities are excluded. This is the initial team style configuration, rather than a claim of full Airbnb style-guide compliance.
+## Checks and coverage
 
-## CI and coverage
+Run from `web/`:
 
-CI runs on pushes to all branches and PRs into `develop`/`main`. Coverage is uploaded as `web-coverage` in the Actions run. Open its HTML `index.html` to inspect results. A measured coverage badge can be added when a coverage publishing service is configured.
+```powershell
+npm run lint
+npm run format:check
+npm run test:coverage
+npm run build
+```
 
-Deployment, API integration and end-to-end tests belong to subsequent tickets. There is no staging or production URL yet. The first ticket still needs peer review, a passing remote CI run and the course-required staging smoke test before its complete Definition of Done is satisfied.
+CI runs lint, formatting, TypeScript/build, tests, coverage and dependency checks.
+Coverage must meet the configured 80% lines, statements, functions and branches
+thresholds. The coverage badge links to CI runs; it does not claim a measured
+percentage. Download the `web-coverage` artifact from a successful
+[Frontend CI run](https://github.com/Hostel-Hive/hostelhive-frontend/actions/workflows/frontend-ci.yml)
+or inspect local `web/coverage/index.html` for measured results.
 
-## Student portal entry
+## Deployment
 
-Student login is available at `/login`; staff use `/staff/login`. The homepage
-opens student login, and `/student/login` redirects to `/login`.
-See [student login setup and verification](docs/student-login.md) for backend
-requirements, setup completion, portal boundaries and live acceptance checks.
+| Vercel setting           | Value           |
+| ------------------------ | --------------- |
+| Project                  | `web`           |
+| Shared deployment branch | `develop`       |
+| Root Directory           | `web`           |
+| Framework                | Vite            |
+| Install Command          | `npm ci`        |
+| Build Command            | `npm run build` |
+| Output Directory         | `dist`          |
+| Node.js                  | 22.x            |
 
-The student dashboard at `/student` displays the signed-in student's profile,
-guardians, accommodation, recorded presence and private QR access. See
-[dashboard integration and verification](docs/student-dashboard.md).
+Set `VITE_API_BASE_URL=https://hostelhive-backend-dev.onrender.com` and the
+matching public Firebase variables in Vercel. Rebuild after changing variables.
+Configure the backend CORS origin and Firebase authorized domains for the live
+frontend host. Route fallback is configured in [web/vercel.json](web/vercel.json).
+Automatic deployment requires a connected Git repository; a manual CLI deployment
+does not by itself enable deployment on future pushes.
+
+## Repository and contribution guide
+
+- `web/`: application, environment example, dependencies and build configuration.
+- `web/src/features/`: feature pages, forms and API clients.
+- `web/src/shared/`: shared controls; `web/src/styles/`: design tokens and styles.
+- `docs/`: module contracts, implementation notes and acceptance checks.
+- `.github/workflows/frontend-ci.yml`: CI and coverage workflow.
+
+Follow the [course development guideline, section 9.3](https://github.com/Hostel-Hive/Design-and-Development-Project/blob/main/documents/guidelines/SENG34213_System_Development_Project.pdf)
+for README and assessment submission requirements. Create an issue, branch from
+`develop` using `feature/<ticket>-<slug>` or `fix/<ticket>-<slug>`, and use
+Conventional Commits. Open a pull request into `develop`, require passing CI and
+peer review, then release to `main` through an approved pull request.
+The shared assessment environment currently deploys `develop`.
+
+Use strict TypeScript, the existing ESLint/React Hooks rules, Prettier and shared
+design tokens. Tests should verify observable behavior. See the
+[student registration and recovery](docs/issues/131-student-registration-recovery.md),
+[End hostel stay](docs/issues/133-end-hostel-stay-confirmation.md) and
+[lifecycle guidance](docs/issues/134-student-lifecycle-guidance.md) notes for the
+recent workflows and manual acceptance checks.
