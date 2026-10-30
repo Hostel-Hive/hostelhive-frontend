@@ -285,19 +285,23 @@ it('reveals, downloads and hides the authenticated QR, revoking its object URL',
     'blob:private-image',
   );
   await user.click(screen.getByRole('button', { name: 'Hide QR code' }));
-  expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('img', { name: /^Your student QR code,/ }),
+  ).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Show QR code' })).toHaveFocus();
   expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:private-image');
 });
 it('hides the QR when the tab is hidden and does not automatically re-fetch it', async () => {
   await ready();
   await userEvent.click(screen.getByRole('button', { name: 'Show QR code' }));
-  await screen.findByRole('img');
+  await screen.findByRole('img', { name: /^Your student QR code,/ });
   const visibility = vi
     .spyOn(document, 'visibilityState', 'get')
     .mockReturnValue('hidden');
   fireEvent(document, new Event('visibilitychange'));
-  expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('img', { name: /^Your student QR code,/ }),
+  ).not.toBeInTheDocument();
   visibility.mockReturnValue('visible');
   fireEvent(document, new Event('visibilitychange'));
   expect(getOwnQR).toHaveBeenCalledTimes(1);
@@ -318,7 +322,9 @@ it('prevents duplicate QR reads and ignores a hidden pending request', async () 
   await userEvent.click(screen.getByRole('button', { name: 'Hide QR code' }));
   expect(signal.aborted).toBe(true);
   await act(async () => finish(new Blob(['late'])));
-  expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('img', { name: /^Your student QR code,/ }),
+  ).not.toBeInTheDocument();
 });
 it('shows QR errors and permits retry after invalid image decoding', async () => {
   vi.mocked(getOwnQR).mockRejectedValueOnce(
@@ -330,7 +336,9 @@ it('shows QR errors and permits retry after invalid image decoding', async () =>
     'Unable to load your QR code',
   );
   await userEvent.click(screen.getByRole('button', { name: 'Retry QR code' }));
-  fireEvent.error(await screen.findByRole('img'));
+  fireEvent.error(
+    await screen.findByRole('img', { name: /^Your student QR code,/ }),
+  );
   expect(await screen.findByRole('alert')).toHaveTextContent(
     'Unable to display your QR code',
   );
@@ -389,7 +397,9 @@ it('clears profile data and pending QR work when the account changes', async () 
   expect(screen.queryByText(profile.full_name)).not.toBeInTheDocument();
   expect(signal.aborted).toBe(true);
   await act(async () => finish(new Blob(['late'])));
-  expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('img', { name: /^Your student QR code,/ }),
+  ).not.toBeInTheDocument();
 });
 it('aborts profile work on unmount and does not apply late results', async () => {
   let finish!: (value: typeof profile) => void;

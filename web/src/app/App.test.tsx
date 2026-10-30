@@ -89,7 +89,17 @@ describe('protected dashboard access', () => {
       const nav = within(
         screen.getByRole('navigation', { name: 'Primary navigation' }),
       );
-      expect(nav.getAllByRole('link')).toHaveLength(role === 'admin' ? 12 : 10);
+      expect(nav.getAllByRole('link')).toHaveLength(role === 'admin' ? 13 : 10);
+      if (role === 'admin')
+        expect(
+          within(
+            nav.getByRole('list', { name: 'System navigation' }),
+          ).getByRole('link', { name: 'Device management' }),
+        ).toHaveAttribute('href', '/dashboard/devices');
+      else
+        expect(
+          nav.queryByRole('link', { name: 'Device management' }),
+        ).not.toBeInTheDocument();
       const people = within(
         nav.getByRole('list', { name: 'People navigation' }),
       );

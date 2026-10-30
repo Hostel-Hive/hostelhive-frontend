@@ -44,6 +44,9 @@ const InventoryPage = lazy(
 const UserManagementPage = lazy(
   () => import('../../features/users/pages/UserManagementPage'),
 );
+const DeviceManagementPage = lazy(
+  () => import('../../features/devices/pages/DeviceManagementPage'),
+);
 const StaffManagementPage = lazy(
   () => import('../../features/staff/pages/StaffManagementPage'),
 );
@@ -287,6 +290,14 @@ export default function AppRoutes() {
           />
           <Route path="students/:studentID" element={<StudentProfilePage />} />
           <Route element={<RoleGuard role="admin" />}>
+            <Route
+              path="devices"
+              element={
+                <Suspense fallback={<p role="status">Loading devices…</p>}>
+                  <DeviceManagementPage />
+                </Suspense>
+              }
+            />
             <Route
               path="staff/new"
               element={

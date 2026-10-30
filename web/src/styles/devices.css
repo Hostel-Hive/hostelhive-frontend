@@ -1,0 +1,301 @@
+.devices-page {
+  width: 100%;
+  min-width: 0;
+}
+.devices-header,
+.devices-toolbar,
+.devices-title-group,
+.device-actions,
+.device-row-actions,
+.device-pagination,
+.device-dialog-heading,
+.device-dialog-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.devices-header {
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+.device-admin-label {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  color: var(--color-text-muted);
+}
+.devices-panel {
+  margin-top: var(--space-6);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.devices-toolbar {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+.devices-title-group {
+  min-width: 0;
+}
+.devices-title-group h2,
+.device-dialog h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.devices-title-group p {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.device-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--cyan-50);
+  color: var(--cyan-700);
+}
+.device-actions {
+  flex-wrap: wrap;
+}
+.devices-page .ui-button--secondary,
+.device-dialog .ui-button--secondary {
+  border-color: var(--color-border);
+}
+.device-callout {
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: var(--cyan-50);
+  border-left: 3px solid var(--cyan-600);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+.device-callout--warning {
+  background: var(--amber-50);
+  border-color: var(--amber-600);
+}
+.device-callout .ui-button {
+  margin: 8px;
+}
+.devices-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  margin-top: var(--space-5);
+}
+.devices-table-wrap:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.devices-page table {
+  width: 100%;
+  min-width: 1020px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--text-sm);
+}
+.devices-page caption {
+  text-align: left;
+  padding: 16px 20px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+.devices-page thead {
+  background: var(--ink-50);
+  color: var(--color-text-muted);
+}
+.devices-page th,
+.devices-page td {
+  padding: 18px 16px;
+  border-top: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.devices-page th {
+  font-weight: 600;
+}
+.devices-page tbody tr:hover {
+  background: var(--cyan-50);
+}
+.devices-page tbody th {
+  max-width: 300px;
+  overflow-wrap: anywhere;
+}
+.device-reference {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 6px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.devices-page th .device-reference {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.device-badge {
+  display: inline-flex;
+  border-radius: 7px;
+  padding: 5px 9px;
+  white-space: nowrap;
+  background: var(--cyan-50);
+  color: var(--cyan-700);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.device-badge--active {
+  background: #ecfdf5;
+  color: #166534;
+}
+.device-badge--inactive {
+  background: var(--ink-100);
+  color: var(--ink-600);
+}
+.device-badge--warning {
+  background: var(--amber-50);
+  color: var(--amber-700);
+}
+.device-version {
+  white-space: nowrap;
+  font-size: var(--text-xs);
+}
+.device-row-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 225px;
+}
+.device-danger-action {
+  color: var(--color-danger);
+}
+.device-pagination {
+  justify-content: flex-end;
+  margin-top: var(--space-5);
+  font-size: var(--text-sm);
+  flex-wrap: wrap;
+}
+.device-pagination > span {
+  margin-right: auto;
+  color: var(--color-text-muted);
+}
+.device-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--color-text-muted);
+}
+.device-empty h3 {
+  color: var(--color-text);
+}
+.device-empty p {
+  max-width: 480px;
+  margin: 12px auto 24px;
+  line-height: 1.7;
+}
+.device-error {
+  background: #fff3f4;
+  border: 1px solid #fecdd3;
+  color: #b91c1c;
+  padding: 16px;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+}
+.device-dialog {
+  width: min(580px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-menu);
+}
+.device-dialog::backdrop {
+  background: #18103780;
+}
+.device-dialog-heading {
+  margin-bottom: 24px;
+}
+.device-dialog .eyebrow {
+  margin: 0 0 7px;
+  font-size: 10px;
+}
+.device-field {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.device-help {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+.device-selected {
+  display: grid;
+  gap: 6px;
+  background: var(--ink-50);
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.device-selected span {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+.device-secret {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+.device-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 24px;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+.device-check input {
+  margin-top: 5px;
+  accent-color: var(--indigo-900);
+}
+.device-dialog-footer {
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
+  margin-top: 24px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+@media (max-width: 700px) {
+  .devices-panel {
+    padding: 16px;
+  }
+  .devices-header {
+    align-items: flex-start;
+  }
+  .device-admin-label {
+    display: none;
+  }
+  .device-actions {
+    width: 100%;
+  }
+  .device-actions > button {
+    flex: 1;
+  }
+  .device-dialog {
+    padding: 20px;
+  }
+}

@@ -28,6 +28,7 @@ export const routePaths = {
   dashboard: '/dashboard',
   adminDashboard: '/dashboard/admin',
   users: '/dashboard/users',
+  devices: '/dashboard/devices',
   staff: '/dashboard/staff',
   staffNew: '/dashboard/staff/new',
   wardenDashboard: '/dashboard/warden',

@@ -2,6 +2,8 @@ import type { dashboardNavigation } from '../../config/navigation';
 
 type IconName = (typeof dashboardNavigation)[number]['icon'] | 'profile' | 'qr';
 const paths: Record<IconName, string> = {
+  device:
+    'M6 3h12v18H6z M9 7h6 M9 11h6 M11 17h2 M3 7h3 M18 7h3 M3 17h3 M18 17h3',
   profile: 'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2',
   qr: 'M3 3h6v6H3z M15 3h6v6h-6z M3 15h6v6H3z M15 15h2v2h-2z M21 15v3h-3v3h-3 M21 21h.01',
   dashboard: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',

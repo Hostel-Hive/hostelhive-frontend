@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import BrandLogo from '../../shared/components/ui/BrandLogo';
 import { routePaths } from '../../app/router/routePaths';
 import MobileSidebar from './MobileSidebar';
 import useAuth from '../../features/auth/hooks/useAuth';
@@ -14,7 +15,7 @@ export default function AppHeader() {
         to={account ? dashboardForRole(account.role) : routePaths.login}
         aria-label="HostelHive dashboard"
       >
-        Hostel<span className="brand__accent">Hive</span>
+        <BrandLogo />
       </Link>
       <span className="app-header__description">Staff workspace</span>
       {account && (
