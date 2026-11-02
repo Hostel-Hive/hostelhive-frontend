@@ -35,6 +35,9 @@ const ReportsPage = lazy(
   () => import('../../features/reports/pages/ReportsPage'),
 );
 
+const StudentInvitationManagementPage = lazy(
+  () => import('../../features/students/pages/StudentInvitationManagementPage'),
+);
 const StudentImportPage = lazy(
   () => import('../../features/students/pages/StudentImportPage'),
 );
@@ -43,6 +46,9 @@ const InventoryPage = lazy(
 );
 const UserManagementPage = lazy(
   () => import('../../features/users/pages/UserManagementPage'),
+);
+const FacultyManagementPage = lazy(
+  () => import('../../features/faculties/pages/FacultyManagementPage'),
 );
 const DeviceManagementPage = lazy(
   () => import('../../features/devices/pages/DeviceManagementPage'),
@@ -133,6 +139,10 @@ export default function AppRoutes() {
         />
       </Route>
       <Route element={<ProtectedRoute portal="student" />}>
+        <Route
+          path={routePaths.ownLeaveNew}
+          element={<Navigate to={routePaths.ownGoingHome} replace />}
+        />
         {(
           [
             [routePaths.ownStudentProfile, 'profile'],
@@ -150,7 +160,7 @@ export default function AppRoutes() {
             [`${routePaths.ownComplaints}/:complaintID`, 'complaint-detail'],
             [routePaths.ownLeaves, 'leaves'],
             [routePaths.ownPassHistory, 'passes'],
-            [routePaths.ownLeaveNew, 'leave-new'],
+            [routePaths.ownGoingHome, 'going-home'],
             [`${routePaths.ownLeaves}/:leaveID`, 'leave-detail'],
             [routePaths.ownLateAccess, 'access'],
             [routePaths.ownLateAccessNew, 'access-new'],
@@ -197,6 +207,14 @@ export default function AppRoutes() {
             element={
               <Suspense fallback={<p role="status">Loading your profile…</p>}>
                 <OwnStaffProfilePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="faculties"
+            element={
+              <Suspense fallback={<p role="status">Loading faculties…</p>}>
+                <FacultyManagementPage />
               </Suspense>
             }
           />
@@ -302,6 +320,14 @@ export default function AppRoutes() {
           />
           <Route path="students/:studentID" element={<StudentProfilePage />} />
           <Route element={<RoleGuard role="admin" />}>
+            <Route
+              path="students/invitations"
+              element={
+                <Suspense fallback={<p role="status">Loading invitations…</p>}>
+                  <StudentInvitationManagementPage />
+                </Suspense>
+              }
+            />
             <Route
               path="devices"
               element={

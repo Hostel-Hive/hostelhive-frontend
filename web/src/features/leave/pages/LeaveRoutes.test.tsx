@@ -41,7 +41,7 @@ beforeEach(() => {
   window.history.replaceState({}, '', '/dashboard/leaves');
 });
 it.each(['admin', 'warden'] as const)(
-  'allows verified %s to browse and decide leave',
+  'allows verified %s to browse read-only leave history',
   async (role) => {
     vi.mocked(restoreStaffSession).mockResolvedValue({ ...staff, role });
     window.history.replaceState(
@@ -51,11 +51,14 @@ it.each(['admin', 'warden'] as const)(
     );
     render(<App />);
     expect(
-      await screen.findByRole('button', { name: 'Approve request' }),
+      await screen.findByRole('heading', { name: 'Recorded decision' }),
     ).toBeVisible();
     expect(
-      screen.getByRole('button', { name: 'Reject request' }),
-    ).toBeVisible();
+      screen.queryByRole('button', { name: 'Approve request' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Reject request' }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Leave requests' }),
     ).toHaveAttribute('aria-current', 'page');

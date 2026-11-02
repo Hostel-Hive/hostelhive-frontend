@@ -79,7 +79,7 @@ beforeEach(() => {
 function open(mode: 'list' | 'new' | 'detail' = 'list') {
   const initial =
     mode === 'new'
-      ? '/student/leaves/new'
+      ? '/student/going-home'
       : mode === 'detail'
         ? `/student/leaves/${row.leave_id}`
         : '/student/leaves';
@@ -90,7 +90,7 @@ function open(mode: 'list' | 'new' | 'detail' = 'list') {
         element:
           mode === 'new' ? <p>Leave listing</p> : <OwnLeaveList {...props} />,
       },
-      { path: '/student/leaves/new', element: <OwnLeaveForm {...props} /> },
+      { path: '/student/going-home', element: <OwnLeaveForm {...props} /> },
       {
         path: '/student/leaves/:leaveID',
         element: <OwnLeaveDetail {...props} />,
@@ -124,11 +124,12 @@ it('shows owned list statuses, dates, details and a create link without staff co
     '',
     0,
   );
-  expect(
-    screen.getByRole('link', { name: 'New leave request' }),
-  ).toHaveAttribute('href', '/student/leaves/new');
+  expect(screen.getByRole('link', { name: 'Going Home' })).toHaveAttribute(
+    'href',
+    '/student/going-home',
+  );
   await userEvent.click(screen.getByRole('link', { name: /View request/ }));
-  await screen.findByText('Waiting for a hostel staff decision.');
+  await screen.findByText(/This historical request remains pending/);
   expect(view.router.state.location.pathname).toBe(
     `/student/leaves/${row.leave_id}`,
   );
@@ -247,7 +248,7 @@ it('shows missing detail errors and lets the owner retry without staff decisions
   await userEvent.click(
     screen.getByRole('button', { name: 'Refresh request' }),
   );
-  await screen.findByText('Waiting for a hostel staff decision.');
+  await screen.findByText(/This historical request remains pending/);
 });
 it('validates the form before posting and preserves entered values', async () => {
   open('new');

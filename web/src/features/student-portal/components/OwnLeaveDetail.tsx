@@ -112,7 +112,10 @@ export default function OwnLeaveDetail({
             ) : row.status === 'pending' ? (
               <div className="portal-leave-full">
                 <dt>Decision</dt>
-                <dd>Waiting for a hostel staff decision.</dd>
+                <dd>
+                  No decision was recorded. This historical request remains
+                  pending; the ordinary leave approval workflow is retired.
+                </dd>
               </div>
             ) : (
               <>
@@ -136,8 +139,9 @@ export default function OwnLeaveDetail({
             )}
           </dl>
           <p className="portal-caption">
-            Times use your device timezone. Only hostel staff can decide a
-            request. Approval does not change your recorded presence.
+            This is a read-only historical record. Times use your device
+            timezone. Recorded decisions do not change attendance; gate scans
+            record presence.
           </p>
         </>
       )}

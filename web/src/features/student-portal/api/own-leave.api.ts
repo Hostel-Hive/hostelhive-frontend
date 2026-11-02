@@ -194,6 +194,9 @@ function ownRow(value: unknown, studentID: string): OwnLeave {
   } = value;
   return {
     leave_id,
+    ...(value.status === 'cancelled'
+      ? { cancelled_at: value.cancelled_at, cancelled_by: value.cancelled_by }
+      : {}),
     request_id,
     starts_at,
     ends_at,

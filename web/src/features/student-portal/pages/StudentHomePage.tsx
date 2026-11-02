@@ -30,7 +30,7 @@ import NotificationsPage from '../../notifications/pages/NotificationsPage';
 import NotificationBadge from '../../notifications/components/NotificationBadge';
 import type { AnnouncementError } from '../../announcements/api/announcements.api';
 import OwnLeaveList from '../components/OwnLeaveList';
-import OwnLeaveForm from '../components/OwnLeaveForm';
+import GoingHome from '../components/GoingHome';
 import OwnLeaveDetail from '../components/OwnLeaveDetail';
 import OwnLateAccessList from '../components/OwnLateAccessList';
 import OwnLateAccessForm from '../components/OwnLateAccessForm';
@@ -70,7 +70,7 @@ export type StudentView =
   | 'complaint-detail'
   | 'passes'
   | 'leaves'
-  | 'leave-new'
+  | 'going-home'
   | 'leave-detail'
   | 'access'
   | 'access-new'
@@ -94,7 +94,7 @@ export default function StudentHomePage({
     'complaint-detail': 'Complaint details',
     passes: 'Pass history',
     leaves: 'Leave requests',
-    'leave-new': 'New leave request',
+    'going-home': 'Going Home',
     'leave-detail': 'Leave request',
     access: 'Access requests',
     'access-new': 'New access request',
@@ -206,7 +206,7 @@ export default function StudentHomePage({
                     accommodation: 'Your current hostel block, room and bed.',
                     qr: 'Your student identification code for the hostel scanner.',
                     attendance: 'Your recorded hostel entries and exits.',
-                    announcements: 'Published hostel notices for all students.',
+                    announcements: 'Published hostel notices available to you.',
                     notifications: 'Your updates and unread notifications.',
                     'announcement-detail':
                       'Read the published hostel announcement.',
@@ -217,9 +217,10 @@ export default function StudentHomePage({
                       'Your complaint, staff responses and update history.',
                     passes:
                       'Your access requests and historical leave records in one place.',
-                    leaves: 'Request leave and follow your approval status.',
-                    'leave-new':
-                      'Submit your planned time away for staff review.',
+                    leaves:
+                      'Read-only history of previous ordinary leave requests.',
+                    'going-home':
+                      'Record your intention to go home; gate scans record your movements.',
                     'leave-detail':
                       'Your leave dates, reason and recorded decision.',
                     access:
@@ -242,7 +243,7 @@ export default function StudentHomePage({
               'complaint-detail',
               'passes',
               'leaves',
-              'leave-new',
+              'going-home',
               'leave-detail',
               'access',
               'access-new',
@@ -466,8 +467,8 @@ export default function StudentHomePage({
                     onAccessError={invalidate}
                   />
                 )}
-                {view === 'leave-new' && (
-                  <OwnLeaveForm
+                {view === 'going-home' && (
+                  <GoingHome
                     key={uid + ':' + data.student_id}
                     uid={uid}
                     studentID={data.student_id}

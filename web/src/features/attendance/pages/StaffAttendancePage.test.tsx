@@ -342,6 +342,36 @@ it('displays recorded policy rather than making up current settings or resolutio
     screen.getByRole('link', { name: 'View student profile' }),
   ).toHaveAttribute('href', `/dashboard/students/${row.student_id}`);
 });
+it('filters late exits and opens their read-only detail view', async () => {
+  const lateExit = { ...incident, incident_type: 'late_exit' as const };
+  vi.mocked(listIncidents).mockResolvedValue(page([lateExit]));
+  vi.mocked(getIncident).mockResolvedValue(lateExit);
+  open('/dashboard/attendance/incidents');
+  await screen.findByRole('link', { name: 'Late exit without permission' });
+  fireEvent.change(screen.getByLabelText('Incident type'), {
+    target: { value: 'late_exit' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'Apply filters' }));
+  await waitFor(() =>
+    expect(listIncidents).toHaveBeenLastCalledWith(
+      'uid',
+      expect.any(AbortSignal),
+      { studentID: '', direction: '', type: 'late_exit' },
+      0,
+    ),
+  );
+  fireEvent.click(
+    await screen.findByRole('link', { name: 'Late exit without permission' }),
+  );
+  expect(
+    await screen.findByRole('heading', {
+      name: 'Late exit without permission',
+    }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole('button', { name: /resolve|edit|scan/i }),
+  ).not.toBeInTheDocument();
+});
 it('supports late-entry snapshots and an unrecognized stored timezone without crashing', async () => {
   vi.mocked(getIncident).mockResolvedValue({
     ...incident,

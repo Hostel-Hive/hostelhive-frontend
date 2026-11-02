@@ -69,6 +69,14 @@ export default function StudentDirectoryPage() {
           {account?.role === 'admin' && (
             <Link
               className="button-link student-import-link"
+              to={routePaths.studentInvitations}
+            >
+              Invitations
+            </Link>
+          )}
+          {account?.role === 'admin' && (
+            <Link
+              className="button-link student-import-link"
               to={`${routePaths.studentImport}${search ? `?${search}` : ''}`}
             >
               Import CSV

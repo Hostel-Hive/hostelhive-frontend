@@ -273,7 +273,8 @@
   font-weight: 500;
 }
 .announcement-form input,
-.announcement-form textarea {
+.announcement-form textarea,
+.announcement-form select {
   width: 100%;
   min-width: 0;
   padding: 12px;
@@ -290,12 +291,14 @@
   resize: vertical;
 }
 .announcement-form input:focus-visible,
-.announcement-form textarea:focus-visible {
+.announcement-form textarea:focus-visible,
+.announcement-form select:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }
 .announcement-form input:disabled,
-.announcement-form textarea:disabled {
+.announcement-form textarea:disabled,
+.announcement-form select:disabled {
   background: var(--ink-100);
 }
 .announcement-review {
