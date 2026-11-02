@@ -47,6 +47,9 @@ const UserManagementPage = lazy(
 const DeviceManagementPage = lazy(
   () => import('../../features/devices/pages/DeviceManagementPage'),
 );
+const OwnStaffProfilePage = lazy(
+  () => import('../../features/staff/pages/OwnStaffProfilePage'),
+);
 const StaffManagementPage = lazy(
   () => import('../../features/staff/pages/StaffManagementPage'),
 );
@@ -189,6 +192,14 @@ export default function AppRoutes() {
               />
             ),
           )}
+          <Route
+            path="profile"
+            element={
+              <Suspense fallback={<p role="status">Loading your profile…</p>}>
+                <OwnStaffProfilePage />
+              </Suspense>
+            }
+          />
           <Route path="attendance" element={<StaffAttendancePage />} />
           <Route
             path="attendance/incidents"

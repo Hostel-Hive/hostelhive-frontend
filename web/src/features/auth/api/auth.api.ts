@@ -135,6 +135,8 @@ async function verifyAccount(
   if (
     typeof account !== 'object' ||
     account === null ||
+    ('full_name' in account && typeof account.full_name !== 'string') ||
+    ('designation' in account && typeof account.designation !== 'string') ||
     !('user_id' in account) ||
     typeof account.user_id !== 'string' ||
     !account.user_id ||
