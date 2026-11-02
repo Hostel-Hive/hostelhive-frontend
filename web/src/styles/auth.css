@@ -27,10 +27,6 @@
   letter-spacing: -0.04em;
   text-decoration: none;
 }
-.auth-brand svg {
-  color: var(--cyan-500);
-  flex-shrink: 0;
-}
 .auth-support {
   margin: 0;
   color: var(--color-text-muted);

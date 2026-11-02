@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import BrandLogo from '../shared/components/ui/BrandLogo';
 import { routePaths } from '../app/router/routePaths';
 import AppFooter from './components/AppFooter';
 
@@ -20,10 +21,7 @@ export default function AuthLayout() {
           className="auth-brand"
           aria-label="HostelHive sign in"
         >
-          <span>HostelHive</span>
-          <svg width="28" height="32" viewBox="0 0 28 32" aria-hidden="true">
-            <path fill="currentColor" d="M2 5h6v9h12V1h6v30h-6V20H8v11H2z" />
-          </svg>
+          <BrandLogo />
         </Link>
         <p className="auth-support">
           <span aria-hidden="true">ⓘ</span> Having trouble? Contact your hostel
