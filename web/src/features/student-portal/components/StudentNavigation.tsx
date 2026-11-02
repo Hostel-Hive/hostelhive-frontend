@@ -34,6 +34,7 @@ const groups = [
         path: routePaths.ownStudentAttendance,
         icon: 'attendance',
       },
+      { label: 'Going Home', path: routePaths.ownGoingHome, icon: 'leave' },
       { label: 'Leave requests', path: routePaths.ownLeaves, icon: 'leave' },
       {
         label: 'Access requests',

@@ -44,6 +44,9 @@ const InventoryPage = lazy(
 const UserManagementPage = lazy(
   () => import('../../features/users/pages/UserManagementPage'),
 );
+const FacultyManagementPage = lazy(
+  () => import('../../features/faculties/pages/FacultyManagementPage'),
+);
 const DeviceManagementPage = lazy(
   () => import('../../features/devices/pages/DeviceManagementPage'),
 );
@@ -130,6 +133,10 @@ export default function AppRoutes() {
         />
       </Route>
       <Route element={<ProtectedRoute portal="student" />}>
+        <Route
+          path={routePaths.ownLeaveNew}
+          element={<Navigate to={routePaths.ownGoingHome} replace />}
+        />
         {(
           [
             [routePaths.ownStudentProfile, 'profile'],
@@ -146,7 +153,7 @@ export default function AppRoutes() {
             [routePaths.ownComplaintNew, 'complaint-new'],
             [`${routePaths.ownComplaints}/:complaintID`, 'complaint-detail'],
             [routePaths.ownLeaves, 'leaves'],
-            [routePaths.ownLeaveNew, 'leave-new'],
+            [routePaths.ownGoingHome, 'going-home'],
             [`${routePaths.ownLeaves}/:leaveID`, 'leave-detail'],
             [routePaths.ownLateAccess, 'access'],
             [routePaths.ownLateAccessNew, 'access-new'],
@@ -188,6 +195,14 @@ export default function AppRoutes() {
               />
             ),
           )}
+          <Route
+            path="faculties"
+            element={
+              <Suspense fallback={<p role="status">Loading faculties…</p>}>
+                <FacultyManagementPage />
+              </Suspense>
+            }
+          />
           <Route path="attendance" element={<StaffAttendancePage />} />
           <Route
             path="attendance/incidents"

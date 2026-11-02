@@ -1,6 +1,6 @@
 import { act } from 'react';
 import { beforeAll, afterAll, beforeEach, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import useAuth from '../../auth/hooks/useAuth';
@@ -82,16 +82,6 @@ function mount(path = '/dashboard/leaves') {
   return { ...view, router, user: userEvent.setup() };
 }
 const detail = `/dashboard/leaves/${row.leave_id}`;
-async function openDecision(
-  user: ReturnType<typeof userEvent.setup>,
-  reject = false,
-) {
-  await user.click(
-    await screen.findByRole('button', {
-      name: reject ? 'Reject request' : 'Approve request',
-    }),
-  );
-}
 it('filters the directory, resets pagination and preserves filters on detail/back links', async () => {
   const { user, router } = mount('/dashboard/leaves?offset=20');
   await screen.findByRole('table');
@@ -178,194 +168,6 @@ it.each(['approved', 'rejected'] as const)(
     ).toBeVisible();
   },
 );
-it('requires a rejection note and confirmation before submitting', async () => {
-  decide.mockResolvedValue(decidedLeave('rejected', 'Not eligible'));
-  get
-    .mockResolvedValueOnce(row)
-    .mockResolvedValue(decidedLeave('rejected', 'Not eligible'));
-  const { user } = mount(detail);
-  await openDecision(user, true);
-  expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent('Enter a reason');
-  expect(decide).not.toHaveBeenCalled();
-  await user.type(
-    screen.getByLabelText('Decision note (required)'),
-    'Not eligible',
-  );
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  expect(decide).not.toHaveBeenCalled();
-  await user.click(screen.getByRole('button', { name: 'Confirm rejection' }));
-  await waitFor(() =>
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
-  );
-  expect(decide).toHaveBeenCalledWith(
-    row,
-    'rejected',
-    'Not eligible',
-    'staff-uid',
-    expect.any(AbortSignal),
-  );
-  expect(
-    await screen.findByText('Decision saved. Refreshing the request.'),
-  ).toBeVisible();
-  expect(get).toHaveBeenCalledTimes(2);
-});
-it('permits an empty approval note and editing before confirmation', async () => {
-  const { user } = mount(detail);
-  await openDecision(user);
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  await user.click(screen.getByRole('button', { name: 'Edit note' }));
-  expect(screen.getByLabelText('Decision note (optional)')).toBeEnabled();
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
-  await waitFor(() => expect(decide).toHaveBeenCalledTimes(1));
-  expect(decide.mock.calls[0][2]).toBe('');
-});
-it('validates note length before confirmation', async () => {
-  const { user } = mount(detail);
-  await openDecision(user);
-  fireEvent.change(screen.getByLabelText('Decision note (optional)'), {
-    target: { value: 'a'.repeat(1001) },
-  });
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent('1000 characters');
-  expect(decide).not.toHaveBeenCalled();
-});
-it.each([
-  new LeaveError('conflict', 'Another decision exists.'),
-  new LeaveError('ineligible', 'Student is ineligible.'),
-  new Error('Lost response'),
-])(
-  'requires checking the request after an uncertain or conflicting decision %#',
-  async (error) => {
-    decide.mockRejectedValueOnce(error).mockResolvedValue(decidedLeave());
-    const { user } = mount(detail);
-    await openDecision(user);
-    await user.type(
-      screen.getByLabelText('Decision note (optional)'),
-      'Reviewed',
-    );
-    await user.click(screen.getByRole('button', { name: 'Review decision' }));
-    await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
-    await screen.findByRole('button', { name: 'Check current status' });
-    expect(
-      screen.getByRole('button', { name: 'Review decision' }),
-    ).toBeDisabled();
-    expect(screen.getByLabelText('Decision note (optional)')).toHaveValue(
-      'Reviewed',
-    );
-    expect(decide).toHaveBeenCalledTimes(1);
-    await user.click(
-      screen.getByRole('button', { name: 'Check current status' }),
-    );
-    await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: 'Review decision' }),
-      ).toBeEnabled(),
-    );
-    await user.click(screen.getByRole('button', { name: 'Review decision' }));
-    await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
-    await waitFor(() => expect(decide).toHaveBeenCalledTimes(2));
-  },
-);
-it('shows a competing finalized decision after checking without another write', async () => {
-  get
-    .mockResolvedValueOnce(row)
-    .mockResolvedValue(decidedLeave('rejected', 'Other reviewer'));
-  decide.mockRejectedValue(new LeaveError('conflict', 'Changed'));
-  const { user } = mount(detail);
-  await openDecision(user);
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
-  await user.click(
-    await screen.findByRole('button', { name: 'Check current status' }),
-  );
-  expect(await screen.findByText('Other reviewer')).toBeVisible();
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  expect(decide).toHaveBeenCalledTimes(1);
-});
-it.each(['session', 'forbidden', 'not-found'] as const)(
-  'removes draft and details on write %s',
-  async (kind) => {
-    decide.mockRejectedValue(new LeaveError(kind, 'Access or resource lost'));
-    const { user } = mount(detail);
-    await openDecision(user);
-    await user.click(screen.getByRole('button', { name: 'Review decision' }));
-    await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Access or resource lost',
-    );
-    expect(screen.queryByText('Family visit')).not.toBeInTheDocument();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  },
-);
-it('retains editable input after server validation fails', async () => {
-  decide.mockRejectedValue(new LeaveError('invalid', 'Check your note'));
-  const { user } = mount(detail);
-  await openDecision(user, true);
-  await user.type(screen.getByLabelText('Decision note (required)'), 'Reason');
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  await user.click(screen.getByRole('button', { name: 'Confirm rejection' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent('Check your note');
-  expect(screen.getByLabelText('Decision note (required)')).toHaveValue(
-    'Reason',
-  );
-});
-it('blocks duplicate writes, cancellation and navigation while saving', async () => {
-  let finish!: (value: typeof row) => void;
-  decide.mockImplementation(
-    () =>
-      new Promise((done) => {
-        finish = done;
-      }),
-  );
-  const { user, router } = mount(detail);
-  await openDecision(user);
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  await user.dblClick(screen.getByRole('button', { name: 'Confirm approval' }));
-  expect(decide).toHaveBeenCalledTimes(1);
-  expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-  fireEvent(
-    screen.getByRole('dialog'),
-    new Event('cancel', { bubbles: true, cancelable: true }),
-  );
-  expect(screen.getByRole('dialog')).toBeVisible();
-  await act(async () => {
-    await router.navigate('/elsewhere');
-  });
-  expect(
-    await screen.findByText('Wait for the current operation before leaving.'),
-  ).toBeVisible();
-  await user.click(screen.getByRole('button', { name: 'Stay here' }));
-  await act(async () => finish(decidedLeave()));
-  await waitFor(() =>
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
-  );
-});
-it('warns on leaving a dirty draft and permits explicit discard', async () => {
-  const { user, router } = mount(detail);
-  await openDecision(user);
-  await user.type(screen.getByLabelText('Decision note (optional)'), 'Draft');
-  await act(async () => {
-    await router.navigate('/elsewhere');
-  });
-  await user.click(
-    await screen.findByRole('button', { name: 'Discard and leave' }),
-  );
-  expect(await screen.findByText('Other page')).toBeVisible();
-  expect(decide).not.toHaveBeenCalled();
-});
-it('restores focus after Escape closes an idle decision dialog', async () => {
-  const { user } = mount(detail);
-  await openDecision(user);
-  fireEvent(
-    screen.getByRole('dialog'),
-    new Event('cancel', { bubbles: true, cancelable: true }),
-  );
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Approve request' })).toHaveFocus();
-});
 it('ignores late detail responses after navigating to another request', async () => {
   let finish!: (value: typeof row) => void;
   get
@@ -388,50 +190,29 @@ it('ignores late detail responses after navigating to another request', async ()
   await act(async () => finish(row));
   expect(screen.queryByText('Family visit')).not.toBeInTheDocument();
 });
-it('keeps an uncertain decision locked when the status recheck fails', async () => {
-  get
-    .mockResolvedValueOnce(row)
-    .mockRejectedValueOnce(new Error('Service down'))
-    .mockResolvedValue(row);
-  decide.mockRejectedValue(new Error('Lost response'));
-  const { user } = mount(detail);
-  await openDecision(user);
-  await user.type(
-    screen.getByLabelText('Decision note (optional)'),
-    'Keep this draft',
-  );
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
-  await user.click(
-    await screen.findByRole('button', { name: 'Check current status' }),
-  );
-  expect(await screen.findByRole('alert')).toHaveTextContent('unavailable');
-  expect(
-    screen.getByRole('button', { name: 'Review decision' }),
-  ).toBeDisabled();
-  expect(screen.getByLabelText('Decision note (optional)')).toHaveValue(
-    'Keep this draft',
-  );
-  expect(decide).toHaveBeenCalledTimes(1);
-  await user.click(
-    screen.getByRole('button', { name: 'Check current status' }),
-  );
-  await waitFor(() =>
+it.each(['pending', 'approved', 'rejected', 'cancelled'] as const)(
+  'keeps %s historical leave read-only',
+  async (status) => {
+    get.mockResolvedValue(
+      status === 'cancelled'
+        ? {
+            ...row,
+            status,
+            cancelled_at: row.created_at,
+            cancelled_by: row.submitted_by,
+          }
+        : status === 'pending'
+          ? row
+          : decidedLeave(status),
+    );
+    mount(detail);
+    await screen.findByRole('heading', { name: 'Recorded decision' });
     expect(
-      screen.getByRole('button', { name: 'Review decision' }),
-    ).toBeEnabled(),
-  );
-});
-it('retains confirmation of a successful decision when the subsequent detail read fails', async () => {
-  get.mockResolvedValueOnce(row).mockRejectedValue(new Error('Read failed'));
-  const { user } = mount(detail);
-  await openDecision(user);
-  await user.click(screen.getByRole('button', { name: 'Review decision' }));
-  await user.click(screen.getByRole('button', { name: 'Confirm approval' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent('unavailable');
-  expect(
-    screen.getByText('Decision saved. Refreshing the request.'),
-  ).toBeVisible();
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  expect(decide).toHaveBeenCalledTimes(1);
-});
+      screen.queryByRole('button', { name: 'Approve request' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Reject request' }),
+    ).not.toBeInTheDocument();
+    expect(decide).not.toHaveBeenCalled();
+  },
+);

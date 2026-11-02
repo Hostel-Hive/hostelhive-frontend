@@ -1,14 +1,12 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { routePaths } from '../../../app/router/routePaths';
 import Button from '../../../shared/components/ui/Button';
 import useAuth from '../../auth/hooks/useAuth';
-import { getLeave, leaveFilters, type LeaveError } from '../api/leave.api';
-import type { LeaveDecision, LeaveRequest } from '../leave.types';
+import { getLeave, leaveFilters } from '../api/leave.api';
 import useLeaveRequest from '../hooks/useLeaveRequest';
 import LeaveRequestState from '../components/LeaveRequestState';
 import LeaveDate from '../components/LeaveDate';
-import LeaveDecisionDialog from '../components/LeaveDecisionDialog';
 export default function LeaveDetailPage() {
   const { leaveID = '' } = useParams();
   const { account } = useAuth();
@@ -20,20 +18,9 @@ export default function LeaveDetailPage() {
     [leaveID, uid],
   );
   const request = useLeaveRequest(key, load);
-  const [override, setOverride] = useState<{
-    key: string;
-    row?: LeaveRequest;
-    error?: LeaveError;
-  }>();
-  const [decision, setDecision] = useState<{
-    key: string;
-    status: LeaveDecision;
-  }>();
-  const [notice, setNotice] = useState('');
   const heading = useRef<HTMLHeadingElement>(null);
-  const current = override?.key === key ? override : undefined;
-  const error = current?.error ?? request.error;
-  const row = !error ? (current?.row ?? request.data) : undefined;
+  const error = request.error;
+  const row = !error ? request.data : undefined;
   let back = routePaths.leaves as string;
   try {
     const filters = leaveFilters(params);
@@ -43,7 +30,6 @@ export default function LeaveDetailPage() {
     /* Invalid return filters are discarded. */
   }
   function refresh() {
-    setOverride(undefined);
     request.retry();
   }
   return (
@@ -60,9 +46,10 @@ export default function LeaveDetailPage() {
         Leave request details
       </h1>
       <p className="page-description">
-        Review the requested leave period, reason and recorded decision.
+        Read-only history of ordinary leave requests. This workflow has been
+        retired; existing records and decisions are preserved.
       </p>
-      {notice && <p role="status">{notice}</p>}
+
       {!row || error ? (
         <LeaveRequestState error={error} retry={refresh} />
       ) : (
@@ -121,22 +108,21 @@ export default function LeaveDetailPage() {
             </div>
             <div className="leave-card leave-decision-card">
               <h2>Recorded decision</h2>
-              {row.status === 'pending' ? (
+              {row.status === 'cancelled' ? (
+                <dl className="leave-details">
+                  <dt>Cancelled at</dt>
+                  <dd>
+                    <LeaveDate value={row.cancelled_at!} />
+                  </dd>
+                  <dt>Cancelled by (account ID)</dt>
+                  <dd className="leave-id">{row.cancelled_by}</dd>
+                </dl>
+              ) : row.status === 'pending' ? (
                 <>
-                  <p>No decision has been recorded.</p>
-                  <div className="leave-actions">
-                    <Button
-                      onClick={() => setDecision({ key, status: 'approved' })}
-                    >
-                      Approve request
-                    </Button>
-                    <Button
-                      variant="danger"
-                      onClick={() => setDecision({ key, status: 'rejected' })}
-                    >
-                      Reject request
-                    </Button>
-                  </div>
+                  <p>
+                    No decision was recorded. This historical request remains
+                    pending and cannot be approved or rejected.
+                  </p>
                 </>
               ) : (
                 <dl className="leave-details">
@@ -161,33 +147,6 @@ export default function LeaveDetailPage() {
             record departure, return or attendance; entry/exit scans record
             presence.
           </p>
-          {row.status === 'pending' && decision?.key === key && (
-            <LeaveDecisionDialog
-              key={`${key}:${decision.status}`}
-              row={row}
-              status={decision.status}
-              uid={uid}
-              onClose={() => setDecision(undefined)}
-              onSaved={() => {
-                setDecision(undefined);
-                setNotice('Decision saved. Refreshing the request.');
-                heading.current?.focus();
-                refresh();
-              }}
-              onChecked={(fresh) => {
-                setOverride({ key, row: fresh });
-                setNotice(`Current request status: ${fresh.status}.`);
-                if (fresh.status !== 'pending') {
-                  setDecision(undefined);
-                  heading.current?.focus();
-                }
-              }}
-              onDenied={(failure) => {
-                setDecision(undefined);
-                setOverride({ key, error: failure });
-              }}
-            />
-          )}
         </>
       )}
     </section>

@@ -7,7 +7,8 @@ export interface Announcement {
   announcement_id: string;
   title: string;
   content: string;
-  audience: 'all_students';
+  audience: 'all_students' | 'faculty';
+  faculty?: string | null;
   priority: 'normal';
   published_by: string;
   published_at: string;
@@ -23,7 +24,8 @@ export interface PublicationInput {
   request_id: string;
   title: string;
   content: string;
-  audience: 'all_students';
+  audience: 'all_students' | 'faculty';
+  faculty?: string;
 }
 export interface DeliverySummary {
   announcement_id: string;
@@ -95,6 +97,25 @@ export function publicationValidation(title: string, content: string): string {
     return 'Enter content of 1–5000 characters without unsupported control characters.';
   return '';
 }
+export function audienceValidation(
+  audience: PublicationInput['audience'],
+  faculty?: string,
+): string {
+  if (audience === 'faculty')
+    return faculty && textOK(faculty.trim(), 120, false)
+      ? ''
+      : 'Enter a faculty name of 1–120 characters without control characters.';
+  return audience === 'all_students' && !faculty?.trim()
+    ? ''
+    : 'Choose a valid audience. A faculty can only be supplied for a faculty announcement.';
+}
+export function announcementAudience(
+  value: Pick<Announcement, 'audience' | 'faculty'>,
+): string {
+  return value.audience === 'faculty'
+    ? `Faculty: ${value.faculty}`
+    : 'All students';
+}
 function validAnnouncement(value: unknown): value is Announcement {
   return (
     record(value) &&
@@ -102,7 +123,12 @@ function validAnnouncement(value: unknown): value is Announcement {
     uuid(value.published_by) &&
     textOK(value.title, 160, false) &&
     textOK(value.content, 5000, true) &&
-    value.audience === 'all_students' &&
+    ((value.audience === 'all_students' &&
+      (value.faculty === undefined || value.faculty === null)) ||
+      (value.audience === 'faculty' &&
+        textOK(value.faculty, 120, false) &&
+        typeof value.faculty === 'string' &&
+        Boolean(value.faculty.trim()))) &&
     value.priority === 'normal' &&
     typeof value.published_at === 'string' &&
     /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(Z|[+-]\d\d:\d\d)$/.test(
@@ -140,7 +166,7 @@ async function checked(response: Response, statuses: number[]) {
   if ([400, 413, 415].includes(response.status))
     throw new AnnouncementError(
       'invalid',
-      'Check the title and content. Only immediate announcements to all students are supported.',
+      'Check the title, content and audience. Faculty announcements require a valid faculty name.',
     );
   throw announcementError(null);
 }
@@ -267,16 +293,17 @@ export async function publishAnnouncement(
     requireID(input.request_id);
     requireID(userID);
     const validation = publicationValidation(input.title, input.content);
-    if (validation || input.audience !== 'all_students')
-      throw new AnnouncementError(
-        'invalid',
-        validation || 'Announcements must target all students.',
-      );
+    const targetingError = audienceValidation(input.audience, input.faculty);
+    if (validation || targetingError)
+      throw new AnnouncementError('invalid', validation || targetingError);
     const payload: PublicationInput = {
       request_id: input.request_id.toLowerCase(),
       title: input.title.trim(),
       content: input.content.trim(),
-      audience: 'all_students',
+      audience: input.audience,
+      ...(input.audience === 'faculty'
+        ? { faculty: input.faculty!.trim().toLowerCase() }
+        : {}),
     };
     const response = await checked(
       await authorizedRequest('/api/v1/announcements', uid, signal, {
@@ -292,6 +319,9 @@ export async function publishAnnouncement(
       !validAnnouncement(value.announcement) ||
       value.announcement.title !== payload.title ||
       value.announcement.content !== payload.content ||
+      value.announcement.audience !== payload.audience ||
+      (payload.audience === 'faculty' &&
+        value.announcement.faculty !== payload.faculty) ||
       value.announcement.published_by !== userID.toLowerCase() ||
       value.replayed !== (response.status === 200) ||
       signal.aborted

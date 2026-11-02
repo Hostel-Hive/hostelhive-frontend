@@ -438,7 +438,9 @@ function PresenceDashboard({ uid, denied }: Reader) {
 const incidentLabel = (type: string) =>
   type === 'early_exit'
     ? 'Early exit without permission'
-    : 'Late entry without permission';
+    : type === 'late_exit'
+      ? 'Late exit without permission'
+      : 'Late entry without permission';
 function IncidentList({
   uid,
   denied,
@@ -541,6 +543,7 @@ function IncidentList({
           >
             <option value="">All types</option>
             <option value="early_exit">Early exit</option>
+            <option value="late_exit">Late exit</option>
             <option value="late_entry">Late entry</option>
           </select>
         </label>
