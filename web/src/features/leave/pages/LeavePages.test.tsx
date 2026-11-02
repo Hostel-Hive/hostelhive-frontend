@@ -216,3 +216,20 @@ it.each(['pending', 'approved', 'rejected', 'cancelled'] as const)(
     expect(decide).not.toHaveBeenCalled();
   },
 );
+
+it('shows cancellation history without approval controls for a cancelled record', async () => {
+  get.mockResolvedValue({
+    ...row,
+    status: 'cancelled',
+    cancelled_at: row.created_at,
+    cancelled_by: row.submitted_by,
+  });
+  mount(detail);
+  expect(await screen.findByText('Cancelled at')).toBeVisible();
+  expect(
+    screen.queryByRole('button', { name: 'Approve request' }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('button', { name: 'Reject request' }),
+  ).not.toBeInTheDocument();
+});

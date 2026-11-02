@@ -1,3 +1,4 @@
+import PassHistory from '../components/PassHistory';
 import BrandLogo from '../../../shared/components/ui/BrandLogo';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -67,6 +68,7 @@ export type StudentView =
   | 'complaints'
   | 'complaint-new'
   | 'complaint-detail'
+  | 'passes'
   | 'leaves'
   | 'going-home'
   | 'leave-detail'
@@ -90,6 +92,7 @@ export default function StudentHomePage({
     complaints: 'Complaints',
     'complaint-new': 'New complaint',
     'complaint-detail': 'Complaint details',
+    passes: 'Pass history',
     leaves: 'Leave requests',
     'going-home': 'Going Home',
     'leave-detail': 'Leave request',
@@ -212,6 +215,8 @@ export default function StudentHomePage({
                       'Submit a maintenance or disciplinary concern.',
                     'complaint-detail':
                       'Your complaint, staff responses and update history.',
+                    passes:
+                      'Your access requests and historical leave records in one place.',
                     leaves:
                       'Read-only history of previous ordinary leave requests.',
                     'going-home':
@@ -236,6 +241,7 @@ export default function StudentHomePage({
               'complaints',
               'complaint-new',
               'complaint-detail',
+              'passes',
               'leaves',
               'going-home',
               'leave-detail',
@@ -439,6 +445,14 @@ export default function StudentHomePage({
                 )}
                 {view === 'access-detail' && (
                   <OwnLateAccessDetail
+                    key={uid + ':' + data.student_id}
+                    uid={uid}
+                    studentID={data.student_id}
+                    onAccessError={invalidate}
+                  />
+                )}
+                {view === 'passes' && (
+                  <PassHistory
                     key={uid + ':' + data.student_id}
                     uid={uid}
                     studentID={data.student_id}

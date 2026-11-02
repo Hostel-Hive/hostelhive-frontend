@@ -205,6 +205,9 @@ function ownRow(value: unknown, studentID: string): OwnLeave {
     created_at,
     decided_at,
     decision_note,
+    ...(status === 'cancelled'
+      ? { cancelled_at: value.cancelled_at, cancelled_by: value.cancelled_by }
+      : {}),
   };
 }
 export async function listOwnLeaves(

@@ -53,6 +53,9 @@ const FacultyManagementPage = lazy(
 const DeviceManagementPage = lazy(
   () => import('../../features/devices/pages/DeviceManagementPage'),
 );
+const OwnStaffProfilePage = lazy(
+  () => import('../../features/staff/pages/OwnStaffProfilePage'),
+);
 const StaffManagementPage = lazy(
   () => import('../../features/staff/pages/StaffManagementPage'),
 );
@@ -156,6 +159,7 @@ export default function AppRoutes() {
             [routePaths.ownComplaintNew, 'complaint-new'],
             [`${routePaths.ownComplaints}/:complaintID`, 'complaint-detail'],
             [routePaths.ownLeaves, 'leaves'],
+            [routePaths.ownPassHistory, 'passes'],
             [routePaths.ownGoingHome, 'going-home'],
             [`${routePaths.ownLeaves}/:leaveID`, 'leave-detail'],
             [routePaths.ownLateAccess, 'access'],
@@ -198,6 +202,14 @@ export default function AppRoutes() {
               />
             ),
           )}
+          <Route
+            path="profile"
+            element={
+              <Suspense fallback={<p role="status">Loading your profile…</p>}>
+                <OwnStaffProfilePage />
+              </Suspense>
+            }
+          />
           <Route
             path="faculties"
             element={

@@ -307,3 +307,20 @@ describe('shared session lifecycle', () => {
     await expect(logout()).rejects.toThrow('logout-failed');
   });
 });
+
+it('preserves current profile fields when verifying a staff account', async () => {
+  const projected = {
+    ...account,
+    full_name: 'Updated Staff',
+    designation: 'Warden',
+  };
+  fetchMock.mockResolvedValue(Response.json(projected));
+  expect(await login(input)).toEqual(projected);
+});
+it.each([{ full_name: 123 }, { designation: null }])(
+  'rejects malformed optional account profile metadata',
+  async (extra) => {
+    fetchMock.mockResolvedValue(Response.json({ ...account, ...extra }));
+    await expect(login(input)).rejects.toThrow();
+  },
+);

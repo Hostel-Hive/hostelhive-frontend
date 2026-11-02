@@ -1,3 +1,5 @@
+import { listOwnPasses } from '../../student-portal/api/pass-history.api';
+import { passPage } from '../../../test/fixtures/passHistory';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, expect, it, vi } from 'vitest';
@@ -32,6 +34,12 @@ import {
   ownLateAccessFixture,
   ownLateAccessPage,
 } from '../../../test/fixtures/ownLateAccess';
+vi.mock('../../student-portal/api/pass-history.api', async (original) => ({
+  ...(await original<
+    typeof import('../../student-portal/api/pass-history.api')
+  >()),
+  listOwnPasses: vi.fn(),
+}));
 vi.mock('../../student-portal/api/own-late-access.api', async (original) => ({
   ...(await original<
     typeof import('../../student-portal/api/own-late-access.api')
@@ -82,6 +90,7 @@ const student: StudentAccount = {
 };
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(listOwnPasses).mockResolvedValue(passPage());
   vi.mocked(getOwnProfile).mockResolvedValue(ownStudentProfile);
   vi.mocked(getOwnAttendance).mockResolvedValue(ownHistoryPage());
   vi.mocked(listOwnLeaves).mockResolvedValue(ownLeavePage());
@@ -426,4 +435,28 @@ it('redirects expired student sessions to student login', async () => {
   await act(async () => window.dispatchEvent(new Event('focus')));
   await screen.findByRole('button', { name: 'Sign in' });
   expect(window.location.pathname).toBe('/login');
+});
+
+it('opens student pass history directly and marks its navigation active', async () => {
+  vi.mocked(restoreStaffSession).mockResolvedValue(student);
+  open('/student/passes?type=late_access');
+  expect(
+    await screen.findByRole('heading', { name: 'Pass history', level: 1 }),
+  ).toBeVisible();
+  expect(await screen.findByText('Return from event')).toBeVisible();
+  expect(screen.getByRole('link', { name: 'Pass history' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(listOwnPasses).toHaveBeenCalledWith(
+    student.firebase_uid,
+    ownStudentProfile.student_id,
+    { type: 'late_access', status: '', offset: 0 },
+    expect.any(AbortSignal),
+  );
+});
+it('requires authentication before requesting pass history', async () => {
+  open('/student/passes');
+  await screen.findByRole('heading', { name: /Sign in to/ });
+  expect(listOwnPasses).not.toHaveBeenCalled();
 });
