@@ -24,6 +24,35 @@ vi.mock('../../auth/api/authorized-request', async (original) => ({
 }));
 const request = vi.mocked(authorizedRequest);
 const signal = () => new AbortController().signal;
+it('loads late-exit lists and details and sends the supported filter', async () => {
+  const lateExit = { ...incident, incident_type: 'late_exit' as const };
+  request
+    .mockResolvedValueOnce(Response.json(page([lateExit])))
+    .mockResolvedValueOnce(Response.json(lateExit));
+  await expect(
+    listIncidents('uid', signal(), {
+      studentID: '',
+      direction: 'OUT',
+      type: 'late_exit',
+    }),
+  ).resolves.toMatchObject({ items: [lateExit] });
+  expect(request.mock.calls[0][0]).toBe(
+    '/api/v1/attendance/incidents?limit=20&offset=0&direction=OUT&incident_type=late_exit',
+  );
+  await expect(
+    getIncident(incident.incident_id, 'uid', signal()),
+  ).resolves.toEqual(lateExit);
+});
+it('rejects an entry direction incorrectly paired with late exit', async () => {
+  request.mockResolvedValue(
+    Response.json(
+      page([{ ...incident, direction: 'IN', incident_type: 'late_exit' }]),
+    ),
+  );
+  await expect(listIncidents('uid', signal())).rejects.toMatchObject({
+    kind: 'unavailable',
+  });
+});
 beforeEach(() => vi.resetAllMocks());
 it('reads authoritative counts with only the supported search query', async () => {
   request.mockResolvedValueOnce(Response.json(summary));

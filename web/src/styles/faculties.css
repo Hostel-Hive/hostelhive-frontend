@@ -1,0 +1,200 @@
+.faculties-page {
+  min-width: 0;
+  width: 100%;
+}
+.faculties-panel {
+  margin-top: var(--space-6);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.faculties-toolbar,
+.faculties-heading,
+.faculty-actions,
+.faculty-pagination,
+.faculty-dialog-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.faculties-toolbar {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+  gap: var(--space-5);
+}
+.faculties-heading h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.faculties-heading p {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.faculty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--cyan-50);
+  color: var(--cyan-700);
+}
+.faculty-actions {
+  flex-wrap: wrap;
+}
+.faculty-filters {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.faculty-filters label {
+  display: grid;
+  gap: 8px;
+  min-width: 220px;
+}
+.faculty-filters p,
+.faculty-caption,
+.faculty-select .muted,
+.faculty-dialog .muted {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.faculty-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.faculty-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.faculty-table-wrap caption {
+  text-align: left;
+  padding: 16px 20px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.faculty-table-wrap th,
+.faculty-table-wrap td {
+  padding: 18px 20px;
+  border-top: 1px solid var(--color-border);
+}
+.faculty-table-wrap thead {
+  background: var(--color-background);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.faculty-table-wrap tbody th {
+  min-width: 180px;
+  overflow-wrap: anywhere;
+}
+.faculty-table-wrap tbody tr:hover {
+  background: var(--cyan-50);
+}
+.faculty-table-wrap time {
+  font-size: var(--text-sm);
+}
+.faculty-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  background: var(--color-background);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  border-radius: 8px;
+}
+.faculty-badge-active {
+  color: #166534;
+  background: #ecfdf5;
+}
+.faculty-pagination {
+  justify-content: flex-end;
+  margin-top: var(--space-5);
+}
+.faculty-caption {
+  text-align: right;
+}
+.faculty-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-muted);
+}
+.faculty-error {
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #991b1b;
+  padding: 16px;
+}
+.faculty-notice {
+  background: var(--cyan-50);
+  border-left: 3px solid var(--cyan-600);
+  padding: 16px;
+  border-radius: 8px;
+}
+.faculty-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 28px;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+.faculty-dialog::backdrop {
+  background: rgb(23 17 54 / 45%);
+}
+.faculty-dialog h2 {
+  margin-top: 0;
+  font-size: var(--text-lg);
+}
+.faculty-dialog p {
+  line-height: 1.7;
+}
+.faculty-dialog label {
+  display: grid;
+  gap: 8px;
+}
+.faculty-current {
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--color-background);
+  overflow-wrap: anywhere;
+}
+.faculty-dialog-footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.faculty-select select {
+  width: 100%;
+}
+@media (max-width: 640px) {
+  .faculties-panel {
+    padding: 16px;
+  }
+  .faculties-toolbar {
+    align-items: stretch;
+  }
+  .faculty-filters label {
+    width: 100%;
+    min-width: 0;
+  }
+  .faculty-dialog {
+    padding: 20px;
+  }
+}

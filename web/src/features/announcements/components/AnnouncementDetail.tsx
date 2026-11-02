@@ -4,6 +4,7 @@ import Button from '../../../shared/components/ui/Button';
 import {
   getAnnouncement,
   getAnnouncementSummary,
+  announcementAudience,
 } from '../api/announcements.api';
 import useAnnouncementRequest from '../hooks/useAnnouncementRequest';
 import AnnouncementState from './AnnouncementState';
@@ -62,7 +63,9 @@ export default function AnnouncementDetail({
               <p className="announcement-caption">
                 Published <AnnouncementDate value={request.data.published_at} />
               </p>
-              <span className="announcement-audience">All students</span>
+              <span className="announcement-audience">
+                {announcementAudience(request.data)}
+              </span>
             </div>
             <div className="announcement-prose announcement-reading-content">
               {request.data.content}

@@ -6,6 +6,8 @@ export interface LoginInput {
 }
 
 export interface StaffAccount {
+  full_name?: string;
+  designation?: string;
   user_id: string;
   firebase_uid: string;
   email: string;

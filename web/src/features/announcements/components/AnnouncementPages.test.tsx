@@ -1,3 +1,5 @@
+import { activeFaculties } from '../../faculties/api/faculties.api';
+import { faculty } from '../../../test/fixtures/faculties';
 import {
   act,
   fireEvent,
@@ -25,6 +27,10 @@ import {
   summaryFixture,
 } from '../../../test/fixtures/announcements';
 import useAuth from '../../auth/hooks/useAuth';
+vi.mock('../../faculties/api/faculties.api', async (original) => ({
+  ...(await original<typeof import('../../faculties/api/faculties.api')>()),
+  activeFaculties: vi.fn(),
+}));
 vi.mock('../api/announcements.api', async (original) => ({
   ...(await original<typeof import('../api/announcements.api')>()),
   getAnnouncement: vi.fn(),
@@ -45,6 +51,7 @@ const account = {
 };
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(activeFaculties).mockResolvedValue([faculty]);
   vi.mocked(listAnnouncements).mockResolvedValue(announcementPage());
   vi.mocked(getAnnouncement).mockResolvedValue(row);
   vi.mocked(getAnnouncementSummary).mockResolvedValue(summaryFixture);
@@ -229,6 +236,117 @@ it('validates fields before preparing a publication', async () => {
   );
   expect(screen.getByRole('alert')).toHaveTextContent('5000');
   expect(publishAnnouncement).not.toHaveBeenCalled();
+});
+it('validates faculty targeting, reviews it and publishes only after confirmation', async () => {
+  vi.mocked(getAnnouncement).mockResolvedValue({
+    ...row,
+    audience: 'faculty',
+    faculty: 'science',
+  });
+  vi.mocked(publishAnnouncement).mockResolvedValue({
+    announcement: { ...row, audience: 'faculty', faculty: 'science' },
+    replayed: false,
+  });
+  const { router } = open('new');
+  fill();
+  await userEvent.selectOptions(screen.getByLabelText('Audience'), 'faculty');
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Review announcement' }),
+  );
+  expect(screen.getByRole('alert')).toHaveTextContent('faculty name');
+  await userEvent.selectOptions(
+    screen.getByLabelText('Faculty'),
+    (await screen.findByRole('option', {
+      name: 'Science',
+    })) as HTMLOptionElement,
+  );
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Review announcement' }),
+  );
+  expect(screen.getByText(/Audience: Faculty: science/)).toBeVisible();
+  expect(publishAnnouncement).not.toHaveBeenCalled();
+  expect(screen.getByLabelText('Audience')).toBeDisabled();
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Publish to selected faculty' }),
+  );
+  await waitFor(() =>
+    expect(router.state.location.pathname).toBe(
+      `/dashboard/announcements/${row.announcement_id}`,
+    ),
+  );
+  expect(await screen.findByText('Faculty: science')).toBeVisible();
+  expect(publishAnnouncement).toHaveBeenCalledWith(
+    expect.objectContaining({ audience: 'faculty', faculty: 'science' }),
+    'staff',
+    row.published_by,
+    expect.any(AbortSignal),
+  );
+});
+it.each([true, false])(
+  'shows faculty audience in a %s staff feed without adding client-side recipient filters',
+  async (staff) => {
+    vi.mocked(listAnnouncements).mockResolvedValue(
+      announcementPage([
+        { ...row, audience: 'faculty', faculty: 'engineering' },
+      ]),
+    );
+    open('list', staff);
+    expect(await screen.findByText('Faculty: engineering')).toBeVisible();
+  },
+);
+it('locks faculty targeting and preserves the exact publication on an uncertain retry', async () => {
+  vi.mocked(publishAnnouncement).mockRejectedValueOnce(
+    new AnnouncementError('unavailable', 'Unknown result'),
+  );
+  open('new');
+  fill();
+  await userEvent.selectOptions(screen.getByLabelText('Audience'), 'faculty');
+  await userEvent.selectOptions(
+    screen.getByLabelText('Faculty'),
+    (await screen.findByRole('option', {
+      name: 'Science',
+    })) as HTMLOptionElement,
+  );
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Review announcement' }),
+  );
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Publish to selected faculty' }),
+  );
+  await screen.findByRole('button', { name: 'Retry identical publication' });
+  expect(screen.getByLabelText('Faculty')).toBeDisabled();
+  expect(screen.getByLabelText('Audience')).toBeDisabled();
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Retry identical publication' }),
+  );
+  expect(vi.mocked(publishAnnouncement).mock.calls[1][0]).toEqual(
+    vi.mocked(publishAnnouncement).mock.calls[0][0],
+  );
+});
+it('omits a previous faculty draft when switching back to all students', async () => {
+  open('new');
+  fill();
+  await userEvent.selectOptions(screen.getByLabelText('Audience'), 'faculty');
+  await userEvent.selectOptions(
+    screen.getByLabelText('Faculty'),
+    (await screen.findByRole('option', {
+      name: 'Science',
+    })) as HTMLOptionElement,
+  );
+  await userEvent.selectOptions(
+    screen.getByLabelText('Audience'),
+    'all_students',
+  );
+  expect(screen.queryByLabelText('Faculty')).not.toBeInTheDocument();
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Review announcement' }),
+  );
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Publish to all students' }),
+  );
+  expect(vi.mocked(publishAnnouncement).mock.calls[0][0]).not.toHaveProperty(
+    'faculty',
+  );
 });
 it('requires review and explicit confirmation before publishing', async () => {
   const { router } = open('new');

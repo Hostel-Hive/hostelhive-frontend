@@ -1,9 +1,12 @@
+import FacultySelect from '../../faculties/components/FacultySelect';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useBlocker, useNavigate } from 'react-router-dom';
 import Button from '../../../shared/components/ui/Button';
 import {
   announcementAccessError,
   announcementError,
+  announcementAudience,
+  audienceValidation,
   publicationValidation,
   publishAnnouncement,
 } from '../api/announcements.api';
@@ -25,6 +28,9 @@ export default function AnnouncementForm({
 }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [audience, setAudience] =
+    useState<PublicationInput['audience']>('all_students');
+  const [faculty, setFaculty] = useState('');
   const [payload, setPayload] = useState<PublicationInput>();
   const [uncertain, setUncertain] = useState(false);
   const [pending, setPending] = useState(false);
@@ -35,7 +41,14 @@ export default function AnnouncementForm({
   const alert = useRef<HTMLParagraphElement>(null);
   const confirmation = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const dirty = Boolean(title || content || payload || pending);
+  const dirty = Boolean(
+    title ||
+    content ||
+    payload ||
+    pending ||
+    audience !== 'all_students' ||
+    faculty,
+  );
   const blocker = useBlocker(
     () => !finished.current && (dirty || busy.current),
   );
@@ -53,7 +66,12 @@ export default function AnnouncementForm({
   }, [payload]);
   function review() {
     if (busy.current || payload) return;
-    const invalid = publicationValidation(title, content);
+    const invalid =
+      publicationValidation(title, content) ||
+      audienceValidation(
+        audience,
+        audience === 'faculty' ? faculty : undefined,
+      );
     if (invalid) {
       setError(invalid);
       return;
@@ -63,7 +81,10 @@ export default function AnnouncementForm({
         request_id: crypto.randomUUID(),
         title: title.trim(),
         content: content.trim(),
-        audience: 'all_students',
+        audience,
+        ...(audience === 'faculty'
+          ? { faculty: faculty.trim().toLowerCase() }
+          : {}),
       });
       setError('');
     } catch {
@@ -122,8 +143,8 @@ export default function AnnouncementForm({
       <Link to={basePath}>Back to announcements</Link>
       <h2 id="announcement-form-title">Publish announcement</h2>
       <p>
-        This publishes immediately to all students. Announcements cannot be
-        edited, deleted or unpublished. To correct one, publish a new
+        This publishes immediately to the selected audience. Announcements
+        cannot be edited, deleted or unpublished. To correct one, publish a new
         announcement.
       </p>
       <form
@@ -136,6 +157,31 @@ export default function AnnouncementForm({
           else review();
         }}
       >
+        <label>
+          Audience
+          <select
+            value={audience}
+            disabled={Boolean(payload) || pending}
+            onChange={(event) => {
+              setAudience(event.target.value as PublicationInput['audience']);
+              setError('');
+            }}
+          >
+            <option value="all_students">All students</option>
+            <option value="faculty">Selected faculty</option>
+          </select>
+        </label>
+        {audience === 'faculty' && (
+          <FacultySelect
+            uid={uid}
+            value={faculty}
+            onChange={(text) => {
+              setFaculty(text);
+              setError('');
+            }}
+            disabled={Boolean(payload) || pending}
+          />
+        )}
         <label>
           Title
           <input
@@ -191,7 +237,9 @@ export default function AnnouncementForm({
                 ? 'Original publication for identical retry'
                 : 'Review before publishing'}
             </h3>
-            <p>Audience: all students · Publication: immediate</p>
+            <p>
+              Audience: {announcementAudience(payload)} · Publication: immediate
+            </p>
             <h4>{payload.title}</h4>
             <p className="announcement-prose">{payload.content}</p>
           </div>
@@ -204,7 +252,9 @@ export default function AnnouncementForm({
                   ? 'Publishing…'
                   : uncertain
                     ? 'Retry identical publication'
-                    : 'Publish to all students'}
+                    : payload.audience === 'faculty'
+                      ? 'Publish to selected faculty'
+                      : 'Publish to all students'}
               </Button>
               {!uncertain && (
                 <Button

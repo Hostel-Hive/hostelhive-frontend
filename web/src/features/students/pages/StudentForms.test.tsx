@@ -1,3 +1,5 @@
+import { activeFaculties } from '../../faculties/api/faculties.api';
+import { faculty } from '../../../test/fixtures/faculties';
 import { StrictMode } from 'react';
 import {
   act,
@@ -33,6 +35,10 @@ import {
   studentFixture,
   studentPageFixture,
 } from '../../../test/fixtures/student';
+vi.mock('../../faculties/api/faculties.api', async (original) => ({
+  ...(await original<typeof import('../../faculties/api/faculties.api')>()),
+  activeFaculties: vi.fn(),
+}));
 vi.mock('../../auth/api/auth.api', async (original) => ({
   ...(await original<typeof import('../../auth/api/auth.api')>()),
   restoreStaffSession: vi.fn(),
@@ -77,6 +83,7 @@ afterAll(() => {
 });
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(activeFaculties).mockResolvedValue([faculty]);
   vi.mocked(restoreStaffSession).mockResolvedValue({
     user_id: 'staff',
     firebase_uid: 'staff-uid',
@@ -107,6 +114,7 @@ function renderAt(path = '/dashboard/students/new?registration=existing') {
 }
 async function fillCreate() {
   await screen.findByLabelText('University email');
+  await screen.findByRole('option', { name: 'Science' });
   for (const [label, value] of [
     ['University email', studentFixture.email],
     ['University registration / index number', studentFixture.index_no],
@@ -226,6 +234,7 @@ describe('add and edit student profiles', () => {
   it('blocks invalid forms, focuses the first error and makes no API call', async () => {
     renderAt();
     await screen.findByLabelText('University email');
+    await screen.findByRole('option', { name: 'Science' });
     await userEvent.click(
       screen.getByRole('button', { name: 'Create profile' }),
     );
@@ -240,6 +249,7 @@ describe('add and edit student profiles', () => {
   it('adds/removes guardians while retaining at least one and enforcing ten', async () => {
     renderAt();
     await screen.findByLabelText('University email');
+    await screen.findByRole('option', { name: 'Science' });
     expect(
       screen.getByRole('button', { name: 'Remove guardian 1' }),
     ).toBeDisabled();

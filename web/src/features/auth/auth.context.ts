@@ -11,6 +11,6 @@ export interface AuthContextValue extends AuthState {
   busy: boolean;
   signIn: (input: LoginInput) => Promise<AuthAccount>;
   signOut: () => Promise<void>;
-  retry: () => Promise<void>;
+  retry: (preservePage?: boolean) => Promise<void>;
 }
 export const AuthContext = createContext<AuthContextValue | null>(null);

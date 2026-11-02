@@ -1,0 +1,179 @@
+.pass-history-heading,
+.pass-record-heading,
+.pass-record-badges,
+.pass-record-footer,
+.pass-history-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pass-history-heading,
+.pass-record-heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.pass-history-heading h2,
+.pass-record-heading h3 {
+  margin: 0;
+}
+.pass-history-heading .eyebrow {
+  margin-top: 0;
+}
+.pass-history-notice {
+  background: var(--cyan-50);
+  border-left: 3px solid var(--cyan-600);
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  margin: 24px 0;
+}
+.pass-history-filters {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-background);
+  margin-bottom: 24px;
+}
+.pass-history-filters label {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+  font-size: var(--text-sm);
+}
+.pass-history-filters select {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--color-text);
+  font: inherit;
+  width: 100%;
+}
+.pass-history-count {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: 20px;
+}
+.pass-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 16px;
+}
+.pass-history-record {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+.pass-record-heading h3 {
+  font-size: var(--text-base);
+}
+.pass-record-badges {
+  flex-wrap: wrap;
+}
+.pass-badge {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: var(--text-xs);
+  background: var(--color-background);
+  color: var(--color-text-muted);
+}
+.pass-badge-pending {
+  background: #fff7e6;
+  color: #92400e;
+}
+.pass-badge-approved {
+  background: #ecfdf5;
+  color: #166534;
+}
+.pass-badge-rejected {
+  background: #fff1f2;
+  color: #991b1b;
+}
+.pass-badge-used {
+  background: var(--cyan-50);
+  color: var(--cyan-700);
+}
+.pass-history-reason,
+.pass-decision-note {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+.pass-record-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+.pass-record-details dt {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+.pass-record-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+}
+.pass-record-footer {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
+  margin-top: 20px;
+}
+.pass-record-footer p {
+  margin: 0 auto 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.pass-history-pagination {
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+.pass-history-caption {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  margin-top: 20px;
+}
+.pass-history-error {
+  padding: 16px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #991b1b;
+}
+.pass-history-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+@media (max-width: 640px) {
+  .pass-history-filters {
+    padding: 16px;
+  }
+  .pass-history-filters label {
+    min-width: 0;
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .pass-history-record {
+    padding: 16px;
+  }
+  .pass-record-details {
+    grid-template-columns: 1fr;
+  }
+  .pass-history-pagination {
+    justify-content: center;
+  }
+}

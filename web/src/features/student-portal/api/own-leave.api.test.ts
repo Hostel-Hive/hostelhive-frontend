@@ -268,3 +268,21 @@ it('ignores aborted read and write completions', async () => {
     submitOwnLeave(payload, 'uid', row.student_id, controller.signal),
   ).rejects.toMatchObject({ kind: 'unavailable' });
 });
+
+it('preserves cancellation metadata when reading historical own leave details', async () => {
+  request.mockResolvedValue(
+    Response.json({
+      ...row,
+      status: 'cancelled',
+      cancelled_at: row.created_at,
+      cancelled_by: row.submitted_by,
+    }),
+  );
+  expect(
+    await getOwnLeave(row.leave_id, 'student', row.student_id, signal()),
+  ).toMatchObject({
+    status: 'cancelled',
+    cancelled_at: row.created_at,
+    cancelled_by: row.submitted_by,
+  });
+});

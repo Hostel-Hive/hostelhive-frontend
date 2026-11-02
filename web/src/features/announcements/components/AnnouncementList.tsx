@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../../../shared/components/ui/Button';
-import { listAnnouncements } from '../api/announcements.api';
+import {
+  listAnnouncements,
+  announcementAudience,
+} from '../api/announcements.api';
 import type { AnnouncementError } from '../api/announcements.api';
 import useAnnouncementRequest from '../hooks/useAnnouncementRequest';
 import AnnouncementState from './AnnouncementState';
@@ -76,8 +79,8 @@ export default function AnnouncementList({
         </div>
       </div>
       <p className="announcement-list-description">
-        Published notices for all students. Opening an announcement does not
-        mark an inbox notification as read.
+        Published notices for eligible students. Opening an announcement does
+        not mark an inbox notification as read.
       </p>
       <div
         ref={result}
@@ -130,7 +133,7 @@ export default function AnnouncementList({
                     <p className="announcement-preview">{row.content}</p>
                     <div className="announcement-notice-footer">
                       <span className="announcement-audience">
-                        All students
+                        {announcementAudience(row)}
                       </span>
                       <Link
                         className="announcement-read-link"

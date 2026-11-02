@@ -24,6 +24,83 @@ vi.mock('../../auth/api/authorized-request', async (original) => ({
 }));
 const request = vi.mocked(authorizedRequest);
 const signal = () => new AbortController().signal;
+it('reads faculty announcements in a mixed feed and detail', async () => {
+  const facultyNotice = {
+    ...row,
+    announcement_id: input.request_id,
+    audience: 'faculty' as const,
+    faculty: 'science',
+  };
+  request
+    .mockResolvedValueOnce(
+      Response.json(announcementPage([row, facultyNotice], 0, 2)),
+    )
+    .mockResolvedValueOnce(Response.json(facultyNotice));
+  expect((await listAnnouncements('student', signal())).items).toEqual([
+    row,
+    facultyNotice,
+  ]);
+  await expect(
+    getAnnouncement(facultyNotice.announcement_id, 'student', signal()),
+  ).resolves.toEqual(facultyNotice);
+});
+it('publishes a normalized faculty audience and verifies the returned targeting', async () => {
+  const facultyInput = {
+    ...input,
+    audience: 'faculty' as const,
+    faculty: ' Science ',
+  };
+  const notice = { ...row, audience: 'faculty', faculty: 'science' };
+  request.mockResolvedValueOnce(
+    Response.json({ announcement: notice, replayed: false }, { status: 201 }),
+  );
+  await expect(
+    publishAnnouncement(facultyInput, 'uid', row.published_by, signal()),
+  ).resolves.toMatchObject({ announcement: notice });
+  expect(JSON.parse(String(request.mock.calls[0][3]?.body))).toMatchObject({
+    audience: 'faculty',
+    faculty: 'science',
+  });
+  request.mockResolvedValueOnce(
+    Response.json(
+      { announcement: { ...notice, faculty: 'engineering' }, replayed: false },
+      { status: 201 },
+    ),
+  );
+  await expect(
+    publishAnnouncement(facultyInput, 'uid', row.published_by, signal()),
+  ).rejects.toMatchObject({ kind: 'unavailable' });
+});
+it.each(['', ' ', 'a'.repeat(121), 'Sci\nence'])(
+  'rejects invalid faculty targeting before publishing: %j',
+  async (faculty) => {
+    await expect(
+      publishAnnouncement(
+        { ...input, audience: 'faculty', faculty },
+        'uid',
+        row.published_by,
+        signal(),
+      ),
+    ).rejects.toMatchObject({ kind: 'invalid' });
+    expect(request).not.toHaveBeenCalled();
+  },
+);
+it('rejects inconsistent audience fields in reads and writes', async () => {
+  await expect(
+    publishAnnouncement(
+      { ...input, faculty: 'science' },
+      'uid',
+      row.published_by,
+      signal(),
+    ),
+  ).rejects.toMatchObject({ kind: 'invalid' });
+  request.mockResolvedValue(
+    Response.json(announcementPage([{ ...row, faculty: 'science' }])),
+  );
+  await expect(listAnnouncements('student', signal())).rejects.toMatchObject({
+    kind: 'unavailable',
+  });
+});
 beforeEach(() => vi.resetAllMocks());
 it('reads a feed through authenticated pagination without invented filters or bodies', async () => {
   request.mockResolvedValue(Response.json(announcementPage()));

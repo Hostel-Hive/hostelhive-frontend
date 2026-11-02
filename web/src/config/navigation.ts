@@ -2,6 +2,13 @@ import { routePaths } from '../app/router/routePaths';
 
 export const dashboardNavigation = [
   {
+    label: 'Faculties',
+    path: routePaths.faculties,
+    role: 'all',
+    group: 'System',
+    icon: 'faculty',
+  },
+  {
     label: 'Device management',
     path: routePaths.devices,
     role: 'admin',

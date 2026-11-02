@@ -1,3 +1,4 @@
+import FacultySelect from '../../faculties/components/FacultySelect';
 import { useEffect, useRef, useState } from 'react';
 import { useBlocker, useNavigate } from 'react-router-dom';
 import Button from '../../../shared/components/ui/Button';
@@ -342,13 +343,14 @@ export default function StudentProfileForm({
               (text) => change('full_name', text),
               200,
             )}
-            {field(
-              'faculty',
-              'Faculty',
-              value.faculty,
-              (text) => change('faculty', text),
-              120,
-            )}
+            <FacultySelect
+              uid={account?.firebase_uid ?? ''}
+              value={value.faculty}
+              preservedValue={initial.faculty}
+              onChange={(text) => change('faculty', text)}
+              disabled={locked || uncertain}
+              error={errors.faculty}
+            />
             <div className="student-form-field">
               <label htmlFor="year">Year</label>
               <select

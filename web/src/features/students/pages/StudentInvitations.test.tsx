@@ -1,3 +1,5 @@
+import { activeFaculties } from '../../faculties/api/faculties.api';
+import { faculty } from '../../../test/fixtures/faculties';
 import {
   registerStudentInvitation,
   getStudentInvitation,
@@ -31,6 +33,10 @@ import {
   studentFixture,
   studentPageFixture,
 } from '../../../test/fixtures/student';
+vi.mock('../../faculties/api/faculties.api', async (original) => ({
+  ...(await original<typeof import('../../faculties/api/faculties.api')>()),
+  activeFaculties: vi.fn(),
+}));
 vi.mock('../../auth/api/auth.api', async (original) => ({
   ...(await original<typeof import('../../auth/api/auth.api')>()),
   restoreStaffSession: vi.fn(),
@@ -80,6 +86,7 @@ afterAll(() => {
 });
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(activeFaculties).mockResolvedValue([faculty]);
   vi.mocked(restoreStaffSession).mockResolvedValue({
     user_id: 'staff',
     firebase_uid: 'staff-uid',
@@ -118,6 +125,7 @@ function renderAt(path = '/dashboard/students/new') {
 }
 async function fillCreate() {
   await screen.findByLabelText('University email');
+  await screen.findByRole('option', { name: 'Science' });
   for (const [label, value] of [
     ['University email', '  ALEX@STUDENTS.EXAMPLE.EDU  '],
     ['University registration / index number', studentFixture.index_no],
@@ -252,6 +260,7 @@ describe('Admin invitation registration', () => {
   it('validates email and profile details before requesting registration', async () => {
     renderAt();
     await screen.findByLabelText('University email');
+    await screen.findByRole('option', { name: 'Science' });
     await userEvent.click(
       screen.getByRole('button', { name: 'Register student' }),
     );
