@@ -261,12 +261,23 @@ function DeviceDirectory({ uid }: { uid: string }) {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="device-danger-action"
-                              disabled={!device.is_active || Boolean(editor)}
-                              aria-label={`Deactivate ${device.name}`}
-                              onClick={() => open('deactivate', device)}
+                              className={
+                                device.is_active
+                                  ? 'device-danger-action'
+                                  : undefined
+                              }
+                              disabled={Boolean(editor)}
+                              aria-label={`${device.is_active ? 'Deactivate' : 'Reactivate'} ${device.name}`}
+                              onClick={() =>
+                                open(
+                                  device.is_active
+                                    ? 'deactivate'
+                                    : 'reactivate',
+                                  device,
+                                )
+                              }
                             >
-                              Deactivate
+                              {device.is_active ? 'Deactivate' : 'Reactivate'}
                             </Button>
                           </div>
                         </td>

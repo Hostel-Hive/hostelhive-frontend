@@ -135,9 +135,7 @@ it('configures direction and confirms deactivation before mutating', async () =>
     await screen.findByRole('button', { name: 'Deactivate Main gate' }),
   );
   expect(change).toHaveBeenCalledTimes(1);
-  expect(
-    screen.getByText(/Reactivation is not currently supported/),
-  ).toBeInTheDocument();
+  expect(screen.getByText(/An Admin can reactivate it/)).toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'Deactivate device' }));
   await waitFor(() => expect(change).toHaveBeenCalledTimes(2));
 });
@@ -171,7 +169,7 @@ it('clears private device rows on denied refresh and prevents further actions', 
     screen.getByRole('button', { name: /Register device/ }),
   ).toBeDisabled();
 });
-it('paginates with has_more and disables deactivation for inactive devices', async () => {
+it('paginates with has_more and offers reactivation for inactive devices', async () => {
   list
     .mockResolvedValueOnce({ ...scannerPage, has_more: true })
     .mockResolvedValueOnce({
@@ -185,7 +183,92 @@ it('paginates with has_more and disables deactivation for inactive devices', asy
   expect(await screen.findByText('Inactive')).toBeInTheDocument();
   expect(list).toHaveBeenLastCalledWith('admin', 20, expect.any(AbortSignal));
   expect(
-    screen.getByRole('button', { name: 'Deactivate Main gate' }),
-  ).toBeDisabled();
+    screen.getByRole('button', { name: 'Reactivate Main gate' }),
+  ).toBeEnabled();
   expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
 });
+
+it('confirms inactive scanner reactivation and protects the newly issued credential', async () => {
+  list.mockResolvedValue({
+    ...scannerPage,
+    items: [{ ...scanner, is_active: false, direction: null }],
+  });
+  change.mockResolvedValue({ device: scanner, credential: issuedCredential });
+  const { user } = mount();
+  await user.click(
+    await screen.findByRole('button', { name: 'Reactivate Main gate' }),
+  );
+  expect(
+    screen.getByText(/Configure Entry or Exit before submitting scans/),
+  ).toBeInTheDocument();
+  const submit = screen.getByRole('button', { name: 'Reactivate device' });
+  expect(submit).toBeDisabled();
+  expect(change).not.toHaveBeenCalled();
+  await user.click(
+    screen.getByRole('checkbox', { name: /I confirm this scanner/ }),
+  );
+  await user.click(submit);
+  expect(
+    await screen.findByRole('textbox', { name: 'Device credential' }),
+  ).toHaveValue(issuedCredential);
+  expect(change).toHaveBeenCalledWith(
+    'reactivate',
+    'admin',
+    expect.any(AbortSignal),
+    expect.objectContaining({ deviceID: scanner.device_id, confirmed: true }),
+  );
+  expect(screen.getByRole('button', { name: 'Done' })).toBeDisabled();
+  list.mockResolvedValue(scannerPage);
+  await user.click(screen.getByRole('checkbox', { name: /I have saved/ }));
+  await user.click(screen.getByRole('button', { name: 'Done' }));
+  await screen.findByText('Active');
+  expect(
+    screen.queryByRole('button', { name: 'Reactivate Main gate' }),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByDisplayValue(issuedCredential)).not.toBeInTheDocument();
+});
+it.each(['unavailable', 'conflict', 'forbidden'] as const)(
+  'handles reactivation %s without automatically retrying',
+  async (kind) => {
+    list.mockResolvedValue({
+      ...scannerPage,
+      items: [{ ...scanner, is_active: false }],
+    });
+    change.mockRejectedValue(
+      new DeviceError(
+        kind,
+        kind === 'conflict'
+          ? 'This device is already active. Close and refresh the directory.'
+          : 'Access or result unavailable',
+      ),
+    );
+    const { user } = mount();
+    await user.click(
+      await screen.findByRole('button', { name: 'Reactivate Main gate' }),
+    );
+    await user.click(
+      screen.getByRole('checkbox', { name: /I confirm this scanner/ }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Reactivate device' }));
+    await screen.findByRole('alert');
+    expect(change).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole('button', { name: 'Reactivate device' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: 'Device credential' }),
+    ).not.toBeInTheDocument();
+    if (kind === 'forbidden') {
+      expect(screen.queryByText('Main gate')).not.toBeInTheDocument();
+    } else {
+      if (kind === 'unavailable')
+        expect(screen.getByRole('alert')).toHaveTextContent(
+          'use Rotate credential',
+        );
+      await user.click(
+        screen.getByRole('button', { name: 'Close and refresh' }),
+      );
+      await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
+    }
+  },
+);

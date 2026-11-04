@@ -24,7 +24,8 @@ export interface DeviceResult {
   device: ScannerDevice;
   credential?: string;
 }
-export type DeviceAction = 'register' | 'direction' | 'rotate' | 'deactivate';
+export type DeviceAction =
+  'register' | 'direction' | 'rotate' | 'deactivate' | 'reactivate';
 export class DeviceError extends Error {
   constructor(
     public readonly kind:
@@ -63,7 +64,10 @@ function validDevice(value: unknown): value is ScannerDevice {
     uuid(d.updated_by)
   );
 }
-async function read(response: Response): Promise<unknown> {
+async function read(
+  response: Response,
+  action?: DeviceAction,
+): Promise<unknown> {
   if (response.status === 401)
     throw new AuthorizedRequestError(
       'session',
@@ -87,7 +91,9 @@ async function read(response: Response): Promise<unknown> {
   if (response.status === 409)
     throw new DeviceError(
       'conflict',
-      'This device name is already in use, including inactive devices.',
+      action === 'reactivate'
+        ? 'This device is already active. Close and refresh the directory. If you need a new credential, use Rotate credential.'
+        : 'This device name is already in use, including inactive devices.',
     );
   if (!response.ok)
     throw new DeviceError(
@@ -131,7 +137,12 @@ export async function changeDevice(
   action: DeviceAction,
   uid: string,
   signal: AbortSignal,
-  options: { deviceID?: string; name?: string; direction?: string },
+  options: {
+    deviceID?: string;
+    name?: string;
+    direction?: string;
+    confirmed?: boolean;
+  },
 ): Promise<DeviceResult> {
   if (action !== 'register' && !uuid(options.deviceID))
     throw new DeviceError('invalid', 'Select a valid device.');
@@ -145,6 +156,8 @@ export async function changeDevice(
     !['IN', 'OUT'].includes(options.direction ?? '')
   )
     throw new DeviceError('invalid', 'Choose entry or exit.');
+  if (action === 'reactivate' && options.confirmed !== true)
+    throw new DeviceError('invalid', 'Confirm device reactivation first.');
   const suffix =
     action === 'register'
       ? ''
@@ -154,7 +167,9 @@ export async function changeDevice(
       ? { name: options.name!.trim() }
       : action === 'direction'
         ? { direction: options.direction }
-        : undefined;
+        : action === 'reactivate'
+          ? { confirmed: true }
+          : undefined;
   const value = await read(
     await authorizedRequest(`${base}${suffix}`, uid, signal, {
       method: action === 'direction' ? 'PUT' : 'POST',
@@ -162,13 +177,16 @@ export async function changeDevice(
         ? { body: JSON.stringify(payload), contentType: 'application/json' }
         : {}),
     }),
+    action,
   );
-  const issued = action === 'register' || action === 'rotate';
+  const issued =
+    action === 'register' || action === 'rotate' || action === 'reactivate';
   const result = (issued ? value : { device: value }) as DeviceResult | null;
   if (
     !result ||
     !validDevice(result.device) ||
     (action !== 'register' && result.device.device_id !== options.deviceID) ||
+    (action === 'reactivate' && !result.device.is_active) ||
     (issued &&
       (typeof result.credential !== 'string' ||
         !new RegExp(

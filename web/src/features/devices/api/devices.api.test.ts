@@ -26,11 +26,18 @@ it.each([
   ['register', '', 'POST', { name: 'Main gate' }],
   ['direction', `/${scanner.device_id}/direction`, 'PUT', { direction: 'OUT' }],
   ['rotate', `/${scanner.device_id}/rotate-credential`, 'POST', undefined],
+  [
+    'reactivate',
+    `/${scanner.device_id}/reactivate`,
+    'POST',
+    { confirmed: true },
+  ],
   ['deactivate', `/${scanner.device_id}/deactivate`, 'POST', undefined],
 ] as const)(
   'uses the exact %s contract',
   async (action, suffix, method, body) => {
-    const issued = action === 'register' || action === 'rotate';
+    const issued =
+      action === 'register' || action === 'rotate' || action === 'reactivate';
     request.mockResolvedValue(
       Response.json(
         issued ? { device: scanner, credential: issuedCredential } : scanner,
@@ -40,6 +47,7 @@ it.each([
       name: ' Main gate ',
       deviceID: scanner.device_id,
       direction: 'OUT',
+      confirmed: true,
     });
     expect(request).toHaveBeenCalledWith(
       `/api/v1/scanner-devices${suffix}`,
@@ -105,4 +113,41 @@ it('validates names, IDs and directions before sending mutations', async () => {
     changeDevice('rotate', 'admin', signal, { deviceID: '../other' }),
   ).rejects.toMatchObject({ kind: 'invalid' });
   expect(request).not.toHaveBeenCalled();
+});
+
+it('requires confirmation and validates active state and one-time credential on reactivation', async () => {
+  await expect(
+    changeDevice('reactivate', 'admin', signal, {
+      deviceID: scanner.device_id,
+    }),
+  ).rejects.toMatchObject({ kind: 'invalid' });
+  expect(request).not.toHaveBeenCalled();
+  for (const result of [
+    { device: { ...scanner, is_active: false }, credential: issuedCredential },
+    { device: scanner },
+    { device: scanner, credential: 'hhd1.other.secret' },
+  ]) {
+    request.mockResolvedValueOnce(Response.json(result));
+    await expect(
+      changeDevice('reactivate', 'admin', signal, {
+        deviceID: scanner.device_id,
+        confirmed: true,
+      }),
+    ).rejects.toMatchObject({ kind: 'unavailable' });
+  }
+});
+it('explains an already-active conflict without suggesting a duplicate registration', async () => {
+  request.mockResolvedValueOnce(
+    Response.json({ error: 'scanner_already_active' }, { status: 409 }),
+  );
+  await expect(
+    changeDevice('reactivate', 'admin', signal, {
+      deviceID: scanner.device_id,
+      confirmed: true,
+    }),
+  ).rejects.toMatchObject({
+    kind: 'conflict',
+    message: expect.stringContaining('already active'),
+  });
+  expect(request).toHaveBeenCalledTimes(1);
 });
